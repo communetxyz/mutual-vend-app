@@ -4,14 +4,12 @@ import Link from "next/link"
 import MermaidDiagram from "@/components/mermaid-diagram"
 
 const revShareFlowchart = `graph LR
-    A[You Buy a Snack] --> B{Receive Revshare Token}
-    B --> C{Hold Token for 2 Weeks}
-    subgraph "During Your Share Period"
-        D[Other Users Buy Snacks] --> E[Sales Revenue Generated]
-        E --> F[A % of Revenue is Sent to You]
-    end
-    F --> C
-    C --> G[Token Expires]`
+    A[Buy Snack] --> B[Get Token]
+    B --> C[Hold 2 Weeks]
+    C --> D[Others Buy]
+    D --> E[Earn Revenue]
+    E --> C
+    C --> F[Token Expires]`
 
 export default function RevenueSharePage() {
   return (

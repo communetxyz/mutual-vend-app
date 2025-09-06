@@ -7,12 +7,14 @@ import Link from "next/link"
 import MermaidDiagram from "@/components/mermaid-diagram"
 
 const stockingFlowchart = `graph TD
-    A["Stocker wants to add inventory"] --> B{Posts Collateral};
-    B --> C["Adds products to machine"];
-    C --> D{Community Verification via Voting};
-    D -- "Vote: Correct" --> E["Collateral Unlocked + Reward"];
-    D -- "Vote: Incorrect" --> F["Collateral Slashed"];
-    E --> G["Machine is ready for sales"];`
+    A[Stocker Adds Inventory] --> B[Posts Collateral]
+    B --> C[Adds Products]
+    C --> D[Community Votes]
+    D --> E[Correct Vote]
+    D --> F[Incorrect Vote]
+    E --> G[Collateral Unlocked]
+    F --> H[Collateral Slashed]
+    G --> I[Machine Ready]`
 
 export default function MutualVendPage() {
   return (
@@ -42,6 +44,30 @@ export default function MutualVendPage() {
             prefetch={false}
           >
             Revshare
+          </Link>
+          <Link
+            href="/fabrication-research"
+            className="text-sm font-medium hover:underline underline-offset-4"
+            prefetch={false}
+          >
+            Research
+          </Link>
+          <Link
+            href="/liquid-ownership"
+            className="text-sm font-medium hover:underline underline-offset-4"
+            prefetch={false}
+          >
+            Ownership
+          </Link>
+          <Link href="/lottery" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+            Lottery
+          </Link>
+          <Link
+            href="/zk-verification"
+            className="text-sm font-medium hover:underline underline-offset-4"
+            prefetch={false}
+          >
+            ZK Verify
           </Link>
           <Link href="#faq" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
             FAQ
@@ -91,7 +117,7 @@ export default function MutualVendPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 mt-12">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-12 mt-12">
               <Card>
                 <CardHeader>
                   <CardTitle>Arduino Snack Machine</CardTitle>
@@ -126,6 +152,26 @@ export default function MutualVendPage() {
                       rel="noopener noreferrer"
                     >
                       View on Hackster.io
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Modular Coin-Operated Machine</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    A 3D-printed vending machine that accepts physical fiat coins with modular slot configurations.
+                    Features scalable designs for different product sizes and detailed assembly guides.
+                  </p>
+                  <Button asChild variant="outline">
+                    <Link
+                      href="https://makerworld.com/en/models/1520761-coin-operated-vending-machine?from=search#profileId-1678295"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View on MakerWorld
                     </Link>
                   </Button>
                 </CardContent>
