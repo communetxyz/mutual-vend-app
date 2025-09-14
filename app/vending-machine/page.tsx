@@ -1,361 +1,180 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useAccount } from "wagmi"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { WalletConnect } from "@/components/wallet-connect"
 import { ProductGrid } from "@/components/product-grid"
-import { TokenBalance } from "@/components/token-balance"
-import { PurchaseStatus } from "@/components/purchase-status"
-import { PurchaseConfirmationModal } from "@/components/purchase-confirmation-modal"
-import { TransactionHistory } from "@/components/transaction-history"
-import { NetworkStatus } from "@/components/network-status"
-import { ErrorBoundary } from "@/components/error-boundary"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { RefreshCw, AlertTriangle, ExternalLink, Info, CheckCircle, Loader2 } from "lucide-react"
-import { useWallet } from "@/lib/hooks/use-wallet"
-import { useVendingMachine } from "@/lib/hooks/use-vending-machine"
-import { useAppState } from "@/lib/hooks/use-app-state"
-import { VENDING_MACHINE_ADDRESS, NETWORK_NAME, CHAIN_ID } from "@/lib/config"
-import type { Track } from "@/lib/types"
+import { PurchaseModal } from "@/components/purchase-modal"
+import { useVendingMachine } from "@/hooks/use-vending-machine"
+import { usePurchase } from "@/hooks/use-purchase"
+import { SiteNavigation } from "@/components/site-navigation"
+import { Bot, RefreshCw, Wallet, Package } from "lucide-react"
+import { NETWORK_NAME } from "@/lib/web3/config"
+import { toast } from "sonner"
 
 export default function VendingMachinePage() {
-  const [mounted, setMounted] = useState(false)
-  const { isConnected, address, chainId, isCorrectNetwork, walletService } = useWallet()
+  const { isConnected } = useAccount()
+  const { tracks, acceptedTokens, loading, refetchTracks } = useVendingMachine()
   const {
-    tracks,
-    paymentToken,
-    voteTokenAddress,
-    isLoading,
-    error,
-    contractExists,
     purchaseState,
-    recentTransactions,
-    purchaseFromTrack,
-    refreshTokenBalance,
-    refreshData,
-    dismissPurchaseState,
-  } = useVendingMachine(walletService, address)
+    selectTrackAndToken,
+    checkAllowance,
+    approveToken,
+    executePurchase,
+    resetPurchase,
+    isConfirming,
+    isConfirmed,
+    refetchAllowance,
+  } = usePurchase()
 
-  const { appState, selectTrack, updateView } = useAppState()
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [showConfirmation, setShowConfirmation] = useState(false)
-  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false)
 
-  // Handle hydration
+  const handlePurchase = (track: any, token: any) => {
+    selectTrackAndToken(track, token)
+    setShowPurchaseModal(true)
+    refetchAllowance()
+  }
+
+  const handleClosePurchaseModal = () => {
+    setShowPurchaseModal(false)
+    resetPurchase()
+  }
+
+  const handleRefresh = () => {
+    refetchTracks()
+    toast.success("Product data refreshed")
+  }
+
+  // Auto-close modal and refresh on successful purchase
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true)
-    try {
-      await refreshData()
-    } catch (error) {
-      console.error("Refresh failed:", error)
-    } finally {
-      setIsRefreshing(false)
+    if (isConfirmed && purchaseState.txHash) {
+      setTimeout(() => {
+        handleClosePurchaseModal()
+        refetchTracks()
+        toast.success("Purchase successful! Enjoy your snack!")
+      }, 2000)
     }
-  }
-
-  const handleProductSelect = (trackId: number) => {
-    const track = tracks.find((t) => t.trackId === trackId)
-    if (track) {
-      setSelectedTrack(track)
-      setShowConfirmation(true)
-      selectTrack(trackId)
-    }
-  }
-
-  const handlePurchaseConfirm = async () => {
-    if (!selectedTrack) return
-
-    setShowConfirmation(false)
-    updateView("purchasing")
-
-    try {
-      await purchaseFromTrack(selectedTrack.trackId)
-      updateView("transaction-complete")
-    } catch (error) {
-      console.error("Purchase failed:", error)
-      updateView("browsing")
-    }
-  }
-
-  const handlePurchaseCancel = () => {
-    setShowConfirmation(false)
-    setSelectedTrack(null)
-    selectTrack(null)
-    updateView("browsing")
-  }
-
-  // Don't render until mounted to prevent hydration issues
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading Vending Machine...</p>
-        </div>
-      </div>
-    )
-  }
+  }, [isConfirmed, purchaseState.txHash])
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      <SiteNavigation />
+
+      <main className="flex-1 container px-4 md:px-6 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tighter flex items-center gap-2">
+              <Bot className="h-8 w-8" />
               Mutual Vend Machine
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Purchase snacks with crypto and earn vote tokens! Connect your wallet to Gnosis Chain to get started.
+            <p className="text-gray-500 dark:text-gray-400 mt-2">
+              Purchase snacks with crypto and earn rewards on {NETWORK_NAME}
             </p>
-            <div className="mt-4 space-y-1">
-              <div className="text-sm text-gray-500 dark:text-gray-400 font-mono">
-                Contract: {VENDING_MACHINE_ADDRESS}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Network: {NETWORK_NAME} (Chain ID: {CHAIN_ID})
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Explorer:{" "}
-                <a
-                  href="https://gnosisscan.io"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
-                >
-                  Gnosisscan.io
-                </a>
-              </div>
-            </div>
           </div>
-
-          {!isConnected ? (
-            <div className="max-w-md mx-auto">
-              <WalletConnect />
-            </div>
-          ) : !isCorrectNetwork ? (
-            <div className="max-w-md mx-auto">
-              <WalletConnect />
-            </div>
-          ) : (
-            <div className="space-y-8">
-              {/* Multiple Wallet Warning */}
-              {typeof window !== "undefined" && window.ethereum?.providers?.length > 1 && (
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      <div className="font-medium">Multiple Wallets Detected</div>
-                      <div className="text-sm">
-                        We detected multiple wallet extensions. If you experience issues, try disabling other wallet
-                        extensions and keeping only MetaMask enabled.
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Contract Status Alerts */}
-              {contractExists === false && (
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      <div className="font-medium">Contract Not Found on Gnosis Chain</div>
-                      <div>
-                        No vending machine contract found at{" "}
-                        <code className="bg-gray-100 px-1 rounded">{VENDING_MACHINE_ADDRESS}</code> on Gnosis Chain.
-                      </div>
-                      <div className="text-sm">This might be a demo/test contract that hasn't been deployed yet.</div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(`https://gnosisscan.io/address/${VENDING_MACHINE_ADDRESS}`, "_blank")
-                          }
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Check on Gnosisscan
-                        </Button>
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {contractExists === true && (
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      <div className="font-medium">✅ Vending Machine Ready on Gnosis Chain</div>
-                      <div>Successfully connected to vending machine contract on Gnosis Chain.</div>
-                      <div className="text-sm text-green-600 dark:text-green-400">
-                        You can now browse products and make purchases with xDAI or accepted tokens!
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {error && contractExists !== false && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      <div className="font-medium">Gnosis Chain Contract Error</div>
-                      <div>{error}</div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(`https://gnosisscan.io/address/${VENDING_MACHINE_ADDRESS}`, "_blank")
-                          }
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          View on Gnosisscan
-                        </Button>
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Debug Information - Only in development */}
-              {process.env.NODE_ENV === "development" && (
-                <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-                  <CardHeader>
-                    <CardTitle className="text-yellow-700 dark:text-yellow-300">Debug Info</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    <div>Contract Exists: {contractExists?.toString() || "null"}</div>
-                    <div>Is Loading: {isLoading.toString()}</div>
-                    <div>Error: {error || "none"}</div>
-                    <div>Tracks Length: {tracks.length}</div>
-                    <div>
-                      Payment Token: {paymentToken ? `${paymentToken.symbol} (${paymentToken.address})` : "null"}
-                    </div>
-                    <div>Vote Token: {voteTokenAddress || "none"}</div>
-                    <div>User Address: {address || "none"}</div>
-                    <div>Chain ID: {chainId || "none"}</div>
-                    <div>Is Correct Network: {isCorrectNetwork.toString()}</div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Loading State */}
-              {isLoading && contractExists !== false && (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
-                    <h3 className="text-lg font-semibold mb-2">Loading Vending Machine...</h3>
-                    <p className="text-gray-500 dark:text-gray-400">
-                      Connecting to contract on Gnosis Chain and loading product data...
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Main Content - Only show when not loading or when contract exists */}
-              {(!isLoading || contractExists !== null) && (
-                <div className="grid gap-8 lg:grid-cols-4">
-                  {/* Products Section */}
-                  <div className="lg:col-span-3 space-y-6">
-                    {/* Header with refresh */}
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h2 className="text-2xl font-bold">Available Products</h2>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          {contractExists === false
-                            ? "Contract not found on Gnosis Chain"
-                            : contractExists === true
-                              ? `${tracks.length} products available`
-                              : "Loading products from Gnosis Chain..."}
-                        </p>
-                      </div>
-                      <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline">
-                        <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-                        Refresh
-                      </Button>
-                    </div>
-
-                    {/* Product Grid */}
-                    <ProductGrid
-                      tracks={tracks}
-                      paymentToken={paymentToken}
-                      isLoading={isLoading}
-                      onPurchase={handleProductSelect}
-                      purchaseLoading={purchaseState.isLoading}
-                      userBalance={paymentToken?.balance}
-                    />
-                  </div>
-
-                  {/* Sidebar */}
-                  <div className="space-y-6">
-                    {/* Token Balance */}
-                    <TokenBalance
-                      paymentToken={paymentToken}
-                      voteTokenAddress={voteTokenAddress}
-                      onRefresh={refreshTokenBalance}
-                      isRefreshing={isRefreshing}
-                    />
-
-                    {/* Network Status */}
-                    <NetworkStatus isConnected={isConnected} chainId={chainId} contractExists={contractExists} />
-
-                    {/* Transaction History */}
-                    <TransactionHistory transactions={recentTransactions} />
-
-                    {/* Help Card */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>How It Works</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        <div className="space-y-1">
-                          <p>1. 🔗 Connect wallet to Gnosis Chain</p>
-                          <p>2. 💰 Ensure you have payment tokens</p>
-                          <p>3. 🛒 Select a product to purchase</p>
-                          <p>4. ✅ Confirm purchase details</p>
-                          <p>5. 📝 Approve token spending if needed</p>
-                          <p>6. 🎉 Complete purchase & earn vote tokens!</p>
-                        </div>
-                        <div className="pt-2 border-t text-xs text-gray-500 dark:text-gray-400">
-                          Vote tokens let you participate in governance decisions for the vending machine network on
-                          Gnosis Chain.
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Purchase Confirmation Modal */}
-          {showConfirmation && selectedTrack && paymentToken && (
-            <PurchaseConfirmationModal
-              track={selectedTrack}
-              paymentToken={paymentToken}
-              estimatedGas={purchaseState.estimatedGas}
-              gasPrice={purchaseState.gasPrice}
-              onConfirm={handlePurchaseConfirm}
-              onCancel={handlePurchaseCancel}
-              isLoading={purchaseState.isLoading}
-            />
-          )}
-
-          {/* Purchase Status Modal */}
-          <PurchaseStatus purchaseState={purchaseState} onDismiss={dismissPurchaseState} />
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              {NETWORK_NAME} Network
+            </Badge>
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
-      </div>
-    </ErrorBoundary>
+
+        {/* Wallet Connection */}
+        {!isConnected && (
+          <div className="flex justify-center mb-8">
+            <WalletConnect />
+          </div>
+        )}
+
+        {/* Connected Wallet Info */}
+        {isConnected && (
+          <div className="mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  Your Wallet
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {acceptedTokens.map((token) => (
+                    <div
+                      key={token.address}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">{token.symbol}</p>
+                        <p className="text-sm text-gray-500">{token.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono text-sm">
+                          {(Number(token.balance) / Math.pow(10, token.decimals)).toFixed(2)}
+                        </p>
+                        <p className="text-xs text-gray-500">{token.symbol}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <RefreshCw className="h-8 w-8 mx-auto text-gray-400 animate-spin mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">Loading vending machine data...</p>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        {!loading && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Package className="h-6 w-6" />
+                Available Products
+              </h2>
+              <Badge variant="secondary">
+                {tracks.length} {tracks.length === 1 ? "product" : "products"}
+              </Badge>
+            </div>
+
+            <ProductGrid
+              tracks={tracks}
+              acceptedTokens={acceptedTokens}
+              onPurchase={handlePurchase}
+              isConnected={isConnected}
+            />
+          </div>
+        )}
+
+        {/* Purchase Modal */}
+        <PurchaseModal
+          isOpen={showPurchaseModal}
+          onClose={handleClosePurchaseModal}
+          purchaseState={purchaseState}
+          hasAllowance={checkAllowance()}
+          onApprove={approveToken}
+          onPurchase={executePurchase}
+          isConfirming={isConfirming}
+          isConfirmed={isConfirmed}
+        />
+      </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
+      </footer>
+    </div>
   )
 }

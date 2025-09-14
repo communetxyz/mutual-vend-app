@@ -1,0 +1,199 @@
+export const VENDING_MACHINE_ABI = [
+  {
+    type: "constructor",
+    inputs: [
+      {
+        name: "_numTracks",
+        type: "uint8",
+        internalType: "uint8",
+      },
+      {
+        name: "_maxStockPerTrack",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "_voteTokenName",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "_voteTokenSymbol",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "_initialAcceptedTokens",
+        type: "address[]",
+        internalType: "address[]",
+      },
+      {
+        name: "_initialProducts",
+        type: "tuple[]",
+        internalType: "struct IVendingMachine.Product[]",
+        components: [
+          {
+            name: "name",
+            type: "string",
+            internalType: "string",
+          },
+          {
+            name: "imageURI",
+            type: "string",
+            internalType: "string",
+          },
+        ],
+      },
+      {
+        name: "_initialStocks",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+      {
+        name: "_initialPrices",
+        type: "uint256[]",
+        internalType: "uint256[]",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getAllTracks",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct IVendingMachine.Track[]",
+        components: [
+          {
+            name: "trackId",
+            type: "uint8",
+            internalType: "uint8",
+          },
+          {
+            name: "product",
+            type: "tuple",
+            internalType: "struct IVendingMachine.Product",
+            components: [
+              {
+                name: "name",
+                type: "string",
+                internalType: "string",
+              },
+              {
+                name: "imageURI",
+                type: "string",
+                internalType: "string",
+              },
+            ],
+          },
+          {
+            name: "price",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "stock",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getAcceptedTokens",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address[]",
+        internalType: "address[]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "vendFromTrack",
+    inputs: [
+      {
+        name: "trackId",
+        type: "uint8",
+        internalType: "uint8",
+      },
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "recipient",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "voteToken",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract VoteToken",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "ItemVended",
+    inputs: [
+      {
+        name: "trackId",
+        type: "uint8",
+        indexed: true,
+        internalType: "uint8",
+      },
+      {
+        name: "customer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "token",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+      {
+        name: "quantity",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+] as const

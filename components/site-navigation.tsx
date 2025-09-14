@@ -10,7 +10,6 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Button } from "@/components/ui/button"
 import { Bot, Printer, Wrench, PieChart, TrendingUp, Diamond, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -125,16 +124,6 @@ export function SiteNavigation() {
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
-
-          {/* Add the vending machine button after the NavigationMenuItems */}
-          <div className="ml-4">
-            <Button asChild variant="default" size="sm">
-              <Link href="/vending-machine">
-                <Bot className="h-4 w-4 mr-2" />
-                Try Demo
-              </Link>
-            </Button>
-          </div>
         </NavigationMenuList>
       </NavigationMenu>
     </header>
