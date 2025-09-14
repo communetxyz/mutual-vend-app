@@ -191,6 +191,41 @@ export default function VendingMachinePage() {
                 </Alert>
               )}
 
+              {/* Debug Information - Remove in production */}
+              {process.env.NODE_ENV === "development" && (
+                <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+                  <CardHeader>
+                    <CardTitle className="text-yellow-700 dark:text-yellow-300">Debug Info</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div>Contract Exists: {contractExists?.toString() || "null"}</div>
+                    <div>Is Loading: {isLoading.toString()}</div>
+                    <div>Error: {error || "none"}</div>
+                    <div>Tracks Length: {tracks.length}</div>
+                    <div>
+                      Payment Token: {paymentToken ? `${paymentToken.symbol} (${paymentToken.address})` : "null"}
+                    </div>
+                    <div>Vote Token: {voteTokenAddress || "none"}</div>
+                    <div>User Address: {address || "none"}</div>
+                    <div>Chain ID: {chainId || "none"}</div>
+                    <div>Is Correct Network: {isCorrectNetwork.toString()}</div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Loading State */}
+              {isLoading && contractExists !== false && (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
+                    <h3 className="text-lg font-semibold mb-2">Loading Vending Machine...</h3>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Connecting to contract on Gnosis Chain and loading product data...
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Main Content */}
               <div className="grid gap-8 lg:grid-cols-4">
                 {/* Products Section */}
