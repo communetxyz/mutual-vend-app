@@ -60,16 +60,17 @@ export default function VendingMachinePage() {
     toast.success("Inventory data refreshed")
   }
 
-  // Auto-close modal and refresh on successful purchase
+  // Only auto-close modal after successful purchase (not approval)
   useEffect(() => {
-    if (isConfirmed && purchaseState.txHash) {
+    if (isConfirmed && purchaseState.isPurchasing && purchaseState.txHash) {
+      console.log("Purchase confirmed, will close modal in 3 seconds...")
       setTimeout(() => {
         handleClosePurchaseModal()
         refetchTracks()
-        toast.success("Purchase successful! Enjoy your snack!")
-      }, 2000)
+        toast.success("Purchase complete! Your snack has been dispensed!")
+      }, 3000)
     }
-  }, [isConfirmed, purchaseState.txHash])
+  }, [isConfirmed, purchaseState.isPurchasing, purchaseState.txHash])
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">

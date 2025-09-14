@@ -1,6 +1,6 @@
 import { createConfig, http } from "wagmi"
 import { gnosis } from "wagmi/chains"
-import { metaMask, walletConnect, injected } from "wagmi/connectors"
+import { metaMask, walletConnect, injected, coinbaseWallet } from "wagmi/connectors"
 
 export const config = createConfig({
   chains: [gnosis], // Only Gnosis Chain
@@ -13,13 +13,18 @@ export const config = createConfig({
       },
     }),
     walletConnect({
-      projectId: "your-project-id",
+      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "549077143e5bfa40a6c5f280e0b0d13e",
       metadata: {
         name: "Mutual Vend",
-        description: "Decentralized Vending Machine",
+        description: "Decentralized Vending Machine Network",
         url: "https://mutualvend.com",
         icons: ["https://mutualvend.com/icon.png"],
       },
+      showQrModal: true,
+    }),
+    coinbaseWallet({
+      appName: "Mutual Vend",
+      appLogoUrl: "https://mutualvend.com/icon.png",
     }),
   ],
   transports: {

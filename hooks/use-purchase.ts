@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   useAccount,
   useWriteContract,
@@ -79,6 +79,40 @@ export function usePurchase() {
     chainId: gnosis.id, // Force Gnosis Chain
   })
 
+  // Auto-refetch allowance when approval transaction is confirmed
+  useEffect(() => {
+    if (isConfirmed && purchaseState.isApproving) {
+      console.log("Approval confirmed, refetching allowance...")
+      refetchAllowance()
+
+      // Reset approval state but keep modal open
+      setPurchaseState((prev) => ({
+        ...prev,
+        isApproving: false,
+        txHash: null,
+      }))
+
+      toast.success("Token approval confirmed! You can now purchase.")
+    }
+  }, [isConfirmed, purchaseState.isApproving, refetchAllowance])
+
+  // Auto-close modal only after purchase is confirmed
+  useEffect(() => {
+    if (isConfirmed && purchaseState.isPurchasing) {
+      console.log("Purchase confirmed!")
+      toast.success("Purchase successful! Enjoy your snack!")
+
+      // Small delay to show success message
+      setTimeout(() => {
+        setPurchaseState((prev) => ({
+          ...prev,
+          isPurchasing: false,
+          txHash: null,
+        }))
+      }, 2000)
+    }
+  }, [isConfirmed, purchaseState.isPurchasing])
+
   const selectTrackAndToken = async (track: Track, token: TokenInfo) => {
     const networkOk = await ensureCorrectNetwork()
     if (!networkOk) return
@@ -142,7 +176,7 @@ export function usePurchase() {
           onSuccess: (hash) => {
             console.log("Approval transaction hash:", hash)
             setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-            toast.success(`Approval transaction sent! Hash: ${hash.slice(0, 10)}...`)
+            toast.success(`Approval transaction sent! Waiting for confirmation...`)
           },
           onError: (error) => {
             console.error("Approval failed:", error)
@@ -218,7 +252,7 @@ export function usePurchase() {
           onSuccess: (hash) => {
             console.log("Purchase transaction hash:", hash)
             setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-            toast.success(`Purchase transaction sent! Hash: ${hash.slice(0, 10)}...`)
+            toast.success(`Purchase transaction sent! Waiting for confirmation...`)
           },
           onError: (error) => {
             console.error("Purchase failed:", error)
