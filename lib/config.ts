@@ -1,6 +1,6 @@
 // Production configuration for vending machine - GNOSIS CHAIN ONLY
 export const VENDING_MACHINE_ADDRESS =
-  process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS || "0x9be9d9d4d5a2bc9fade4e5a70d9191b3c9c08f6b"
+  process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS || "0xbde69CD8cbA0d15942111e51AF13bf9685FDBC33"
 
 export const GNOSIS_RPC_URL = process.env.NEXT_PUBLIC_GNOSIS_RPC_URL || "https://rpc.gnosischain.com"
 
