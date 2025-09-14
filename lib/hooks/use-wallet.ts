@@ -1,184 +1,125 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { ethers } from "ethers"
-import type { WalletState } from "@/lib/types"
-
-// Hardcoded Gnosis Chain configuration
-const GNOSIS_CHAIN_ID = 100
-const GNOSIS_CHAIN_HEX = "0x64" // 100 in hex
+import { useState, useEffect, useCallback } from "react"
+import { WalletService } from "@/lib/services/wallet-service"
+import { CHAIN_ID } from "@/lib/config"
 
 export function useWallet() {
-  const [walletState, setWalletState] = useState<WalletState>({
-    isConnected: false,
-    address: null,
-    chainId: null,
-    isCorrectNetwork: false,
-  })
+  const [isConnected, setIsConnected] = useState(false)
+  const [address, setAddress] = useState<string | null>(null)
+  const [chainId, setChainId] = useState<number | null>(null)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [isSwitching, setIsSwitching] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [walletService] = useState(() => new WalletService())
 
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null)
-  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null)
+  // Only Gnosis Chain is supported
+  const isCorrectNetwork = chainId === CHAIN_ID
 
-  useEffect(() => {
-    checkConnection()
-
-    if (typeof window !== "undefined" && window.ethereum) {
-      window.ethereum.on("accountsChanged", handleAccountsChanged)
-      window.ethereum.on("chainChanged", handleChainChanged)
-    }
-
-    return () => {
-      if (typeof window !== "undefined" && window.ethereum) {
-        window.ethereum.removeListener("accountsChanged", handleAccountsChanged)
-        window.ethereum.removeListener("chainChanged", handleChainChanged)
-      }
-    }
-  }, [])
-
-  const checkConnection = async () => {
+  const checkConnection = useCallback(async () => {
     if (typeof window === "undefined" || !window.ethereum) return
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      const accounts = await provider.listAccounts()
+      const provider = walletService.getProvider()
+      if (!provider) return
 
+      const accounts = await provider.listAccounts()
       if (accounts.length > 0) {
         const network = await provider.getNetwork()
-        const signer = await provider.getSigner()
-
-        console.log("Current chain ID:", Number(network.chainId), "Expected: 100")
-
-        setProvider(provider)
-        setSigner(signer)
-        setWalletState({
-          isConnected: true,
-          address: accounts[0].address,
-          chainId: Number(network.chainId),
-          isCorrectNetwork: Number(network.chainId) === GNOSIS_CHAIN_ID,
-        })
+        setIsConnected(true)
+        setAddress(accounts[0].address)
+        setChainId(Number(network.chainId))
       }
     } catch (error) {
-      console.error("Error checking wallet connection:", error)
+      console.error("Failed to check wallet connection:", error)
     }
-  }
+  }, [walletService])
 
-  const connectWallet = async () => {
-    if (typeof window === "undefined" || !window.ethereum) {
-      throw new Error("MetaMask is not installed")
-    }
+  const connectWallet = useCallback(async () => {
+    if (isConnecting) return
+
+    setIsConnecting(true)
+    setError(null)
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      await provider.send("eth_requestAccounts", [])
-
-      // Don't immediately check network, let the connection complete first
-      setTimeout(() => {
-        checkConnection()
-      }, 500)
-    } catch (error) {
-      console.error("Error connecting wallet:", error)
-      throw error
+      const { address: walletAddress, chainId: walletChainId } = await walletService.connect()
+      setIsConnected(true)
+      setAddress(walletAddress)
+      setChainId(walletChainId)
+    } catch (error: any) {
+      setError(error.message)
+      console.error("Wallet connection failed:", error)
+    } finally {
+      setIsConnecting(false)
     }
-  }
+  }, [walletService, isConnecting])
 
-  const switchNetwork = async () => {
-    if (typeof window === "undefined" || !window.ethereum) {
-      throw new Error("MetaMask is not available")
-    }
+  const switchNetwork = useCallback(async () => {
+    if (isSwitching) return
+
+    setIsSwitching(true)
+    setError(null)
 
     try {
-      console.log("Switching to Gnosis Chain...")
+      await walletService.switchToGnosisChain()
+      // Network change will be detected by event listener
+    } catch (error: any) {
+      if (error.code !== 4001) {
+        // User didn't reject
+        setError(error.message || "Failed to switch to Gnosis Chain")
+      }
+    } finally {
+      setIsSwitching(false)
+    }
+  }, [walletService, isSwitching])
 
-      // Try to switch to Gnosis Chain
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: GNOSIS_CHAIN_HEX }],
-      })
+  const disconnectWallet = useCallback(() => {
+    walletService.disconnect()
+    setIsConnected(false)
+    setAddress(null)
+    setChainId(null)
+    setError(null)
+  }, [walletService])
 
-      console.log("Switch request sent successfully")
-    } catch (switchError: any) {
-      console.error("Switch error:", switchError)
+  // Set up event listeners
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.ethereum) return
 
-      // If the chain hasn't been added to MetaMask, add it
-      if (switchError.code === 4902) {
-        try {
-          console.log("Adding Gnosis Chain to MetaMask...")
-
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainId: GNOSIS_CHAIN_HEX,
-                chainName: "Gnosis Chain",
-                nativeCurrency: {
-                  name: "xDAI",
-                  symbol: "XDAI",
-                  decimals: 18,
-                },
-                rpcUrls: ["https://rpc.gnosischain.com"],
-                blockExplorerUrls: ["https://gnosisscan.io"],
-              },
-            ],
-          })
-
-          console.log("Gnosis Chain added successfully")
-        } catch (addError: any) {
-          console.error("Error adding network:", addError)
-          throw new Error(`Failed to add Gnosis Chain: ${addError.message || "Unknown error"}`)
-        }
-      } else if (switchError.code === 4001) {
-        // User rejected the request
-        throw new Error("User rejected network switch request")
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        disconnectWallet()
       } else {
-        // Handle other errors
-        throw new Error(`Failed to switch network: ${switchError.message || "Unknown error"}`)
+        setAddress(accounts[0])
       }
     }
-  }
 
-  const disconnectWallet = () => {
-    setProvider(null)
-    setSigner(null)
-    setWalletState({
-      isConnected: false,
-      address: null,
-      chainId: null,
-      isCorrectNetwork: false,
-    })
-  }
-
-  const handleAccountsChanged = (accounts: string[]) => {
-    console.log("Accounts changed:", accounts)
-    if (accounts.length === 0) {
-      disconnectWallet()
-    } else {
-      // Use setTimeout to avoid blocking the main thread
-      setTimeout(() => {
-        checkConnection()
-      }, 100)
+    const handleChainChanged = (chainId: string) => {
+      setChainId(Number.parseInt(chainId, 16))
     }
-  }
 
-  const handleChainChanged = (chainId: string) => {
-    console.log("Chain changed to:", chainId)
-    // Use setTimeout to avoid blocking the main thread
-    setTimeout(() => {
-      checkConnection()
-    }, 100)
-  }
+    window.ethereum.on("accountsChanged", handleAccountsChanged)
+    window.ethereum.on("chainChanged", handleChainChanged)
+
+    // Initial connection check
+    checkConnection()
+
+    return () => {
+      window.ethereum?.removeListener("accountsChanged", handleAccountsChanged)
+      window.ethereum?.removeListener("chainChanged", handleChainChanged)
+    }
+  }, [checkConnection, disconnectWallet])
 
   return {
-    ...walletState,
-    provider,
-    signer,
+    isConnected,
+    address,
+    chainId,
+    isCorrectNetwork,
+    isConnecting,
+    isSwitching,
+    error,
+    walletService,
     connectWallet,
-    disconnectWallet,
     switchNetwork,
-  }
-}
-
-declare global {
-  interface Window {
-    ethereum?: any
+    disconnectWallet,
   }
 }

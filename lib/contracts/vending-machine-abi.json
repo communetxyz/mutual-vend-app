@@ -1,88 +1,328 @@
 [
   {
-    "type": "constructor",
     "inputs": [
-      { "name": "_numTracks", "type": "uint8", "internalType": "uint8" },
-      { "name": "_maxStockPerTrack", "type": "uint256", "internalType": "uint256" },
-      { "name": "_voteTokenName", "type": "string", "internalType": "string" },
-      { "name": "_voteTokenSymbol", "type": "string", "internalType": "string" },
-      { "name": "_initialAcceptedTokens", "type": "address[]", "internalType": "address[]" },
       {
-        "name": "_initialProducts",
-        "type": "tuple[]",
-        "internalType": "struct IVendingMachine.Product[]",
-        "components": [
-          { "name": "name", "type": "string", "internalType": "string" },
-          { "name": "imageURI", "type": "string", "internalType": "string" }
-        ]
-      },
-      { "name": "_initialStocks", "type": "uint256[]", "internalType": "uint256[]" },
-      { "name": "_initialPrices", "type": "uint256[]", "internalType": "uint256[]" }
-    ],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "getAllTracks",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple[]",
-        "internalType": "struct IVendingMachine.Track[]",
-        "components": [
-          { "name": "trackId", "type": "uint8", "internalType": "uint8" },
-          {
-            "name": "product",
-            "type": "tuple",
-            "internalType": "struct IVendingMachine.Product",
-            "components": [
-              { "name": "name", "type": "string", "internalType": "string" },
-              { "name": "imageURI", "type": "string", "internalType": "string" }
-            ]
-          },
-          { "name": "price", "type": "uint256", "internalType": "uint256" },
-          { "name": "stock", "type": "uint256", "internalType": "uint256" }
-        ]
+        "internalType": "address",
+        "name": "_voteToken",
+        "type": "address"
       }
     ],
-    "stateMutability": "view"
+    "stateMutability": "nonpayable",
+    "type": "constructor"
   },
   {
-    "type": "function",
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "TokenAccepted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "TokenRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "trackId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "name": "Purchase",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "acceptToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "acceptedTokens",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAllTracks",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "trackId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "imageURI",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct IVendingMachine.Product",
+            "name": "product",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint256",
+            "name": "price",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "stock",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IVendingMachine.Track[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getAcceptedTokens",
-    "inputs": [],
-    "outputs": [{ "name": "", "type": "address[]", "internalType": "address[]" }],
-    "stateMutability": "view"
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    "type": "function",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "isTokenAccepted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "removeToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "trackId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "imageURI",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stock",
+        "type": "uint256"
+      }
+    ],
+    "name": "setTrack",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "tracks",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "trackId",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "imageURI",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct IVendingMachine.Product",
+        "name": "product",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stock",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "trackId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "paymentToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
     "name": "vendFromTrack",
-    "inputs": [
-      { "name": "trackId", "type": "uint8", "internalType": "uint8" },
-      { "name": "token", "type": "address", "internalType": "address" },
-      { "name": "recipient", "type": "address", "internalType": "address" }
-    ],
-    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-    "stateMutability": "nonpayable"
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    "type": "function",
-    "name": "voteToken",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "address", "internalType": "contract VoteToken" }],
-    "stateMutability": "view"
-  },
-  {
-    "type": "event",
-    "name": "ItemVended",
-    "inputs": [
-      { "name": "trackId", "type": "uint8", "indexed": true, "internalType": "uint8" },
-      { "name": "customer", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "token", "type": "address", "indexed": false, "internalType": "address" },
-      { "name": "quantity", "type": "uint256", "indexed": false, "internalType": "uint256" },
-      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" }
+    "name": "voteToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
-    "anonymous": false
+    "stateMutability": "view",
+    "type": "function"
   }
 ]

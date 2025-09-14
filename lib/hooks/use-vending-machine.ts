@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { ethers } from "ethers"
-import { VENDING_MACHINE_ADDRESS, GNOSIS_RPC_URL } from "@/lib/config"
-import vendingMachineAbi from "@/lib/contracts/vending-machine-abi.json"
-import erc20Abi from "@/lib/contracts/erc20-abi.json"
-import type { Track, Token, PurchaseState } from "@/lib/types"
+import { useState, useEffect, useCallback } from "react"
+import { UI_CONFIG } from "@/lib/config"
+import { ContractService } from "@/lib/services/contract-service"
+import { TransactionMonitor } from "@/lib/services/transaction-monitor"
+import type { WalletService } from "@/lib/services/wallet-service"
+import type { Track, Token, PurchaseState, TransactionStatus } from "@/lib/types"
 
-export function useVendingMachine(signer: ethers.JsonRpcSigner | null, userAddress: string | null) {
+export function useVendingMachine(walletService: WalletService, userAddress: string | null) {
   const [tracks, setTracks] = useState<Track[]>([])
-  const [acceptedTokens, setAcceptedTokens] = useState<Token[]>([])
-  const [voteTokenAddress, setVoteTokenAddress] = useState<string | null>(null)
+  const [paymentToken, setPaymentToken] = useState<Token | null>(null)
+  const [voteTokenAddress, setVoteTokenAddress] = useState<string>("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [contractExists, setContractExists] = useState<boolean | null>(null)
@@ -20,285 +20,189 @@ export function useVendingMachine(signer: ethers.JsonRpcSigner | null, userAddre
     txHash: null,
     step: "idle",
   })
+  const [recentTransactions, setRecentTransactions] = useState<TransactionStatus[]>([])
 
-  // Create read-only provider for contract calls (using Gnosis Chain RPC)
-  const provider = new ethers.JsonRpcProvider(GNOSIS_RPC_URL)
-  const vendingMachineContract = new ethers.Contract(VENDING_MACHINE_ADDRESS, vendingMachineAbi, signer || provider)
+  const [contractService] = useState(() => new ContractService(walletService))
+  const [transactionMonitor] = useState(() => new TransactionMonitor(contractService))
 
-  useEffect(() => {
-    loadContractData()
-  }, [])
+  const loadContractData = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
 
-  useEffect(() => {
-    if (userAddress && acceptedTokens.length > 0) {
-      loadTokenBalances()
-    }
-  }, [userAddress, acceptedTokens])
-
-  const createMockData = () => {
-    const mockTracks: Track[] = [
-      {
-        trackId: 0,
-        product: {
-          name: "Demo Chips (Mock Data)",
-          imageURI: "/crispy-potato-chips.png",
-        },
-        price: BigInt("1000000000000000000"), // 1 xDAI
-        stock: BigInt("5"),
-      },
-      {
-        trackId: 1,
-        product: {
-          name: "Demo Soda (Mock Data)",
-          imageURI: "/assorted-soda-cans.png",
-        },
-        price: BigInt("1500000000000000000"), // 1.5 xDAI
-        stock: BigInt("3"),
-      },
-    ]
-
-    const mockTokens: Token[] = [
-      {
-        address: "0x0000000000000000000000000000000000000000",
-        symbol: "xDAI",
-        decimals: 18,
-        balance: BigInt("10000000000000000000"), // 10 xDAI
-      },
-    ]
-
-    return { mockTracks, mockTokens }
-  }
-
-  const loadContractData = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
+      // Check if contract exists
+      const exists = await contractService.checkContractExists()
+      setContractExists(exists)
 
-      console.log("=== Loading Contract Data ===")
-      console.log("Contract Address:", VENDING_MACHINE_ADDRESS)
-      console.log("Gnosis RPC URL:", GNOSIS_RPC_URL)
-      console.log("=============================")
-
-      // First, check if there's code at the contract address on Gnosis Chain
-      const code = await provider.getCode(VENDING_MACHINE_ADDRESS)
-      console.log("Contract bytecode length:", code.length)
-
-      if (code === "0x") {
-        console.log("No contract found at address, using mock data")
-        setContractExists(false)
-
-        // Use mock data when no contract exists
-        const { mockTracks, mockTokens } = createMockData()
-        setTracks(mockTracks)
-        setAcceptedTokens(mockTokens)
-        setVoteTokenAddress("0x0000000000000000000000000000000000000000")
-
-        setError(`No contract deployed at ${VENDING_MACHINE_ADDRESS} on Gnosis Chain. Showing demo data.`)
+      if (!exists) {
+        setError("Vending machine contract not found at the configured address")
         return
       }
 
-      setContractExists(true)
-      console.log("Contract found! Attempting to load data...")
+      // Load tracks and payment token in parallel
+      const [tracksData, paymentTokenData, voteToken] = await Promise.all([
+        contractService.getAllTracks(),
+        contractService.getPaymentToken(),
+        contractService.getVoteTokenAddress(),
+      ])
 
-      // Try to load real contract data
-      try {
-        console.log("Calling getAllTracks()...")
-        const tracksData = await vendingMachineContract.getAllTracks()
-        console.log("Tracks loaded successfully:", tracksData.length, "tracks")
+      setTracks(tracksData)
+      setPaymentToken(paymentTokenData)
+      setVoteTokenAddress(voteToken)
 
-        const formattedTracks: Track[] = tracksData.map((track: any) => ({
-          trackId: Number(track.trackId),
-          product: {
-            name: track.product.name,
-            imageURI: track.product.imageURI,
-          },
-          price: track.price,
-          stock: track.stock,
-        }))
-        setTracks(formattedTracks)
-      } catch (trackError) {
-        console.error("Failed to load tracks:", trackError)
-        const { mockTracks } = createMockData()
-        setTracks(mockTracks)
-        throw new Error(`Contract found but getAllTracks() failed. Using mock data. Error: ${trackError}`)
+      // Load token balance if user is connected
+      if (userAddress && paymentTokenData) {
+        const balance = await contractService.getTokenBalance(paymentTokenData.address, userAddress)
+        setPaymentToken((prev) => (prev ? { ...prev, balance } : null))
       }
-
-      // Try to load accepted tokens
-      try {
-        console.log("Calling getAcceptedTokens()...")
-        const tokenAddresses = await vendingMachineContract.getAcceptedTokens()
-        console.log("Token addresses loaded:", tokenAddresses)
-
-        const tokenPromises = tokenAddresses.map(async (address: string) => {
-          try {
-            const tokenContract = new ethers.Contract(address, erc20Abi, provider)
-            const [symbol, decimals] = await Promise.all([tokenContract.symbol(), tokenContract.decimals()])
-            return {
-              address,
-              symbol,
-              decimals: Number(decimals),
-              balance: 0n,
-            }
-          } catch (tokenError) {
-            console.error(`Error loading token ${address}:`, tokenError)
-            return {
-              address,
-              symbol: "UNKNOWN",
-              decimals: 18,
-              balance: 0n,
-            }
-          }
-        })
-        const tokens = await Promise.all(tokenPromises)
-        setAcceptedTokens(tokens)
-      } catch (tokenError) {
-        console.error("Failed to load accepted tokens:", tokenError)
-        const { mockTokens } = createMockData()
-        setAcceptedTokens(mockTokens)
-      }
-
-      // Try to load vote token address
-      try {
-        console.log("Calling voteToken()...")
-        const voteToken = await vendingMachineContract.voteToken()
-        console.log("Vote token loaded:", voteToken)
-        setVoteTokenAddress(voteToken)
-      } catch (voteTokenError) {
-        console.error("Failed to load vote token:", voteTokenError)
-        setVoteTokenAddress("0x0000000000000000000000000000000000000000")
-      }
-
-      console.log("Contract data loaded successfully!")
-    } catch (err: any) {
-      console.error("Error loading contract data:", err)
-
-      // Always provide mock data for demonstration, even on error
-      const { mockTracks, mockTokens } = createMockData()
-      setTracks(mockTracks)
-      setAcceptedTokens(mockTokens)
-      setVoteTokenAddress("0x0000000000000000000000000000000000000000")
-
-      setError(err.message || "Failed to load contract data. Showing demo data.")
+    } catch (error: any) {
+      console.error("Failed to load contract data:", error)
+      setError(error.message || "Failed to load vending machine data")
+      setContractExists(false)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [contractService, userAddress])
 
-  const loadTokenBalances = async () => {
-    if (!userAddress || acceptedTokens.length === 0) return
-
-    try {
-      const updatedTokens = await Promise.all(
-        acceptedTokens.map(async (token) => {
-          try {
-            if (token.address === "0x0000000000000000000000000000000000000000") {
-              // Mock token, return mock balance
-              return { ...token, balance: BigInt("10000000000000000000") }
-            }
-            const tokenContract = new ethers.Contract(token.address, erc20Abi, provider)
-            const balance = await tokenContract.balanceOf(userAddress)
-            return { ...token, balance }
-          } catch (err) {
-            console.error(`Error loading balance for ${token.symbol}:`, err)
-            return { ...token, balance: 0n }
-          }
-        }),
-      )
-      setAcceptedTokens(updatedTokens)
-    } catch (err) {
-      console.error("Error loading token balances:", err)
-    }
-  }
-
-  const checkTokenAllowance = async (tokenAddress: string): Promise<bigint> => {
-    if (!signer || !userAddress) return 0n
+  const refreshTokenBalance = useCallback(async () => {
+    if (!userAddress || !paymentToken) return
 
     try {
-      const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer)
-      const allowance = await tokenContract.allowance(userAddress, VENDING_MACHINE_ADDRESS)
-      return allowance
-    } catch (err) {
-      console.error("Error checking allowance:", err)
-      return 0n
+      const balance = await contractService.getTokenBalance(paymentToken.address, userAddress)
+      setPaymentToken((prev) => (prev ? { ...prev, balance } : null))
+    } catch (error) {
+      console.error("Failed to refresh token balance:", error)
     }
-  }
+  }, [contractService, userAddress, paymentToken])
 
-  const approveToken = async (tokenAddress: string, amount: bigint): Promise<string> => {
-    if (!signer) throw new Error("No signer available")
-
-    const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer)
-    const tx = await tokenContract.approve(VENDING_MACHINE_ADDRESS, amount)
-    return tx.hash
-  }
-
-  const purchaseFromTrack = async (trackId: number, tokenAddress: string): Promise<string> => {
-    if (!signer || !userAddress) throw new Error("Wallet not connected")
-
-    // If using mock data, simulate a purchase
-    if (!contractExists || tokenAddress === "0x0000000000000000000000000000000000000000") {
-      throw new Error("This is demo data. To make real purchases, deploy a vending machine contract to Gnosis Chain.")
-    }
-
-    const track = tracks.find((t) => t.trackId === trackId)
-    if (!track) throw new Error("Track not found")
-
-    setPurchaseState({ isLoading: true, error: null, txHash: null, step: "checking-allowance" })
-
-    try {
-      // Check allowance
-      const allowance = await checkTokenAllowance(tokenAddress)
-
-      if (allowance < track.price) {
-        setPurchaseState((prev) => ({ ...prev, step: "approving" }))
-
-        // Request approval
-        const approveTxHash = await approveToken(tokenAddress, track.price)
-
-        // Wait for approval
-        await provider.waitForTransaction(approveTxHash)
+  const purchaseFromTrack = useCallback(
+    async (trackId: number): Promise<void> => {
+      if (!userAddress || !paymentToken) {
+        throw new Error("Wallet not connected")
       }
 
-      setPurchaseState((prev) => ({ ...prev, step: "purchasing" }))
+      const track = tracks.find((t) => t.trackId === trackId)
+      if (!track) {
+        throw new Error("Product not found")
+      }
 
-      // Execute purchase
-      const tx = await vendingMachineContract.vendFromTrack(trackId, tokenAddress, userAddress)
+      if (track.stock <= 0) {
+        throw new Error("Product out of stock")
+      }
 
-      setPurchaseState((prev) => ({ ...prev, txHash: tx.hash, step: "success" }))
+      if (paymentToken.balance < track.price) {
+        throw new Error(`Insufficient balance. Need ${track.price.toString()} ${paymentToken.symbol}`)
+      }
 
-      // Wait for transaction and refresh data
-      await tx.wait()
-      await loadContractData()
-      await loadTokenBalances()
+      setPurchaseState({
+        isLoading: true,
+        error: null,
+        txHash: null,
+        step: "checking-allowance",
+      })
 
-      return tx.hash
-    } catch (err: any) {
-      console.error("Purchase error:", err)
-      const errorMessage = err.reason || err.message || "Purchase failed"
-      setPurchaseState({ isLoading: false, error: errorMessage, txHash: null, step: "error" })
-      throw new Error(errorMessage)
-    } finally {
-      setTimeout(() => {
-        setPurchaseState({ isLoading: false, error: null, txHash: null, step: "idle" })
-      }, 5000)
-    }
-  }
+      try {
+        // Check token allowance
+        const allowance = await contractService.getTokenAllowance(paymentToken.address, userAddress)
 
-  const refreshData = async () => {
-    await loadContractData()
-    if (userAddress) {
-      await loadTokenBalances()
-    }
-  }
+        if (allowance < track.price) {
+          setPurchaseState((prev) => ({ ...prev, step: "approving" }))
+
+          // Request token approval
+          const approveTxHash = await contractService.approveToken(paymentToken.address, track.price)
+
+          // Wait for approval
+          await contractService.waitForTransaction(approveTxHash)
+        }
+
+        setPurchaseState((prev) => ({ ...prev, step: "purchasing" }))
+
+        // Execute purchase
+        const purchaseTxHash = await contractService.purchaseFromTrack(trackId, paymentToken.address, userAddress)
+
+        setPurchaseState({
+          isLoading: false,
+          error: null,
+          txHash: purchaseTxHash,
+          step: "success",
+        })
+
+        // Monitor transaction
+        transactionMonitor.watchTransaction(purchaseTxHash, trackId, track.price.toString(), (status) => {
+          setRecentTransactions((prev) => {
+            const updated = prev.filter((tx) => tx.hash !== status.hash)
+            return [status, ...updated].slice(0, UI_CONFIG.maxTransactionHistory)
+          })
+
+          if (status.status === "confirmed") {
+            // Refresh data after successful purchase
+            loadContractData()
+          }
+        })
+
+        // Add to recent transactions
+        setRecentTransactions((prev) =>
+          [
+            {
+              hash: purchaseTxHash,
+              status: "pending",
+              timestamp: Date.now(),
+              trackId,
+              amount: track.price.toString(),
+            },
+            ...prev,
+          ].slice(0, UI_CONFIG.maxTransactionHistory),
+        )
+      } catch (error: any) {
+        console.error("Purchase failed:", error)
+        setPurchaseState({
+          isLoading: false,
+          error: error.message || "Purchase failed",
+          txHash: null,
+          step: "error",
+        })
+      }
+    },
+    [userAddress, paymentToken, tracks, contractService, transactionMonitor, loadContractData],
+  )
+
+  const dismissPurchaseState = useCallback(() => {
+    setPurchaseState({
+      isLoading: false,
+      error: null,
+      txHash: null,
+      step: "idle",
+    })
+  }, [])
+
+  // Load data on mount and when user changes
+  useEffect(() => {
+    loadContractData()
+  }, [loadContractData])
+
+  // Set up periodic refresh
+  useEffect(() => {
+    if (!contractExists) return
+
+    const interval = setInterval(() => {
+      loadContractData()
+    }, UI_CONFIG.refreshInterval)
+
+    return () => clearInterval(interval)
+  }, [contractExists, loadContractData])
 
   return {
     tracks,
-    acceptedTokens,
+    paymentToken,
     voteTokenAddress,
     isLoading,
     error,
     contractExists,
     purchaseState,
+    recentTransactions,
     purchaseFromTrack,
-    refreshData,
+    refreshTokenBalance,
+    refreshData: loadContractData,
+    dismissPurchaseState,
   }
 }

@@ -1,35 +1,51 @@
-// Use environment variables with proper fallbacks
+// Production configuration for vending machine - GNOSIS CHAIN ONLY
 export const VENDING_MACHINE_ADDRESS =
-  process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS || "0xbC6801c96d6Ce3935C070087f0bc05E70231ACc6"
+  process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS || "0xbde69CD8cbA0d15942111e51AF13bf9685FDBC33"
+
 export const GNOSIS_RPC_URL = process.env.NEXT_PUBLIC_GNOSIS_RPC_URL || "https://rpc.gnosischain.com"
-export const CHAIN_ID = Number.parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "100")
-export const NETWORK_NAME = process.env.NEXT_PUBLIC_NETWORK_NAME || "Gnosis Chain"
 
-export const GNOSIS_CHAIN = {
-  id: 100,
-  name: "Gnosis Chain",
-  network: "gnosis",
+export const CHAIN_ID = 100 // Gnosis Chain only
+export const NETWORK_NAME = "Gnosis Chain"
+
+// Fallback RPC URLs for Gnosis Chain redundancy
+export const FALLBACK_RPC_URLS = [
+  "https://rpc.gnosischain.com",
+  "https://gnosis-mainnet.public.blastapi.io",
+  "https://gnosis.blockpi.network/v1/rpc/public",
+  "https://rpc.ankr.com/gnosis",
+]
+
+export const GNOSIS_CHAIN_CONFIG = {
+  chainId: CHAIN_ID,
+  chainName: NETWORK_NAME,
   nativeCurrency: {
-    decimals: 18,
     name: "xDAI",
-    symbol: "XDAI",
+    symbol: "xDAI",
+    decimals: 18,
   },
-  rpcUrls: {
-    default: { http: ["https://rpc.gnosischain.com"] },
-    public: { http: ["https://rpc.gnosischain.com"] },
-  },
-  blockExplorers: {
-    default: { name: "Gnosisscan", url: "https://gnosisscan.io" },
-  },
-  testnet: false,
+  rpcUrls: [GNOSIS_RPC_URL, ...FALLBACK_RPC_URLS],
+  blockExplorerUrls: ["https://gnosisscan.io"],
 }
 
-// Debug logging to verify configuration
-if (typeof window !== "undefined") {
-  console.log("=== Gnosis Chain Configuration ===")
-  console.log("Contract Address:", VENDING_MACHINE_ADDRESS)
-  console.log("RPC URL:", GNOSIS_RPC_URL)
-  console.log("Chain ID:", CHAIN_ID)
-  console.log("Network Name:", NETWORK_NAME)
-  console.log("==================================")
+// Contract interaction settings
+export const CONTRACT_SETTINGS = {
+  gasLimitMultiplier: 1.2, // 20% buffer for gas estimation
+  maxRetries: 3,
+  retryDelay: 2000, // 2 seconds
+  transactionTimeout: 300000, // 5 minutes
 }
+
+// UI Configuration
+export const UI_CONFIG = {
+  refreshInterval: 30000, // 30 seconds
+  transactionPollingInterval: 2000, // 2 seconds
+  maxTransactionHistory: 50,
+  priceDisplayDecimals: 4,
+}
+
+console.log("=== Gnosis Chain Vending Machine ===")
+console.log("Contract Address:", VENDING_MACHINE_ADDRESS)
+console.log("Network:", NETWORK_NAME, `(${CHAIN_ID})`)
+console.log("RPC URL:", GNOSIS_RPC_URL)
+console.log("Block Explorer: https://gnosisscan.io")
+console.log("====================================")
