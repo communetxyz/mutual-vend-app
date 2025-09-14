@@ -10,7 +10,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Bot, Printer, Wrench, PieChart, TrendingUp, Diamond, Shield } from "lucide-react"
+import { Bot, Printer, Wrench, PieChart, TrendingUp, Diamond, Shield, ShoppingCart } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
@@ -126,6 +126,14 @@ export function SiteNavigation() {
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
+      <div className="ml-4">
+        <Link href="/vending-machine">
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Buy Now
+          </button>
+        </Link>
+      </div>
     </header>
   )
 }
