@@ -6,12 +6,24 @@ export class WalletService {
   private signer: ethers.JsonRpcSigner | null = null
 
   async connect(): Promise<{ address: string; chainId: number }> {
-    if (typeof window === "undefined" || !window.ethereum) {
-      throw new Error("MetaMask not found. Please install MetaMask to continue.")
+    if (typeof window === "undefined") {
+      throw new Error("Window not available")
+    }
+
+    // Handle multiple wallet extensions
+    let ethereum = window.ethereum
+
+    // If multiple wallets, try to use MetaMask specifically
+    if (window.ethereum?.providers?.length > 0) {
+      ethereum = window.ethereum.providers.find((provider: any) => provider.isMetaMask) || window.ethereum.providers[0]
+    }
+
+    if (!ethereum) {
+      throw new Error("No Ethereum wallet found. Please install MetaMask.")
     }
 
     try {
-      this.provider = new ethers.BrowserProvider(window.ethereum)
+      this.provider = new ethers.BrowserProvider(ethereum)
 
       // Request account access
       await this.provider.send("eth_requestAccounts", [])
@@ -32,20 +44,31 @@ export class WalletService {
   }
 
   async switchToGnosisChain(): Promise<void> {
-    if (!window.ethereum) {
+    if (typeof window === "undefined") {
+      throw new Error("Window not available")
+    }
+
+    let ethereum = window.ethereum
+
+    // Handle multiple wallet extensions
+    if (window.ethereum?.providers?.length > 0) {
+      ethereum = window.ethereum.providers.find((provider: any) => provider.isMetaMask) || window.ethereum.providers[0]
+    }
+
+    if (!ethereum) {
       throw new Error("MetaMask not available")
     }
 
     try {
       // Try to switch to Gnosis Chain
-      await window.ethereum.request({
+      await ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: `0x${CHAIN_ID.toString(16)}` }], // 0x64 for chain ID 100
       })
     } catch (switchError: any) {
       // If chain doesn't exist, add it
       if (switchError.code === 4902) {
-        await window.ethereum.request({
+        await ethereum.request({
           method: "wallet_addEthereumChain",
           params: [
             {

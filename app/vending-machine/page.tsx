@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { WalletConnect } from "@/components/wallet-connect"
 import { ProductGrid } from "@/components/product-grid"
 import { TokenBalance } from "@/components/token-balance"
@@ -12,7 +12,7 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { RefreshCw, AlertTriangle, ExternalLink, Info, CheckCircle } from "lucide-react"
+import { RefreshCw, AlertTriangle, ExternalLink, Info, CheckCircle, Loader2 } from "lucide-react"
 import { useWallet } from "@/lib/hooks/use-wallet"
 import { useVendingMachine } from "@/lib/hooks/use-vending-machine"
 import { useAppState } from "@/lib/hooks/use-app-state"
@@ -20,6 +20,7 @@ import { VENDING_MACHINE_ADDRESS, NETWORK_NAME, CHAIN_ID } from "@/lib/config"
 import type { Track } from "@/lib/types"
 
 export default function VendingMachinePage() {
+  const [mounted, setMounted] = useState(false)
   const { isConnected, address, chainId, isCorrectNetwork, walletService } = useWallet()
   const {
     tracks,
@@ -41,10 +42,20 @@ export default function VendingMachinePage() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
 
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    await refreshData()
-    setIsRefreshing(false)
+    try {
+      await refreshData()
+    } catch (error) {
+      console.error("Refresh failed:", error)
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   const handleProductSelect = (trackId: number) => {
@@ -76,6 +87,18 @@ export default function VendingMachinePage() {
     setSelectedTrack(null)
     selectTrack(null)
     updateView("browsing")
+  }
+
+  // Don't render until mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Loading Vending Machine...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -121,6 +144,22 @@ export default function VendingMachinePage() {
             </div>
           ) : (
             <div className="space-y-8">
+              {/* Multiple Wallet Warning */}
+              {typeof window !== "undefined" && window.ethereum?.providers?.length > 1 && (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <div className="font-medium">Multiple Wallets Detected</div>
+                      <div className="text-sm">
+                        We detected multiple wallet extensions. If you experience issues, try disabling other wallet
+                        extensions and keeping only MetaMask enabled.
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Contract Status Alerts */}
               {contractExists === false && (
                 <Alert>
@@ -132,9 +171,7 @@ export default function VendingMachinePage() {
                         No vending machine contract found at{" "}
                         <code className="bg-gray-100 px-1 rounded">{VENDING_MACHINE_ADDRESS}</code> on Gnosis Chain.
                       </div>
-                      <div className="text-sm">
-                        Please check the contract address or deploy a new vending machine contract to Gnosis Chain.
-                      </div>
+                      <div className="text-sm">This might be a demo/test contract that hasn't been deployed yet.</div>
                       <div className="flex items-center gap-2 text-sm">
                         <Button
                           variant="outline"
@@ -191,7 +228,7 @@ export default function VendingMachinePage() {
                 </Alert>
               )}
 
-              {/* Debug Information - Remove in production */}
+              {/* Debug Information - Only in development */}
               {process.env.NODE_ENV === "development" && (
                 <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
                   <CardHeader>
@@ -226,77 +263,79 @@ export default function VendingMachinePage() {
                 </Card>
               )}
 
-              {/* Main Content */}
-              <div className="grid gap-8 lg:grid-cols-4">
-                {/* Products Section */}
-                <div className="lg:col-span-3 space-y-6">
-                  {/* Header with refresh */}
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-2xl font-bold">Available Products</h2>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {contractExists === false
-                          ? "Contract not found on Gnosis Chain"
-                          : contractExists === true
-                            ? `${tracks.length} products available`
-                            : "Loading products from Gnosis Chain..."}
-                      </p>
+              {/* Main Content - Only show when not loading or when contract exists */}
+              {(!isLoading || contractExists !== null) && (
+                <div className="grid gap-8 lg:grid-cols-4">
+                  {/* Products Section */}
+                  <div className="lg:col-span-3 space-y-6">
+                    {/* Header with refresh */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h2 className="text-2xl font-bold">Available Products</h2>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {contractExists === false
+                            ? "Contract not found on Gnosis Chain"
+                            : contractExists === true
+                              ? `${tracks.length} products available`
+                              : "Loading products from Gnosis Chain..."}
+                        </p>
+                      </div>
+                      <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline">
+                        <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+                        Refresh
+                      </Button>
                     </div>
-                    <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline">
-                      <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-                      Refresh
-                    </Button>
+
+                    {/* Product Grid */}
+                    <ProductGrid
+                      tracks={tracks}
+                      paymentToken={paymentToken}
+                      isLoading={isLoading}
+                      onPurchase={handleProductSelect}
+                      purchaseLoading={purchaseState.isLoading}
+                      userBalance={paymentToken?.balance}
+                    />
                   </div>
 
-                  {/* Product Grid */}
-                  <ProductGrid
-                    tracks={tracks}
-                    paymentToken={paymentToken}
-                    isLoading={isLoading}
-                    onPurchase={handleProductSelect}
-                    purchaseLoading={purchaseState.isLoading}
-                    userBalance={paymentToken?.balance}
-                  />
+                  {/* Sidebar */}
+                  <div className="space-y-6">
+                    {/* Token Balance */}
+                    <TokenBalance
+                      paymentToken={paymentToken}
+                      voteTokenAddress={voteTokenAddress}
+                      onRefresh={refreshTokenBalance}
+                      isRefreshing={isRefreshing}
+                    />
+
+                    {/* Network Status */}
+                    <NetworkStatus isConnected={isConnected} chainId={chainId} contractExists={contractExists} />
+
+                    {/* Transaction History */}
+                    <TransactionHistory transactions={recentTransactions} />
+
+                    {/* Help Card */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>How It Works</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="space-y-1">
+                          <p>1. 🔗 Connect wallet to Gnosis Chain</p>
+                          <p>2. 💰 Ensure you have payment tokens</p>
+                          <p>3. 🛒 Select a product to purchase</p>
+                          <p>4. ✅ Confirm purchase details</p>
+                          <p>5. 📝 Approve token spending if needed</p>
+                          <p>6. 🎉 Complete purchase & earn vote tokens!</p>
+                        </div>
+                        <div className="pt-2 border-t text-xs text-gray-500 dark:text-gray-400">
+                          Vote tokens let you participate in governance decisions for the vending machine network on
+                          Gnosis Chain.
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
-
-                {/* Sidebar */}
-                <div className="space-y-6">
-                  {/* Token Balance */}
-                  <TokenBalance
-                    paymentToken={paymentToken}
-                    voteTokenAddress={voteTokenAddress}
-                    onRefresh={refreshTokenBalance}
-                    isRefreshing={isRefreshing}
-                  />
-
-                  {/* Network Status */}
-                  <NetworkStatus isConnected={isConnected} chainId={chainId} contractExists={contractExists} />
-
-                  {/* Transaction History */}
-                  <TransactionHistory transactions={recentTransactions} />
-
-                  {/* Help Card */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>How It Works</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                      <div className="space-y-1">
-                        <p>1. 🔗 Connect wallet to Gnosis Chain</p>
-                        <p>2. 💰 Ensure you have payment tokens</p>
-                        <p>3. 🛒 Select a product to purchase</p>
-                        <p>4. ✅ Confirm purchase details</p>
-                        <p>5. 📝 Approve token spending if needed</p>
-                        <p>6. 🎉 Complete purchase & earn vote tokens!</p>
-                      </div>
-                      <div className="pt-2 border-t text-xs text-gray-500 dark:text-gray-400">
-                        Vote tokens let you participate in governance decisions for the vending machine network on
-                        Gnosis Chain.
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
