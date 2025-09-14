@@ -1,79 +1,50 @@
+import { cn } from "@/lib/utils"
+import { NavigationMenuLink } from "@/components/ui/navigation-menu"
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
-import { Printer, PackageCheck, Diamond, PieChart, Users, Bot, Download } from "lucide-react"
+import { Printer, PackageCheck, Diamond, PieChart, Users, Download } from "lucide-react"
 import Link from "next/link"
 import MermaidDiagram from "@/components/mermaid-diagram"
+import { SiteNavigation } from "@/components/site-navigation"
 
 const stockingFlowchart = `graph TD
-    A[Stocker Adds Inventory] --> B[Posts Collateral]
-    B --> C[Adds Products]
-    C --> D[Community Votes]
-    D --> E[Correct Vote]
-    D --> F[Incorrect Vote]
-    E --> G[Collateral Unlocked]
-    F --> H[Collateral Slashed]
-    G --> I[Machine Ready]`
+    A["Stocker wants to add inventory"] --> B{Posts Collateral};
+    B --> C["Adds products to machine"];
+    C --> D{Community Verification via Voting};
+    D -- "Vote: Correct" --> E["Collateral Unlocked + Reward"];
+    D -- "Vote: Incorrect" --> F["Collateral Slashed"];
+    E --> G["Machine is ready for sales"];`
+
+const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
+  ({ className, title, children, ...props }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink asChild>
+          <a
+            ref={ref}
+            className={cn(
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+              className,
+            )}
+            {...props}
+          >
+            <div className="text-sm font-medium leading-none">{title}</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">{children}</p>
+          </a>
+        </NavigationMenuLink>
+      </li>
+    )
+  },
+)
+ListItem.displayName = "ListItem"
 
 export default function MutualVendPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
-        <Link href="#" className="flex items-center justify-center" prefetch={false}>
-          <Bot className="h-6 w-6" />
-          <span className="ml-2 text-lg font-bold">Mutual Vend</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link
-            href="#how-it-works"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            How It Works
-          </Link>
-          <Link href="#features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Features
-          </Link>
-          <Link href="#blueprints" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Blueprints
-          </Link>
-          <Link
-            href="/revenue-share"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Revshare
-          </Link>
-          <Link
-            href="/fabrication-research"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Research
-          </Link>
-          <Link
-            href="/liquid-ownership"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Ownership
-          </Link>
-          <Link href="/lottery" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Lottery
-          </Link>
-          <Link
-            href="/zk-verification"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            ZK Verify
-          </Link>
-          <Link href="#faq" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            FAQ
-          </Link>
-        </nav>
-      </header>
+      <SiteNavigation />
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
           <div className="container px-4 md:px-6">
@@ -345,17 +316,17 @@ export default function MutualVendPage() {
                 <AccordionItem value="item-3">
                   <AccordionTrigger>What cryptocurrencies can I use?</AccordionTrigger>
                   <AccordionContent>
-                    The network's native token is $BREAD, used for governance and rewards. While the network will
-                    initially support popular stablecoins for price stability, the community can vote to add support for
-                    any cryptocurrency they choose.
+                    The network primarily uses stablecoins like USDC and USDT for price stability and ease of use. The
+                    network's native token is $BREAD, used for governance and rewards. The community can vote to add
+                    support for additional stablecoins they choose.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-4">
                   <AccordionTrigger>How do I become a stocker or verifier?</AccordionTrigger>
                   <AccordionContent>
-                    To become a stocker, you need to stake collateral in a smart contract. This collateral acts as a
-                    security deposit. Verifiers are randomly selected token holders who can vote on whether a machine
-                    has been stocked correctly. Verifiers earn a small fee for participating.
+                    To become a stocker, you need to stake stablecoin collateral in a smart contract. This collateral
+                    acts as a security deposit. Verifiers are randomly selected token holders who can vote on whether a
+                    machine has been stocked correctly. Verifiers earn a small fee for participating.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

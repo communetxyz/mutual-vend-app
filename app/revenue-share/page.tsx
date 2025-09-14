@@ -1,47 +1,46 @@
+import { cn } from "@/lib/utils"
+import React from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Bot, ShoppingCart, Coins, Clock, Wallet } from "lucide-react"
+import { ShoppingCart, Coins, Clock, Wallet } from "lucide-react"
 import Link from "next/link"
 import MermaidDiagram from "@/components/mermaid-diagram"
+import { SiteNavigation } from "@/components/site-navigation"
+
+const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
+  ({ className, title, children, ...props }, ref) => {
+    return (
+      <li>
+        <Link
+          href={props.href}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className,
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">{children}</p>
+        </Link>
+      </li>
+    )
+  },
+)
+ListItem.displayName = "ListItem"
 
 const revShareFlowchart = `graph LR
-    A[Buy Snack] --> B[Get Token]
-    B --> C[Hold 2 Weeks]
-    C --> D[Others Buy]
-    D --> E[Earn Revenue]
-    E --> C
-    C --> F[Token Expires]`
+    A[You Buy a Snack] --> B{Receive Revshare Token}
+    B --> C{Hold Token for 2 Weeks}
+    subgraph "During Your Share Period"
+        D[Other Users Buy Snacks] --> E[Sales Revenue Generated]
+        E --> F[A % of Revenue is Sent to You]
+    end
+    F --> C
+    C --> G[Token Expires]`
 
 export default function RevenueSharePage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
-        <Link href="/" className="flex items-center justify-center" prefetch={false}>
-          <Bot className="h-6 w-6" />
-          <span className="ml-2 text-lg font-bold">Mutual Vend</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link
-            href="/#how-it-works"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            How It Works
-          </Link>
-          <Link href="/#features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Features
-          </Link>
-          <Link
-            href="/#blueprints"
-            className="text-sm font--medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Blueprints
-          </Link>
-          <Link href="/#faq" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            FAQ
-          </Link>
-        </nav>
-      </header>
+      <SiteNavigation />
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6 text-center">
@@ -72,7 +71,7 @@ export default function RevenueSharePage() {
                 </div>
                 <h3 className="text-lg font-bold">1. Make a Purchase</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Buy any item from a Mutual Vend machine using your preferred crypto.
+                  Buy any item from a Mutual Vend machine using stablecoins like USDC or USDT.
                 </p>
               </div>
               <div className="grid gap-1 text-center">
@@ -99,7 +98,7 @@ export default function RevenueSharePage() {
                 </div>
                 <h3 className="text-lg font-bold">4. Get Paid</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Your earnings are automatically streamed to your wallet in real-time.
+                  Your earnings are automatically streamed to your wallet in stablecoins.
                 </p>
               </div>
             </div>

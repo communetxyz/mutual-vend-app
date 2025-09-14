@@ -1,23 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bot, Ticket, Trophy, Coins, ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { Ticket, Trophy, Coins } from "lucide-react"
+import { SiteNavigation } from "@/components/site-navigation"
 
 export default function LotteryPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
-        <Link href="/" className="flex items-center justify-center" prefetch={false}>
-          <Bot className="h-6 w-6" />
-          <span className="ml-2 text-lg font-bold">Mutual Vend</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="/" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            <ArrowLeft className="h-4 w-4 inline mr-1" />
-            Back to Home
-          </Link>
-        </nav>
-      </header>
+      <SiteNavigation />
 
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32">
