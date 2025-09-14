@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useAccount, useChainId, useConnectorClient } from "wagmi"
 import { gnosis } from "wagmi/chains"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -11,11 +10,10 @@ import { WalletConnect } from "@/components/wallet-connect"
 import { ProductGrid } from "@/components/product-grid"
 import { PurchaseModal } from "@/components/purchase-modal"
 import { NetworkChecker } from "@/components/network-checker"
-import { MachineStats } from "@/components/machine-stats"
 import { useVendingMachine } from "@/hooks/use-vending-machine"
 import { usePurchase } from "@/hooks/use-purchase"
 import { SiteNavigation } from "@/components/site-navigation"
-import { Bot, RefreshCw, Wallet, Package, AlertTriangle, AlertCircle, Zap } from "lucide-react"
+import { Bot, RefreshCw, Package, AlertTriangle, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 
 export default function VendingMachinePage() {
@@ -102,30 +100,6 @@ export default function VendingMachinePage() {
           </div>
         </div>
 
-        {/* Debug Info */}
-        {isConnected && (
-          <Alert className="mb-6 border-blue-200 dark:border-blue-800">
-            <Zap className="h-4 w-4" />
-            <AlertDescription>
-              <div className="text-sm space-y-1">
-                <div>
-                  <strong>Wagmi Chain ID:</strong> {chainId}
-                </div>
-                <div>
-                  <strong>Connector Chain ID:</strong> {connectorChainId || "Unknown"}
-                </div>
-                <div>
-                  <strong>Target Chain ID:</strong> {gnosis.id} (Gnosis)
-                </div>
-                <div>
-                  <strong>Status:</strong>{" "}
-                  {isCorrectNetwork && connectorOnCorrectNetwork ? "✅ Ready" : "❌ Network mismatch"}
-                </div>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Error Display */}
         {error && (
           <Alert className="mb-8 border-red-200 dark:border-red-800">
@@ -145,51 +119,6 @@ export default function VendingMachinePage() {
         {!isConnected && (
           <div className="flex justify-center mb-8">
             <WalletConnect />
-          </div>
-        )}
-
-        {/* Machine Statistics */}
-        {isConnected && isCorrectNetwork && connectorOnCorrectNetwork && !loading && !error && (
-          <MachineStats
-            tracks={tracks}
-            acceptedTokens={acceptedTokens}
-            machineInfo={machineInfo}
-            voteTokenAddress={voteTokenAddress}
-          />
-        )}
-
-        {/* Connected Wallet Info */}
-        {isConnected && isCorrectNetwork && connectorOnCorrectNetwork && acceptedTokens.length > 0 && (
-          <div className="mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5" />
-                  Your Wallet on Gnosis Chain
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {acceptedTokens.map((token) => (
-                    <div
-                      key={token.address}
-                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{token.symbol}</p>
-                        <p className="text-sm text-gray-500">{token.name}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-mono text-sm">
-                          {(Number(token.balance) / Math.pow(10, token.decimals)).toFixed(2)}
-                        </p>
-                        <p className="text-xs text-gray-500">{token.symbol}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 

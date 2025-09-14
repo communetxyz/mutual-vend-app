@@ -34,6 +34,6 @@ export const config = createConfig({
   ssr: true,
 })
 
-export const VENDING_MACHINE_ADDRESS = "0xbde69CD8cbA0d15942111e51AF13bf9685FDBC33" as `0x${string}`
+export const VENDING_MACHINE_ADDRESS = "0x6699fb5cdADb6065c71457Dc44A6f9d0688a5e4c" as `0x${string}`
 export const CHAIN_ID = 100 // Gnosis Chain ID
 export const NETWORK_NAME = "Gnosis Chain"
