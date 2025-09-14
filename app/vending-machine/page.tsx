@@ -1,25 +1,28 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAccount, useChainId } from "wagmi"
+import { useAccount, useChainId, useConnectorClient } from "wagmi"
 import { gnosis } from "wagmi/chains"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { WalletConnect } from "@/components/wallet-connect"
 import { ProductGrid } from "@/components/product-grid"
 import { PurchaseModal } from "@/components/purchase-modal"
 import { NetworkChecker } from "@/components/network-checker"
+import { MachineStats } from "@/components/machine-stats"
 import { useVendingMachine } from "@/hooks/use-vending-machine"
 import { usePurchase } from "@/hooks/use-purchase"
 import { SiteNavigation } from "@/components/site-navigation"
-import { Bot, RefreshCw, Wallet, Package, AlertTriangle } from "lucide-react"
+import { Bot, RefreshCw, Wallet, Package, AlertTriangle, AlertCircle, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 export default function VendingMachinePage() {
   const { isConnected } = useAccount()
   const chainId = useChainId()
-  const { tracks, acceptedTokens, loading, refetchTracks } = useVendingMachine()
+  const { data: connectorClient } = useConnectorClient()
+  const { tracks, acceptedTokens, machineInfo, voteTokenAddress, loading, error, refetchTracks } = useVendingMachine()
   const {
     purchaseState,
     selectTrackAndToken,
@@ -30,14 +33,16 @@ export default function VendingMachinePage() {
     isConfirming,
     isConfirmed,
     refetchAllowance,
+    connectorChainId,
   } = usePurchase()
 
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const isCorrectNetwork = chainId === gnosis.id
+  const connectorOnCorrectNetwork = connectorChainId === gnosis.id
 
   const handlePurchase = (track: any, token: any) => {
-    if (!isCorrectNetwork) {
-      toast.error("Please switch to Gnosis Chain first")
+    if (!isCorrectNetwork || !connectorOnCorrectNetwork) {
+      toast.error("Please ensure your wallet is connected to Gnosis Chain")
       return
     }
     selectTrackAndToken(track, token)
@@ -52,7 +57,7 @@ export default function VendingMachinePage() {
 
   const handleRefresh = () => {
     refetchTracks()
-    toast.success("Product data refreshed")
+    toast.success("Inventory data refreshed")
   }
 
   // Auto-close modal and refresh on successful purchase
@@ -85,19 +90,51 @@ export default function VendingMachinePage() {
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="flex items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full animate-pulse ${isCorrectNetwork ? "bg-green-500" : "bg-red-500"}`}
+                className={`w-2 h-2 rounded-full animate-pulse ${isCorrectNetwork && connectorOnCorrectNetwork ? "bg-green-500" : "bg-red-500"}`}
               />
-              {isCorrectNetwork ? "Gnosis Chain" : `Wrong Network (${chainId})`}
+              {isCorrectNetwork && connectorOnCorrectNetwork ? "Gnosis Chain" : `Wrong Network`}
             </Badge>
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
           </div>
         </div>
 
+        {/* Debug Info */}
+        {isConnected && (
+          <Alert className="mb-6 border-blue-200 dark:border-blue-800">
+            <Zap className="h-4 w-4" />
+            <AlertDescription>
+              <div className="text-sm space-y-1">
+                <div>
+                  <strong>Wagmi Chain ID:</strong> {chainId}
+                </div>
+                <div>
+                  <strong>Connector Chain ID:</strong> {connectorChainId || "Unknown"}
+                </div>
+                <div>
+                  <strong>Target Chain ID:</strong> {gnosis.id} (Gnosis)
+                </div>
+                <div>
+                  <strong>Status:</strong>{" "}
+                  {isCorrectNetwork && connectorOnCorrectNetwork ? "✅ Ready" : "❌ Network mismatch"}
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <Alert className="mb-8 border-red-200 dark:border-red-800">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
+          </Alert>
+        )}
+
         {/* Network Warning */}
-        {isConnected && !isCorrectNetwork && (
+        {isConnected && (!isCorrectNetwork || !connectorOnCorrectNetwork) && (
           <div className="mb-8">
             <NetworkChecker />
           </div>
@@ -110,8 +147,18 @@ export default function VendingMachinePage() {
           </div>
         )}
 
+        {/* Machine Statistics */}
+        {isConnected && isCorrectNetwork && connectorOnCorrectNetwork && !loading && !error && (
+          <MachineStats
+            tracks={tracks}
+            acceptedTokens={acceptedTokens}
+            machineInfo={machineInfo}
+            voteTokenAddress={voteTokenAddress}
+          />
+        )}
+
         {/* Connected Wallet Info */}
-        {isConnected && isCorrectNetwork && (
+        {isConnected && isCorrectNetwork && connectorOnCorrectNetwork && acceptedTokens.length > 0 && (
           <div className="mb-8">
             <Card>
               <CardHeader>
@@ -146,7 +193,7 @@ export default function VendingMachinePage() {
         )}
 
         {/* Loading State */}
-        {loading && isCorrectNetwork && (
+        {loading && isCorrectNetwork && connectorOnCorrectNetwork && (
           <div className="text-center py-12">
             <RefreshCw className="h-8 w-8 mx-auto text-gray-400 animate-spin mb-4" />
             <p className="text-gray-500 dark:text-gray-400">Loading vending machine data from Gnosis Chain...</p>
@@ -154,7 +201,7 @@ export default function VendingMachinePage() {
         )}
 
         {/* Products Grid */}
-        {!loading && isCorrectNetwork && (
+        {!loading && isCorrectNetwork && connectorOnCorrectNetwork && !error && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -170,18 +217,18 @@ export default function VendingMachinePage() {
               tracks={tracks}
               acceptedTokens={acceptedTokens}
               onPurchase={handlePurchase}
-              isConnected={isConnected && isCorrectNetwork}
+              isConnected={isConnected && isCorrectNetwork && connectorOnCorrectNetwork}
             />
           </div>
         )}
 
         {/* Wrong Network Message */}
-        {isConnected && !isCorrectNetwork && !loading && (
+        {isConnected && (!isCorrectNetwork || !connectorOnCorrectNetwork) && !loading && (
           <div className="text-center py-12">
             <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Wrong Network</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Network Configuration Issue</h3>
             <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Please switch to Gnosis Chain to view and purchase products.
+              Your wallet needs to be properly connected to Gnosis Chain to view and purchase products.
             </p>
             <NetworkChecker />
           </div>

@@ -3,8 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Package } from "lucide-react"
+import { ShoppingCart, Package, AlertTriangle } from "lucide-react"
 import { formatUnits } from "viem"
+import { useChainId } from "wagmi"
+import { gnosis } from "wagmi/chains"
 import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 interface ProductGridProps {
@@ -15,6 +17,9 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }: ProductGridProps) {
+  const chainId = useChainId()
+  const isCorrectNetwork = chainId === gnosis.id
+
   const formatPrice = (price: bigint, token: TokenInfo) => {
     return `${formatUnits(price, token.decimals)} ${token.symbol}`
   }
@@ -56,6 +61,12 @@ export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }:
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
+            {!isCorrectNetwork && (
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 p-2 rounded">
+                <AlertTriangle className="h-4 w-4" />
+                Switch to Gnosis Chain
+              </div>
+            )}
             {acceptedTokens.map((token) => (
               <div key={token.address} className="flex items-center justify-between">
                 <div className="text-sm">
@@ -69,7 +80,7 @@ export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }:
                 <Button
                   size="sm"
                   onClick={() => onPurchase(track, token)}
-                  disabled={!isConnected || track.stock === 0n || token.balance < track.price}
+                  disabled={!isConnected || !isCorrectNetwork || track.stock === 0n || token.balance < track.price}
                 >
                   <ShoppingCart className="h-4 w-4 mr-1" />
                   Buy
