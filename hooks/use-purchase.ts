@@ -121,7 +121,8 @@ export function usePurchase() {
         writeError.message.includes("Request expired") ||
         writeError.message.includes("timeout") ||
         writeError.message.includes("expired") ||
-        writeError.message.includes("connection closed")
+        writeError.message.includes("connection closed") ||
+        writeError.message.includes("Connector not connected")
 
       if (isWalletConnectTimeout && retryCount < 2) {
         console.log(`🔄 WalletConnect timeout detected. Retry attempt ${retryCount + 1}/2`)

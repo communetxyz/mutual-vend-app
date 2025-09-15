@@ -2,125 +2,103 @@
 
 import { useAccount, useConnect, useDisconnect } from "wagmi"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Wallet, LogOut, Smartphone, Chrome, Coins } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Wallet, LogOut, Copy, ExternalLink } from "lucide-react"
 import { useState } from "react"
 
 export function WalletConnect() {
   const { address, isConnected, connector } = useAccount()
-  const { connectors, connect, isPending, error } = useConnect()
+  const { connect, connectors, isPending } = useConnect()
   const { disconnect } = useDisconnect()
-  const [isConnecting, setIsConnecting] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
-  const handleConnect = async (connector: any) => {
-    try {
-      setIsConnecting(connector.id)
-      await connect({ connector })
-    } catch (err) {
-      console.error("Connection failed:", err)
-    } finally {
-      setIsConnecting(null)
+  const copyAddress = async () => {
+    if (address) {
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
-  const getConnectorIcon = (connectorId: string) => {
-    switch (connectorId) {
-      case "walletConnect":
-        return <Smartphone className="h-4 w-4" />
-      case "metaMask":
-        return <Chrome className="h-4 w-4" />
-      case "coinbaseWallet":
-        return <Coins className="h-4 w-4" />
-      default:
-        return <Wallet className="h-4 w-4" />
-    }
-  }
-
-  const getConnectorName = (connector: any) => {
-    switch (connector.id) {
-      case "walletConnect":
-        return "WalletConnect"
-      case "metaMask":
-        return "MetaMask"
-      case "coinbaseWallet":
-        return "Coinbase Wallet"
-      case "injected":
-        return "Browser Wallet"
-      default:
-        return connector.name
-    }
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
   }
 
   if (isConnected && address) {
     return (
-      <Card className="w-full max-w-md">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
             Wallet Connected
           </CardTitle>
+          <CardDescription>Connected via {connector?.name}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            <p className="font-medium">Connected via: {connector?.name}</p>
-            <p className="font-medium mt-2">Address:</p>
-            <p className="font-mono text-xs break-all bg-gray-100 dark:bg-gray-800 p-2 rounded">{address}</p>
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+            <div>
+              <p className="font-medium text-green-800">{formatAddress(address)}</p>
+              <p className="text-sm text-green-600">Ready to make purchases</p>
+            </div>
+            <Badge className="bg-green-100 text-green-800">Connected</Badge>
           </div>
-          <Button onClick={() => disconnect()} variant="outline" className="w-full">
-            <LogOut className="h-4 w-4 mr-2" />
-            Disconnect
-          </Button>
+
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={copyAddress} className="flex-1 bg-transparent">
+              <Copy className="h-4 w-4 mr-2" />
+              {copied ? "Copied!" : "Copy Address"}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(`https://gnosisscan.io/address/${address}`, "_blank")}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+
+            <Button variant="outline" size="sm" onClick={() => disconnect()}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="h-5 w-5" />
           Connect Wallet
         </CardTitle>
+        <CardDescription>Connect your wallet to start making purchases</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Connect your wallet to start purchasing from the vending machine on Gnosis Chain.
-        </p>
+      <CardContent className="space-y-3">
+        {connectors.map((connector) => (
+          <Button
+            key={connector.uid}
+            onClick={() => connect({ connector })}
+            disabled={isPending}
+            variant="outline"
+            className="w-full justify-start"
+          >
+            <Wallet className="h-4 w-4 mr-2" />
+            {connector.name}
+            {isPending && " (Connecting...)"}
+          </Button>
+        ))}
 
-        {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400">Connection failed: {error.message}</p>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          {connectors.map((connector) => (
-            <Button
-              key={connector.uid}
-              onClick={() => handleConnect(connector)}
-              variant="outline"
-              className="w-full justify-start"
-              disabled={isPending || isConnecting === connector.id}
-            >
-              <div className="flex items-center gap-3">
-                {getConnectorIcon(connector.id)}
-                <span>{getConnectorName(connector)}</span>
-                {isConnecting === connector.id && (
-                  <div className="ml-auto">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  </div>
-                )}
-              </div>
-            </Button>
-          ))}
-        </div>
-
-        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-          <p>• WalletConnect: Mobile wallets (Trust, Rainbow, etc.)</p>
-          <p>• MetaMask: Browser extension</p>
-          <p>• Coinbase Wallet: Coinbase's wallet app</p>
-          <p>• Browser Wallet: Any injected wallet</p>
+        <div className="text-xs text-muted-foreground mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="font-medium text-blue-800 mb-1">Supported Wallets:</p>
+          <ul className="space-y-1 text-blue-700">
+            <li>• MetaMask (Browser Extension)</li>
+            <li>• WalletConnect (Mobile Wallets)</li>
+            <li>• Coinbase Wallet</li>
+            <li>• Other Web3 Wallets</li>
+          </ul>
         </div>
       </CardContent>
     </Card>

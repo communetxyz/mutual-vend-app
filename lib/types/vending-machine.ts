@@ -1,13 +1,9 @@
-export interface Product {
-  name: string
-  imageURI: string
-}
-
 export interface Track {
-  trackId: number
-  product: Product
+  trackId: bigint
+  name: string
   price: bigint
   stock: bigint
+  isActive: boolean
 }
 
 export interface TokenInfo {
@@ -25,4 +21,11 @@ export interface PurchaseState {
   isPurchasing: boolean
   txHash: string | null
   error: string | null
+}
+
+export interface MachineStats {
+  totalTracks: number
+  activeTracks: number
+  totalRevenue: bigint
+  totalSales: bigint
 }

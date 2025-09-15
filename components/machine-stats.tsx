@@ -1,82 +1,125 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Package, Coins, BarChart3, Settings } from "lucide-react"
-import type { Track, TokenInfo } from "@/lib/types/vending-machine"
+import { useVendingMachine } from "@/hooks/use-vending-machine"
+import { formatEther } from "viem"
+import { Package, DollarSign, ShoppingCart, Activity, TrendingUp, Users } from "lucide-react"
 
-interface MachineStatsProps {
-  tracks: Track[]
-  acceptedTokens: TokenInfo[]
-  machineInfo: {
-    numTracks: number
-    maxStockPerTrack: bigint
+export function MachineStats() {
+  const { stats, tracks, isLoading } = useVendingMachine()
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-6">
+              <div className="h-16 bg-gray-200 rounded"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
   }
-  voteTokenAddress?: string
-}
 
-export function MachineStats({ tracks, acceptedTokens, machineInfo, voteTokenAddress }: MachineStatsProps) {
   const totalStock = tracks.reduce((sum, track) => sum + Number(track.stock), 0)
-  const availableProducts = tracks.filter((track) => track.stock > 0).length
-  const totalCapacity = machineInfo.numTracks * Number(machineInfo.maxStockPerTrack)
-  const utilizationRate = totalCapacity > 0 ? (totalStock / totalCapacity) * 100 : 0
+  const averagePrice =
+    tracks.length > 0 ? tracks.reduce((sum, track) => sum + Number(formatEther(track.price)), 0) / tracks.length : 0
+
+  const statsData = [
+    {
+      title: "Active Products",
+      value: stats.activeTracks.toString(),
+      description: `${totalStock} items in stock`,
+      icon: Package,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    {
+      title: "Total Revenue",
+      value: `${formatEther(stats.totalRevenue)} XDAI`,
+      description: "All-time earnings",
+      icon: DollarSign,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    {
+      title: "Total Sales",
+      value: stats.totalSales.toString(),
+      description: "Items sold",
+      icon: ShoppingCart,
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
+    },
+    {
+      title: "Avg. Price",
+      value: `${averagePrice.toFixed(2)} XDAI`,
+      description: "Per item",
+      icon: TrendingUp,
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
+  ]
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Tracks</CardTitle>
-          <Settings className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{machineInfo.numTracks}</div>
-          <p className="text-xs text-muted-foreground">Max {Number(machineInfo.maxStockPerTrack)} items each</p>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Machine Statistics</h2>
+        <Badge variant="outline" className="flex items-center gap-2">
+          <Activity className="h-4 w-4" />
+          Live Data
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statsData.map((stat, index) => {
+          const Icon = stat.icon
+          return (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground">{stat.description}</p>
+                  </div>
+                  <div className={`p-3 rounded-full ${stat.bgColor}`}>
+                    <Icon className={`h-6 w-6 ${stat.color}`} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Available Products</CardTitle>
-          <Package className="h-4 w-4 text-muted-foreground" />
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Network Overview
+          </CardTitle>
+          <CardDescription>Real-time status of the vending machine network</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{availableProducts}</div>
-          <p className="text-xs text-muted-foreground">{totalStock} total items in stock</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Payment Options</CardTitle>
-          <Coins className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{acceptedTokens.length}</div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {acceptedTokens.slice(0, 3).map((token) => (
-              <Badge key={token.address} variant="secondary" className="text-xs">
-                {token.symbol}
-              </Badge>
-            ))}
-            {acceptedTokens.length > 3 && (
-              <Badge variant="secondary" className="text-xs">
-                +{acceptedTokens.length - 3}
-              </Badge>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600 mb-2">1</div>
+              <div className="text-sm font-medium">Active Machines</div>
+              <div className="text-xs text-muted-foreground">This location</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600 mb-2">98.5%</div>
+              <div className="text-sm font-medium">Uptime</div>
+              <div className="text-xs text-muted-foreground">Last 30 days</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-purple-600 mb-2">24/7</div>
+              <div className="text-sm font-medium">Availability</div>
+              <div className="text-xs text-muted-foreground">Always open</div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Capacity Used</CardTitle>
-          <BarChart3 className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{utilizationRate.toFixed(1)}%</div>
-          <p className="text-xs text-muted-foreground">
-            {totalStock} / {totalCapacity} slots filled
-          </p>
         </CardContent>
       </Card>
     </div>

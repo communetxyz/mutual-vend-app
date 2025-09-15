@@ -1,95 +1,130 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Package, AlertTriangle } from "lucide-react"
-import { formatUnits } from "viem"
-import { useChainId } from "wagmi"
-import { gnosis } from "wagmi/chains"
-import type { Track, TokenInfo } from "@/lib/types/vending-machine"
+import { useVendingMachine } from "@/hooks/use-vending-machine"
+import { usePurchase } from "@/hooks/use-purchase"
+import { PurchaseModal } from "@/components/purchase-modal"
+import { formatEther } from "viem"
+import { ShoppingCart, Package, AlertCircle } from "lucide-react"
+import Image from "next/image"
 
-interface ProductGridProps {
-  tracks: Track[]
-  acceptedTokens: TokenInfo[]
-  onPurchase: (track: Track, token: TokenInfo) => void
-  isConnected: boolean
-}
+export function ProductGrid() {
+  const { tracks, tokens, isLoading, isCorrectNetwork } = useVendingMachine()
+  const { selectTrackAndToken } = usePurchase()
+  const [selectedTrack, setSelectedTrack] = useState<any>(null)
 
-export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }: ProductGridProps) {
-  const chainId = useChainId()
-  const isCorrectNetwork = chainId === gnosis.id
+  const handlePurchase = async (track: any) => {
+    if (!isCorrectNetwork) {
+      return
+    }
 
-  const formatPrice = (price: bigint, token: TokenInfo) => {
-    return `${formatUnits(price, token.decimals)} ${token.symbol}`
+    // For now, default to the first available token (WXDAI)
+    const defaultToken = tokens.find((token) => token.balance > track.price)
+
+    if (!defaultToken) {
+      alert("Insufficient balance in any supported token")
+      return
+    }
+
+    await selectTrackAndToken(track, defaultToken)
+    setSelectedTrack(track)
   }
 
-  if (tracks.length === 0) {
+  if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Products Available</h3>
-        <p className="text-gray-500 dark:text-gray-400">
-          The vending machine is currently being stocked. Please check back later.
-        </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {[...Array(8)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+            <CardContent className="p-4">
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     )
   }
 
+  if (!isCorrectNetwork) {
+    return (
+      <Card className="text-center p-8">
+        <CardContent>
+          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Network Required</h3>
+          <p className="text-muted-foreground">Please connect to Gnosis Chain to view and purchase products</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (tracks.length === 0) {
+    return (
+      <Card className="text-center p-8">
+        <CardContent>
+          <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Products Available</h3>
+          <p className="text-muted-foreground">Check back later for available products</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {tracks.map((track) => (
-        <Card key={track.trackId} className="overflow-hidden">
-          <CardHeader className="pb-4">
-            <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
-              {track.product.imageURI ? (
-                <img
-                  src={track.product.imageURI || "/placeholder.svg"}
-                  alt={track.product.name}
-                  className="w-full h-full object-cover rounded-lg"
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {tracks.map((track) => {
+          const isOutOfStock = track.stock === 0n
+          const priceInEther = formatEther(track.price)
+
+          return (
+            <Card key={track.trackId.toString()} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100">
+                <Image
+                  src={`/abstract-geometric-shapes.png?height=200&width=300&query=${encodeURIComponent(track.name)}`}
+                  alt={track.name}
+                  fill
+                  className="object-cover"
                 />
-              ) : (
-                <Package className="h-12 w-12 text-gray-400" />
-              )}
-            </div>
-            <CardTitle className="text-lg">{track.product.name}</CardTitle>
-            <div className="flex items-center justify-between">
-              <Badge variant={track.stock > 0 ? "default" : "secondary"}>
-                {track.stock > 0 ? `${track.stock} in stock` : "Out of stock"}
-              </Badge>
-              <span className="text-sm text-gray-500">Track #{track.trackId}</span>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {!isCorrectNetwork && (
-              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 p-2 rounded">
-                <AlertTriangle className="h-4 w-4" />
-                Switch to Gnosis Chain
-              </div>
-            )}
-            {acceptedTokens.map((token) => (
-              <div key={token.address} className="flex items-center justify-between">
-                <div className="text-sm">
-                  <p className="font-medium">{formatPrice(track.price, token)}</p>
-                  {isConnected && (
-                    <p className="text-gray-500">
-                      Balance: {formatUnits(token.balance, token.decimals)} {token.symbol}
-                    </p>
-                  )}
+                {isOutOfStock && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <Badge variant="destructive" className="text-lg px-4 py-2">
+                      Out of Stock
+                    </Badge>
+                  </div>
+                )}
+                <div className="absolute top-2 right-2">
+                  <Badge variant="secondary">Stock: {track.stock.toString()}</Badge>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => onPurchase(track, token)}
-                  disabled={!isConnected || !isCorrectNetwork || track.stock === 0n || token.balance < track.price}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-1" />
-                  Buy
-                </Button>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{track.name}</CardTitle>
+                <CardDescription>Track #{track.trackId.toString()}</CardDescription>
+              </CardHeader>
+
+              <CardContent className="pt-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-2xl font-bold text-green-600">{priceInEther} XDAI</div>
+                  <div className="text-sm text-muted-foreground">
+                    ≈ ${(Number.parseFloat(priceInEther) * 1.0).toFixed(2)} USD
+                  </div>
+                </div>
+
+                <Button onClick={() => handlePurchase(track)} disabled={isOutOfStock} className="w-full" size="lg">
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  {isOutOfStock ? "Out of Stock" : "Purchase"}
+                </Button>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      <PurchaseModal isOpen={!!selectedTrack} onClose={() => setSelectedTrack(null)} track={selectedTrack} />
+    </>
   )
 }

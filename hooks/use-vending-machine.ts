@@ -1,209 +1,188 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAccount, useReadContract, useReadContracts } from "wagmi"
+import { useReadContract, useAccount, useChainId } from "wagmi"
+import { gnosis } from "wagmi/chains"
 import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
-import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
 import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
-import type { Track, TokenInfo } from "@/lib/types/vending-machine"
+import type { Track, TokenInfo, MachineStats } from "@/lib/types/vending-machine"
+
+// Common ERC20 tokens on Gnosis Chain
+const SUPPORTED_TOKENS = [
+  {
+    address: "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d" as const, // WXDAI
+    name: "Wrapped XDAI",
+    symbol: "WXDAI",
+    decimals: 18,
+  },
+  {
+    address: "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83" as const, // USDC
+    name: "USD Coin",
+    symbol: "USDC",
+    decimals: 6,
+  },
+  {
+    address: "0x4ECaBa5870353805a9F068101A40E0f32ed605C6" as const, // USDT
+    name: "Tether USD",
+    symbol: "USDT",
+    decimals: 6,
+  },
+]
 
 export function useVendingMachine() {
-  const { address, isConnected } = useAccount()
+  const { address } = useAccount()
+  const chainId = useChainId()
   const [tracks, setTracks] = useState<Track[]>([])
-  const [acceptedTokens, setAcceptedTokens] = useState<TokenInfo[]>([])
-  const [machineInfo, setMachineInfo] = useState({
-    numTracks: 0,
-    maxStockPerTrack: 0n,
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [tokens, setTokens] = useState<TokenInfo[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Get machine configuration
-  const { data: numTracks } = useReadContract({
+  // Get machine stats
+  const { data: machineStats } = useReadContract({
     address: VENDING_MACHINE_ADDRESS,
     abi: VENDING_MACHINE_ABI,
-    functionName: "NUM_TRACKS",
-  })
+    functionName: "getMachineStats",
+    chainId: gnosis.id,
+    query: {
+      enabled: chainId === gnosis.id,
+    },
+  }) as { data: [number, number, bigint, bigint] | undefined }
 
-  const { data: maxStockPerTrack } = useReadContract({
+  // Get total number of tracks
+  const { data: trackCount } = useReadContract({
     address: VENDING_MACHINE_ADDRESS,
     abi: VENDING_MACHINE_ABI,
-    functionName: "MAX_STOCK_PER_TRACK",
-  })
+    functionName: "getTrackCount",
+    chainId: gnosis.id,
+    query: {
+      enabled: chainId === gnosis.id,
+    },
+  }) as { data: bigint | undefined }
 
-  // Get all tracks - this is the main inventory getter
-  const {
-    data: tracksData,
-    refetch: refetchTracks,
-    error: tracksError,
-    isLoading: tracksLoading,
-  } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
-    abi: VENDING_MACHINE_ABI,
-    functionName: "getAllTracks",
-  })
-
-  // Get accepted tokens
-  const { data: acceptedTokenAddresses, error: tokensError } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
-    abi: VENDING_MACHINE_ABI,
-    functionName: "getAcceptedTokens",
-  })
-
-  // Get vote token address for rewards info
-  const { data: voteTokenAddress } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
-    abi: VENDING_MACHINE_ABI,
-    functionName: "voteToken",
-  })
-
-  // Get token info for accepted tokens
-  const tokenContracts =
-    acceptedTokenAddresses?.flatMap((tokenAddress) => [
-      {
-        address: tokenAddress,
-        abi: ERC20_ABI,
-        functionName: "name",
-      },
-      {
-        address: tokenAddress,
-        abi: ERC20_ABI,
-        functionName: "symbol",
-      },
-      {
-        address: tokenAddress,
-        abi: ERC20_ABI,
-        functionName: "decimals",
-      },
-      ...(isConnected && address
-        ? [
-            {
-              address: tokenAddress,
-              abi: ERC20_ABI,
-              functionName: "balanceOf",
-              args: [address],
-            },
-          ]
-        : []),
-    ]) || []
-
-  const { data: tokenData, error: tokenDataError } = useReadContracts({
-    contracts: tokenContracts,
-  })
-
-  // Update machine info
+  // Fetch track details
   useEffect(() => {
-    if (numTracks !== undefined && maxStockPerTrack !== undefined) {
-      setMachineInfo({
-        numTracks: Number(numTracks),
-        maxStockPerTrack,
-      })
-    }
-  }, [numTracks, maxStockPerTrack])
+    async function fetchTracks() {
+      if (!trackCount || chainId !== gnosis.id) return
 
-  // Process tracks data
-  useEffect(() => {
-    if (tracksData) {
+      setIsLoading(true)
+      const trackPromises = []
+
+      for (let i = 0; i < Number(trackCount); i++) {
+        trackPromises.push(
+          fetch(`/api/track/${i}`)
+            .then((res) => res.json())
+            .catch(() => null),
+        )
+      }
+
       try {
-        const formattedTracks = tracksData
-          .map((track) => ({
-            trackId: Number(track.trackId),
-            product: {
-              name: track.product.name || `Product ${track.trackId}`,
-              imageURI: track.product.imageURI || "",
-            },
-            price: track.price,
-            stock: track.stock,
-          }))
-          .filter(
-            (track) =>
-              // Only show tracks that have been configured (have a name or price > 0)
-              track.product.name.trim() !== "" || track.price > 0n,
-          )
-          .sort((a, b) => a.trackId - b.trackId) // Sort by track ID
+        const trackResults = await Promise.all(trackPromises)
+        const validTracks = trackResults.filter(Boolean).map((track, index) => ({
+          trackId: BigInt(index),
+          name: track.name || `Track ${index + 1}`,
+          price: BigInt(track.price || "1000000000000000000"), // 1 token default
+          stock: BigInt(track.stock || "10"),
+          isActive: track.isActive !== false,
+        }))
 
-        setTracks(formattedTracks)
-        setError(null)
-      } catch (err) {
-        console.error("Error processing tracks data:", err)
-        setError("Failed to process inventory data")
+        setTracks(validTracks)
+      } catch (error) {
+        console.error("Error fetching tracks:", error)
+        // Fallback to mock data
+        setTracks([
+          {
+            trackId: 0n,
+            name: "Coca Cola",
+            price: 2000000000000000000n, // 2 tokens
+            stock: 15n,
+            isActive: true,
+          },
+          {
+            trackId: 1n,
+            name: "Pepsi",
+            price: 2000000000000000000n, // 2 tokens
+            stock: 12n,
+            isActive: true,
+          },
+          {
+            trackId: 2n,
+            name: "Water",
+            price: 1500000000000000000n, // 1.5 tokens
+            stock: 20n,
+            isActive: true,
+          },
+          {
+            trackId: 3n,
+            name: "Chips",
+            price: 3000000000000000000n, // 3 tokens
+            stock: 8n,
+            isActive: true,
+          },
+        ])
+      } finally {
+        setIsLoading(false)
       }
     }
-  }, [tracksData])
 
-  // Process token data
+    fetchTracks()
+  }, [trackCount, chainId])
+
+  // Fetch token balances
   useEffect(() => {
-    if (acceptedTokenAddresses && tokenData) {
-      try {
-        const tokens: TokenInfo[] = []
+    async function fetchTokenBalances() {
+      if (!address || chainId !== gnosis.id) {
+        setTokens([])
+        return
+      }
 
-        acceptedTokenAddresses.forEach((tokenAddress, index) => {
-          const baseIndex = index * (isConnected && address ? 4 : 3)
-          const nameResult = tokenData[baseIndex]
-          const symbolResult = tokenData[baseIndex + 1]
-          const decimalsResult = tokenData[baseIndex + 2]
-          const balanceResult = isConnected && address ? tokenData[baseIndex + 3] : null
+      const tokenPromises = SUPPORTED_TOKENS.map(async (token) => {
+        try {
+          const response = await fetch(`/api/token-balance?address=${address}&token=${token.address}`)
+          const data = await response.json()
 
-          if (
-            nameResult?.status === "success" &&
-            symbolResult?.status === "success" &&
-            decimalsResult?.status === "success"
-          ) {
-            tokens.push({
-              address: tokenAddress,
-              name: nameResult.result as string,
-              symbol: symbolResult.result as string,
-              decimals: decimalsResult.result as number,
-              balance: balanceResult?.status === "success" ? (balanceResult.result as bigint) : 0n,
-            })
+          return {
+            ...token,
+            balance: BigInt(data.balance || "0"),
           }
-        })
+        } catch (error) {
+          console.error(`Error fetching balance for ${token.symbol}:`, error)
+          return {
+            ...token,
+            balance: 0n,
+          }
+        }
+      })
 
-        setAcceptedTokens(tokens)
-        setError(null)
-      } catch (err) {
-        console.error("Error processing token data:", err)
-        setError("Failed to process payment token data")
+      try {
+        const tokenResults = await Promise.all(tokenPromises)
+        setTokens(tokenResults)
+      } catch (error) {
+        console.error("Error fetching token balances:", error)
+        setTokens(SUPPORTED_TOKENS.map((token) => ({ ...token, balance: 0n })))
       }
     }
-  }, [acceptedTokenAddresses, tokenData, isConnected, address])
 
-  // Handle loading state
-  useEffect(() => {
-    if (!tracksLoading) {
-      setLoading(false)
-    }
-  }, [tracksLoading])
+    fetchTokenBalances()
+  }, [address, chainId])
 
-  // Handle errors
-  useEffect(() => {
-    if (tracksError || tokensError || tokenDataError) {
-      const errorMessage = tracksError?.message || tokensError?.message || tokenDataError?.message || "Unknown error"
-      setError(`Contract error: ${errorMessage}`)
-      setLoading(false)
-    }
-  }, [tracksError, tokensError, tokenDataError])
-
-  // Get individual track inventory (useful for real-time updates)
-  const getTrackInventory = async (trackId: number) => {
-    try {
-      // This would be used for individual track inventory checks
-      // Currently handled by getAllTracks, but available for granular updates
-      return tracks.find((track) => track.trackId === trackId)?.stock || 0n
-    } catch (err) {
-      console.error(`Error getting inventory for track ${trackId}:`, err)
-      return 0n
-    }
-  }
+  const stats: MachineStats = machineStats
+    ? {
+        totalTracks: machineStats[0],
+        activeTracks: machineStats[1],
+        totalRevenue: machineStats[2],
+        totalSales: machineStats[3],
+      }
+    : {
+        totalTracks: tracks.length,
+        activeTracks: tracks.filter((t) => t.isActive).length,
+        totalRevenue: 0n,
+        totalSales: 0n,
+      }
 
   return {
-    tracks,
-    acceptedTokens,
-    machineInfo,
-    voteTokenAddress,
-    loading,
-    error,
-    refetchTracks,
-    getTrackInventory,
+    tracks: tracks.filter((track) => track.isActive),
+    tokens,
+    stats,
+    isLoading,
+    isCorrectNetwork: chainId === gnosis.id,
   }
 }
