@@ -21,7 +21,7 @@ export function usePurchase() {
   const { address, connector } = useAccount()
   const chainId = useChainId()
   const { switchChain } = useSwitchChain()
-  const { writeContract, isPending: isWritePending, error: writeError } = useWriteContract()
+  const { writeContract, isPending: isWritePending, error: writeError, data: writeData } = useWriteContract()
   const { data: connectorClient } = useConnectorClient()
   const [purchaseState, setPurchaseState] = useState<PurchaseState>({
     selectedTrack: null,
@@ -91,6 +91,15 @@ export function usePurchase() {
     hash: purchaseState.txHash as `0x${string}`,
     chainId: gnosis.id,
   })
+
+  // Monitor writeContract data changes (this is where the hash comes from)
+  useEffect(() => {
+    if (writeData) {
+      console.log("✅ Transaction hash received:", writeData)
+      setPurchaseState((prev) => ({ ...prev, txHash: writeData }))
+      toast.success(`Transaction sent! Hash: ${writeData.slice(0, 10)}...`)
+    }
+  }, [writeData])
 
   // Monitor write contract errors
   useEffect(() => {
@@ -196,7 +205,7 @@ export function usePurchase() {
     }
 
     try {
-      setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null }))
+      setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null, txHash: null }))
 
       const approvalAmount = purchaseState.selectedTrack.price * 2n
 
@@ -209,17 +218,13 @@ export function usePurchase() {
       // Add delay for all wallet types to ensure proper connection
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      const hash = await writeContract({
+      writeContract({
         address: purchaseState.selectedToken.address as `0x${string}`,
         abi: ERC20_ABI,
         functionName: "approve",
         args: [VENDING_MACHINE_ADDRESS, approvalAmount],
         chainId: gnosis.id,
       })
-
-      console.log("✅ Approval transaction hash:", hash)
-      setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-      toast.success(`Approval sent! Hash: ${hash.slice(0, 10)}...`)
     } catch (error: any) {
       console.error("❌ Approval failed:", error)
       let errorMessage = "Approval failed"
@@ -276,7 +281,7 @@ export function usePurchase() {
     }
 
     try {
-      setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null }))
+      setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null, txHash: null }))
 
       console.log("=== Purchase Transaction Details ===")
       console.log("Contract address:", VENDING_MACHINE_ADDRESS)
@@ -288,17 +293,13 @@ export function usePurchase() {
       // Add delay for all wallet types to ensure proper connection
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      const hash = await writeContract({
+      writeContract({
         address: VENDING_MACHINE_ADDRESS,
         abi: VENDING_MACHINE_ABI,
         functionName: "vendFromTrack",
         args: [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address as `0x${string}`, address],
         chainId: gnosis.id,
       })
-
-      console.log("✅ Purchase transaction hash:", hash)
-      setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-      toast.success(`Purchase sent! Hash: ${hash.slice(0, 10)}...`)
     } catch (error: any) {
       console.error("❌ Purchase failed:", error)
       let errorMessage = "Purchase failed"
