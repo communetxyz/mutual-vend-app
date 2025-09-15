@@ -1,394 +1,529 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { DollarSign, TrendingUp, Users, Target, PieChart, BarChart3 } from "lucide-react"
-
-const fundingRounds = [
-  {
-    name: "Seed Round",
-    status: "completed",
-    raised: "$250,000",
-    target: "$250,000",
-    progress: 100,
-    investors: 45,
-    date: "Q4 2023",
-    description: "Initial funding for prototype development and team building",
-  },
-  {
-    name: "Series A",
-    status: "active",
-    raised: "$1,200,000",
-    target: "$2,000,000",
-    progress: 60,
-    investors: 128,
-    date: "Q1 2024",
-    description: "Scaling operations and expanding to 50 locations",
-  },
-  {
-    name: "Series B",
-    status: "upcoming",
-    raised: "$0",
-    target: "$5,000,000",
-    progress: 0,
-    investors: 0,
-    date: "Q3 2024",
-    description: "International expansion and advanced AI integration",
-  },
-]
-
-const investors = [
-  {
-    name: "Blockchain Ventures",
-    type: "Lead Investor",
-    amount: "$500,000",
-    round: "Series A",
-    logo: "/blockchain-logo.png",
-  },
-  {
-    name: "Tech Innovation Fund",
-    type: "Strategic Investor",
-    amount: "$300,000",
-    round: "Series A",
-    logo: "/tech-fund-logo.jpg",
-  },
-  {
-    name: "Crypto Capital",
-    type: "Financial Investor",
-    amount: "$200,000",
-    round: "Seed",
-    logo: "/crypto-capital-logo.jpg",
-  },
-  {
-    name: "Future Retail Partners",
-    type: "Strategic Partner",
-    amount: "$150,000",
-    round: "Seed",
-    logo: "/retail-partners-logo.jpg",
-  },
-]
-
-const metrics = [
-  {
-    title: "Total Raised",
-    value: "$1,450,000",
-    change: "+$400K this quarter",
-    icon: DollarSign,
-    color: "text-green-600",
-  },
-  {
-    title: "Active Investors",
-    value: "173",
-    change: "+28 new investors",
-    icon: Users,
-    color: "text-blue-600",
-  },
-  {
-    title: "Valuation",
-    value: "$8.5M",
-    change: "+41% from last round",
-    icon: TrendingUp,
-    color: "text-purple-600",
-  },
-  {
-    title: "Funding Goal",
-    value: "$7.25M",
-    change: "Total target by 2024",
-    icon: Target,
-    color: "text-orange-600",
-  },
-]
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case "completed":
-      return "bg-green-100 text-green-800"
-    case "active":
-      return "bg-blue-100 text-blue-800"
-    case "upcoming":
-      return "bg-gray-100 text-gray-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import {
+  Rocket,
+  DollarSign,
+  Users,
+  Printer,
+  Coins,
+  TrendingUp,
+  Shield,
+  Package,
+  Zap,
+  CheckCircle,
+  Calculator,
+  PieChart,
+  Diamond,
+} from "lucide-react"
+import { SiteNavigation } from "@/components/site-navigation"
+import Link from "next/link"
 
 export default function FundingPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Funding & Investment</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Join our journey to revolutionize automated retail through blockchain technology. Explore investment
-            opportunities and track our funding progress.
-          </p>
-        </div>
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      <SiteNavigation />
 
-        {/* Metrics Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {metrics.map((metric, index) => {
-            const Icon = metric.icon
-            return (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
-                      <p className="text-2xl font-bold">{metric.value}</p>
-                    </div>
-                    <Icon className={`h-8 w-8 ${metric.color}`} />
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6 text-center">
+            <div className="space-y-4">
+              <div className="inline-block rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Funding Guide
+              </div>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                Fund Your Own Mutual Vend Machine
+              </h1>
+              <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                Learn how to crowdfund, build, and deploy your own open-source 3D-printed crypto vending machine with
+                all the Mutual Vend cooperative features built-in.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Overview */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">
+                Complete Funding & Deployment Package
+              </h2>
+              <p className="max-w-[800px] mx-auto text-gray-500 md:text-lg dark:text-gray-400">
+                Everything you need to launch a fully-featured Mutual Vend machine in your community, from initial
+                funding to ongoing revenue generation.
+              </p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
+              <Card className="border-2 border-blue-200 dark:border-blue-800">
+                <CardHeader className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400 mb-4">
+                    <DollarSign className="h-8 w-8" />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">{metric.change}</p>
+                  <CardTitle className="text-xl">Crowdfunding</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500 dark:text-gray-400 text-center">
+                    Raise funds from your community through crypto crowdfunding, pre-sales, and cooperative investment
+                    models.
+                  </p>
                 </CardContent>
               </Card>
-            )
-          })}
-        </div>
 
-        {/* Funding Rounds */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Funding Rounds</h2>
+              <Card className="border-2 border-green-200 dark:border-green-800">
+                <CardHeader className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400 mb-4">
+                    <Printer className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-xl">Manufacturing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500 dark:text-gray-400 text-center">
+                    3D print and assemble your machine using open-source blueprints, with detailed guides and community
+                    support.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <div className="space-y-6">
-            {fundingRounds.map((round, index) => (
-              <Card key={index} className="overflow-hidden">
+              <Card className="border-2 border-purple-200 dark:border-purple-800">
+                <CardHeader className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-400 mb-4">
+                    <Rocket className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-xl">Deployment</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500 dark:text-gray-400 text-center">
+                    Launch with full Mutual Vend features: revenue sharing, community stocking, and cooperative
+                    governance.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Funding Models */}
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">Funding Models</h2>
+              <p className="max-w-[600px] mx-auto text-gray-500 md:text-lg dark:text-gray-400">
+                Choose the funding approach that works best for your community and location
+              </p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
+              {/* Community Crowdfunding */}
+              <Card className="relative overflow-hidden">
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    Most Popular
+                  </Badge>
+                </div>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl">{round.name}</CardTitle>
-                      <CardDescription className="mt-1">{round.description}</CardDescription>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400">
+                      <Users className="h-6 w-6" />
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <Badge className={getStatusColor(round.status)}>
-                        {round.status.charAt(0).toUpperCase() + round.status.slice(1)}
-                      </Badge>
-                      <div className="text-right">
-                        <div className="text-sm text-muted-foreground">Target Date</div>
-                        <div className="font-medium">{round.date}</div>
-                      </div>
-                    </div>
+                    <CardTitle className="text-xl">Community Crowdfunding</CardTitle>
                   </div>
                 </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Pool resources from community members who want a vending machine in their area. Contributors become
+                    stakeholders with revenue sharing rights.
+                  </p>
 
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">How it works:</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Set funding goal ($2,000 - $5,000)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Community contributes crypto (USDC, ETH, etc.)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Contributors receive revenue-sharing tokens</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Machine generates ongoing returns</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-2">
+                      <TrendingUp className="h-4 w-4" />
+                      <span className="font-medium">Expected Returns</span>
+                    </div>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      Contributors typically see 15-25% annual returns through revenue sharing, plus potential token
+                      appreciation.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Lossless Lottery */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-400">
+                      <Diamond className="h-6 w-6" />
+                    </div>
+                    <CardTitle className="text-xl">Lossless Lottery Funding</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Community members deposit funds into a yield-generating pool. One winner gets the machine, everyone
+                    else gets their money back.
+                  </p>
+
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">How it works:</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-purple-500" />
+                        <span>Participants deposit equal amounts</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-purple-500" />
+                        <span>Funds earn yield during lottery period</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-purple-500" />
+                        <span>Random winner selected fairly</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-purple-500" />
+                        <span>Non-winners get deposits back</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 mb-2">
+                      <Shield className="h-4 w-4" />
+                      <span className="font-medium">No-Loss Guarantee</span>
+                    </div>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">
+                      Perfect for risk-averse communities. Everyone gets their money back except the lucky winner who
+                      gets the machine.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Cost Breakdown */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">Cost Breakdown</h2>
+              <p className="max-w-[600px] mx-auto text-gray-500 md:text-lg dark:text-gray-400">
+                Transparent pricing for all components needed to build and deploy your machine
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5" />
+                    Total Project Cost: $3,200 - $4,800
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Hardware Costs */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Package className="h-5 w-5" />
+                        Hardware & Materials
+                      </h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span>3D Printing Materials (PLA/PETG)</span>
+                          <span className="font-mono">$200 - $300</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Electronics (Raspberry Pi, sensors, etc.)</span>
+                          <span className="font-mono">$400 - $600</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Mechanical Components (motors, springs)</span>
+                          <span className="font-mono">$300 - $500</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Payment Hardware (NFC, QR scanner)</span>
+                          <span className="font-mono">$150 - $250</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Enclosure & Security</span>
+                          <span className="font-mono">$200 - $400</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-semibold">
+                          <span>Hardware Subtotal:</span>
+                          <span className="font-mono">$1,250 - $2,050</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Software & Services */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Zap className="h-5 w-5" />
+                        Software & Services
+                      </h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span>Smart Contract Deployment</span>
+                          <span className="font-mono">$50 - $100</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Initial Token Supply (BREAD)</span>
+                          <span className="font-mono">$500 - $1,000</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Initial Inventory Stock</span>
+                          <span className="font-mono">$300 - $500</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Installation & Setup</span>
+                          <span className="font-mono">$200 - $300</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Insurance & Permits</span>
+                          <span className="font-mono">$150 - $250</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Marketing & Launch</span>
+                          <span className="font-mono">$100 - $200</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-semibold">
+                          <span>Services Subtotal:</span>
+                          <span className="font-mono">$1,300 - $2,350</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 mb-2">
+                      <PieChart className="h-4 w-4" />
+                      <span className="font-medium">ROI Projection</span>
+                    </div>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      With average daily sales of $50-100, most machines pay back their initial investment within 12-18
+                      months, then generate ongoing profits for the community.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Included */}
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">
+                All Mutual Vend Features Included
+              </h2>
+              <p className="max-w-[600px] mx-auto text-gray-500 md:text-lg dark:text-gray-400">
+                Your funded machine comes with the complete Mutual Vend cooperative ecosystem
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400">
+                      <Coins className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg">Revenue Sharing</CardTitle>
+                  </div>
+                </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Progress</span>
-                        <span>{round.progress}%</span>
-                      </div>
-                      <Progress value={round.progress} className="h-2" />
-                      <div className="text-xs text-muted-foreground">
-                        {round.raised} of {round.target} raised
-                      </div>
-                    </div>
-
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{round.raised}</div>
-                      <div className="text-sm text-muted-foreground">Raised</div>
-                    </div>
-
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{round.investors}</div>
-                      <div className="text-sm text-muted-foreground">Investors</div>
-                    </div>
-                  </div>
-
-                  {round.status === "active" && (
-                    <div className="mt-6 flex gap-3">
-                      <Button className="flex-1">Invest Now</Button>
-                      <Button variant="outline">Learn More</Button>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Every purchase automatically distributes rewards to recent customers, creating a self-sustaining
+                    incentive system.
+                  </p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </section>
 
-        {/* Investors */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Our Investors</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {investors.map((investor, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded"></div>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400">
+                      <Users className="h-5 w-5" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{investor.name}</h3>
-                      <p className="text-sm text-muted-foreground">{investor.type}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-green-600">{investor.amount}</div>
-                      <div className="text-sm text-muted-foreground">{investor.round}</div>
-                    </div>
+                    <CardTitle className="text-lg">Community Stocking</CardTitle>
                   </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Decentralized stocking system where community members can restock machines and earn rewards,
+                    verified by other users.
+                  </p>
                 </CardContent>
               </Card>
-            ))}
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-400">
+                      <TrendingUp className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg">Liquid Ownership</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Fractionalized ownership tokens that can be bought and sold, allowing dynamic investment in machine
+                    performance.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-400">
+                      <Shield className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg">Crypto Payments</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Accept multiple cryptocurrencies and stablecoins with automatic conversion and low transaction fees.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400">
+                      <Package className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg">Smart Inventory</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Real-time inventory tracking with automated restock alerts and community-driven product selection.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400">
+                      <Zap className="h-5 w-5" />
+                    </div>
+                    <CardTitle className="text-lg">DAO Governance</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Token-based voting system for machine upgrades, product selection, and revenue distribution
+                    decisions.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </section>
 
-        {/* Investment Opportunities */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Investment Opportunities</h2>
+        {/* Getting Started */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">Ready to Get Started?</h2>
+              <p className="max-w-[600px] mx-auto text-gray-500 md:text-lg dark:text-gray-400">
+                Join the growing network of community-owned vending machines
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5" />
-                  Equity Investment
-                </CardTitle>
-                <CardDescription>Traditional equity investment in Mutual Vend Inc.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Minimum Investment</span>
-                    <span className="font-medium">$10,000</span>
+            <div className="max-w-4xl mx-auto">
+              <div className="grid gap-8 md:grid-cols-3">
+                <div className="text-center space-y-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-white text-2xl font-bold mx-auto">
+                    1
                   </div>
-                  <div className="flex justify-between">
-                    <span>Expected ROI</span>
-                    <span className="font-medium text-green-600">15-25%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Investment Horizon</span>
-                    <span className="font-medium">3-5 years</span>
-                  </div>
+                  <h3 className="text-xl font-bold">Choose Your Model</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Select crowdfunding or lottery funding based on your community's preferences
+                  </p>
                 </div>
 
-                <div className="pt-4 border-t">
-                  <h4 className="font-medium mb-2">Benefits</h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Voting rights in company decisions</li>
-                    <li>• Quarterly financial reports</li>
-                    <li>• Exit opportunities through acquisition</li>
-                    <li>• Priority access to future rounds</li>
-                  </ul>
+                <div className="text-center space-y-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-white text-2xl font-bold mx-auto">
+                    2
+                  </div>
+                  <h3 className="text-xl font-bold">Launch Campaign</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Set up your funding campaign and start collecting contributions from your community
+                  </p>
                 </div>
 
-                <Button className="w-full">Invest in Equity</Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Token Investment
-                </CardTitle>
-                <CardDescription>Purchase utility tokens for network participation</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Minimum Investment</span>
-                    <span className="font-medium">$100</span>
+                <div className="text-center space-y-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-white text-2xl font-bold mx-auto">
+                    3
                   </div>
-                  <div className="flex justify-between">
-                    <span>Token Price</span>
-                    <span className="font-medium">$0.50</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Revenue Share</span>
-                    <span className="font-medium text-green-600">2-4%</span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <h4 className="font-medium mb-2">Benefits</h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Monthly revenue distributions</li>
-                    <li>• Governance voting rights</li>
-                    <li>• Liquid secondary market</li>
-                    <li>• Network usage discounts</li>
-                  </ul>
-                </div>
-
-                <Button className="w-full bg-transparent" variant="outline">
-                  Buy Tokens
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Use of Funds */}
-        <section>
-          <h2 className="text-3xl font-bold mb-8">Use of Funds</h2>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>How We'll Use the Investment</CardTitle>
-              <CardDescription>Breakdown of fund allocation for Series A round</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span>Hardware & Manufacturing</span>
-                    <span className="font-medium">40%</span>
-                  </div>
-                  <Progress value={40} className="h-2" />
-
-                  <div className="flex items-center justify-between">
-                    <span>Technology Development</span>
-                    <span className="font-medium">25%</span>
-                  </div>
-                  <Progress value={25} className="h-2" />
-
-                  <div className="flex items-center justify-between">
-                    <span>Marketing & Sales</span>
-                    <span className="font-medium">20%</span>
-                  </div>
-                  <Progress value={20} className="h-2" />
-
-                  <div className="flex items-center justify-between">
-                    <span>Operations & Team</span>
-                    <span className="font-medium">15%</span>
-                  </div>
-                  <Progress value={15} className="h-2" />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="font-medium text-blue-800 mb-2">Hardware & Manufacturing (40%)</h4>
-                    <p className="text-sm text-blue-700">
-                      Production of 50 new vending machines, IoT sensors, and payment hardware
-                    </p>
-                  </div>
-
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h4 className="font-medium text-green-800 mb-2">Technology Development (25%)</h4>
-                    <p className="text-sm text-green-700">
-                      Smart contract development, mobile app, and AI-powered inventory management
-                    </p>
-                  </div>
-
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <h4 className="font-medium text-purple-800 mb-2">Marketing & Sales (20%)</h4>
-                    <p className="text-sm text-purple-700">
-                      Brand building, partnership development, and customer acquisition
-                    </p>
-                  </div>
-
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <h4 className="font-medium text-orange-800 mb-2">Operations & Team (15%)</h4>
-                    <p className="text-sm text-orange-700">
-                      Hiring key personnel, legal compliance, and operational infrastructure
-                    </p>
-                  </div>
+                  <h3 className="text-xl font-bold">Build & Deploy</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    3D print, assemble, and deploy your machine with full community support
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="text-center mt-12 space-y-4">
+                <div className="flex flex-col gap-4 min-[400px]:flex-row justify-center">
+                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                    <Rocket className="h-4 w-4 mr-2" />
+                    Start Your Campaign
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href="/#blueprints">
+                      <Printer className="h-4 w-4 mr-2" />
+                      View Blueprints
+                    </Link>
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Need help? Join our community Discord for guidance and support from other machine builders.
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
-      </div>
+      </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
+      </footer>
     </div>
   )
 }

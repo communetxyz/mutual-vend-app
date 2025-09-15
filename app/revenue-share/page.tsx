@@ -1,519 +1,459 @@
+import { SiteNavigation } from "@/components/site-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
 import { MermaidDiagram } from "@/components/mermaid-diagram"
-import { DollarSign, TrendingUp, Calendar, ArrowUpRight, Wallet, Target, BarChart3 } from "lucide-react"
-
-const revenueStats = [
-  {
-    title: "Total Revenue",
-    value: "$127,450",
-    change: "+12.3%",
-    period: "This month",
-    icon: DollarSign,
-    color: "text-green-600",
-  },
-  {
-    title: "Your Share",
-    value: "$3,847",
-    change: "+8.7%",
-    period: "This month",
-    icon: Wallet,
-    color: "text-blue-600",
-  },
-  {
-    title: "Active Machines",
-    value: "156",
-    change: "+5 new",
-    period: "This week",
-    icon: Target,
-    color: "text-purple-600",
-  },
-  {
-    title: "Avg. Daily Revenue",
-    value: "$4,115",
-    change: "+2.1%",
-    period: "7-day avg",
-    icon: BarChart3,
-    color: "text-orange-600",
-  },
-]
-
-const revenueStreams = [
-  {
-    name: "Product Sales",
-    percentage: 65,
-    amount: "$82,843",
-    description: "Direct sales from vending machines",
-    color: "bg-blue-500",
-  },
-  {
-    name: "Transaction Fees",
-    percentage: 20,
-    amount: "$25,490",
-    description: "Fees from payment processing",
-    color: "bg-green-500",
-  },
-  {
-    name: "Advertising",
-    percentage: 10,
-    amount: "$12,745",
-    description: "Revenue from display advertisements",
-    color: "bg-purple-500",
-  },
-  {
-    name: "Premium Services",
-    percentage: 5,
-    amount: "$6,372",
-    description: "Subscription and premium features",
-    color: "bg-orange-500",
-  },
-]
-
-const payoutTiers = [
-  {
-    name: "Bronze",
-    minShares: 1,
-    maxShares: 100,
-    percentage: "2.5%",
-    features: ["Monthly payouts", "Basic analytics", "Email support"],
-    holders: 1250,
-  },
-  {
-    name: "Silver",
-    minShares: 101,
-    maxShares: 500,
-    percentage: "3.0%",
-    features: ["Bi-weekly payouts", "Advanced analytics", "Priority support"],
-    holders: 890,
-  },
-  {
-    name: "Gold",
-    minShares: 501,
-    maxShares: 1000,
-    percentage: "3.5%",
-    features: ["Weekly payouts", "Real-time analytics", "Phone support"],
-    holders: 456,
-  },
-  {
-    name: "Platinum",
-    minShares: 1001,
-    maxShares: null,
-    percentage: "4.0%",
-    features: ["Daily payouts", "Custom reports", "Dedicated manager"],
-    holders: 89,
-  },
-]
-
-const revenueFlowChart = `
-graph TD
-    A["Machine Sales"] --> B["Gross Revenue"]
-    C["Transaction Fees"] --> B
-    D["Advertising"] --> B
-    E["Premium Services"] --> B
-    
-    B --> F["Operating Costs"]
-    B --> G["Net Revenue"]
-    
-    G --> H["Revenue Distribution"]
-    H --> I["Stakeholder Shares 60%"]
-    H --> J["Platform Operations 25%"]
-    H --> K["Growth Fund 10%"]
-    H --> L["Reserve Fund 5%"]
-    
-    I --> M["Tier-based Payouts"]
-    M --> N["Bronze 2.5%"]
-    M --> O["Silver 3.0%"]
-    M --> P["Gold 3.5%"]
-    M --> Q["Platinum 4.0%"]
-    
-    style B fill:#e1f5fe
-    style G fill:#c8e6c9
-    style I fill:#fff3e0
-    style M fill:#f3e5f5
-`
+import {
+  TrendingUp,
+  DollarSign,
+  Users,
+  PieChart,
+  Calculator,
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  Coins,
+  BarChart3,
+  Target,
+  Zap,
+} from "lucide-react"
 
 export default function RevenueSharePage() {
+  const revenueFlowChart = `
+    graph TD
+        A["Machine Revenue"] --> B["Revenue Distribution"]
+        B --> C["Token Holders (60%)"]
+        B --> D["Operations (25%)"]
+        B --> E["Development (10%)"]
+        B --> F["Reserve Fund (5%)"]
+        
+        C --> G["Daily Payouts"]
+        G --> H["Automatic Distribution"]
+        H --> I["Wallet Credits"]
+        
+        D --> J["Maintenance"]
+        D --> K["Restocking"]
+        D --> L["Location Fees"]
+        
+        E --> M["Platform Updates"]
+        E --> N["New Features"]
+        
+        F --> O["Emergency Fund"]
+        F --> P["Expansion Capital"]
+  `
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <SiteNavigation />
+
+      <main className="flex-1 container px-4 md:px-6 py-8">
+        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Revenue Sharing</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Participate in the success of the vending machine network through transparent revenue sharing. Earn passive
-            income based on your stake in the cooperative.
+          <h1 className="text-4xl font-bold tracking-tighter mb-4 flex items-center justify-center gap-3">
+            <TrendingUp className="h-10 w-10 text-green-600" />
+            Revenue Sharing Model
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            Transparent, automated revenue distribution to token holders and stakeholders
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {revenueStats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                    </div>
-                    <Icon className={`h-8 w-8 ${stat.color}`} />
-                  </div>
-                  <div className="flex items-center mt-4">
-                    <ArrowUpRight className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-500 ml-1">{stat.change}</span>
-                    <span className="text-sm text-muted-foreground ml-2">{stat.period}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+        {/* Key Metrics */}
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-green-600">$12,847</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue (30d)</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-blue-600">1,247</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Token Holders</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Clock className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-purple-600">Daily</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Payout Frequency</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Target className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-orange-600">12.4%</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Average APY</div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="tiers">Payout Tiers</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="history">Payout History</TabsTrigger>
-          </TabsList>
+        {/* Revenue Flow */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5" />
+              Revenue Distribution Flow
+            </CardTitle>
+            <CardDescription>How machine profits are automatically distributed among stakeholders</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MermaidDiagram chart={revenueFlowChart} />
+          </CardContent>
+        </Card>
 
-          <TabsContent value="overview" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue Distribution</CardTitle>
-                  <CardDescription>How total network revenue is allocated</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <MermaidDiagram chart={revenueFlowChart} />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue Streams</CardTitle>
-                  <CardDescription>Breakdown of income sources</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {revenueStreams.map((stream, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{stream.name}</span>
-                        <span className="text-sm text-muted-foreground">{stream.amount}</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Progress value={stream.percentage} className="flex-1 h-2" />
-                        <span className="text-sm font-medium w-12">{stream.percentage}%</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{stream.description}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Current Tier</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">Silver</div>
-                    <div className="text-sm text-muted-foreground mb-3">250 shares • 3.0% rate</div>
-                    <div className="text-lg font-semibold text-green-600">$3,847</div>
-                    <div className="text-sm text-muted-foreground">This month's earnings</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Next Payout</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 mb-2">$1,923</div>
-                    <div className="text-sm text-muted-foreground mb-3">Estimated bi-weekly payout</div>
-                    <div className="flex items-center justify-center space-x-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">March 30, 2024</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Annual Projection</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600 mb-2">$46,164</div>
-                    <div className="text-sm text-muted-foreground mb-3">Based on current performance</div>
-                    <div className="flex items-center justify-center space-x-2">
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                      <span className="text-sm text-green-500">+12% growth</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tiers" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {payoutTiers.map((tier, index) => (
-                <Card key={index} className="relative overflow-hidden">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{tier.name}</CardTitle>
-                      <Badge variant="outline">{tier.holders} holders</Badge>
-                    </div>
-                    <CardDescription>
-                      {tier.minShares} - {tier.maxShares || "∞"} shares
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600 mb-1">{tier.percentage}</div>
-                      <div className="text-sm text-muted-foreground">Revenue share rate</div>
-                    </div>
-
+        {/* Distribution Breakdown */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Revenue Allocation
+              </CardTitle>
+              <CardDescription>Percentage breakdown of all machine revenue</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-green-600 rounded-full"></div>
                     <div>
-                      <h4 className="font-medium mb-2">Features</h4>
-                      <ul className="space-y-1">
-                        {tier.features.map((feature, featureIndex) => (
-                          <li key={featureIndex} className="flex items-center text-sm">
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="font-medium">Token Holders</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Direct profit sharing</div>
                     </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-green-600">60%</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">$7,708</div>
+                  </div>
+                </div>
 
-                    <Button
-                      variant={tier.name === "Silver" ? "default" : "outline"}
-                      className="w-full"
-                      disabled={tier.name === "Silver"}
-                    >
-                      {tier.name === "Silver" ? "Current Tier" : `Upgrade to ${tier.name}`}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
+                    <div>
+                      <div className="font-medium">Operations</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Maintenance & restocking</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-blue-600">25%</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">$3,212</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
+                    <div>
+                      <div className="font-medium">Development</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Platform improvements</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-purple-600">10%</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">$1,285</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-orange-600 rounded-full"></div>
+                    <div>
+                      <div className="font-medium">Reserve Fund</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Emergency & expansion</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-orange-600">5%</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">$642</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                Payout Calculator
+              </CardTitle>
+              <CardDescription>Estimate your daily earnings based on token holdings</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Your Token Holdings</label>
+                  <div className="text-2xl font-bold text-blue-600">1,000 MVEND</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Your Ownership %</label>
+                  <div className="text-lg font-semibold">0.08%</div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-sm">Daily Revenue Share</span>
+                  <span className="font-medium">$6.18</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Weekly Earnings</span>
+                  <span className="font-medium">$43.26</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Monthly Projection</span>
+                  <span className="font-medium text-green-600">$185.40</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Annual APY</span>
+                  <span className="font-bold text-green-600">22.2%</span>
+                </div>
+              </div>
+
+              <Button className="w-full">Calculate Your Returns</Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Payout Schedule */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Payout Schedule & Process
+            </CardTitle>
+            <CardDescription>Automated daily distributions with transparent tracking</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <Clock className="h-8 w-8 text-blue-600" />
+                </div>
+                <h4 className="font-semibold">Daily at 12:00 UTC</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Consistent payout timing for global accessibility
+                </p>
+              </div>
+
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
+                  <Zap className="h-8 w-8 text-green-600" />
+                </div>
+                <h4 className="font-semibold">Automatic Distribution</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Smart contracts handle all calculations and transfers
+                </p>
+              </div>
+
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle className="h-8 w-8 text-purple-600" />
+                </div>
+                <h4 className="font-semibold">Instant Settlement</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Funds appear in your wallet immediately</p>
+              </div>
             </div>
-          </TabsContent>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="analytics" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue Trend</CardTitle>
-                  <CardDescription>Monthly revenue performance over time</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
-                    <div className="text-center">
-                      <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500">Revenue chart would appear here</p>
-                    </div>
+        {/* Recent Payouts */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5" />
+              Recent Payouts
+            </CardTitle>
+            <CardDescription>Historical distribution data for transparency</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <div>
+                    <div className="font-semibold">Today's Distribution</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">March 15, 2025 - 12:00 UTC</div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-green-600">$462.84</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">1,247 recipients</div>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Machine Performance</CardTitle>
-                  <CardDescription>Top performing machines by revenue</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">Campus Center - Building A</div>
-                        <div className="text-sm text-muted-foreground">Machine #001</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-green-600">$2,450</div>
-                        <div className="text-sm text-muted-foreground">This month</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">Library Main Floor</div>
-                        <div className="text-sm text-muted-foreground">Machine #015</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-green-600">$2,180</div>
-                        <div className="text-sm text-muted-foreground">This month</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">Student Union Food Court</div>
-                        <div className="text-sm text-muted-foreground">Machine #008</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-green-600">$1,920</div>
-                        <div className="text-sm text-muted-foreground">This month</div>
-                      </div>
-                    </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                  <div>
+                    <div className="font-semibold">Yesterday</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">March 14, 2025 - 12:00 UTC</div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold">$438.92</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">1,243 recipients</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                  <div>
+                    <div className="font-semibold">March 13, 2025</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">12:00 UTC</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold">$521.76</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">1,239 recipients</div>
+                </div>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Best Performing Day</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 mb-2">$5,847</div>
-                    <div className="text-sm text-muted-foreground">March 15, 2024</div>
-                    <div className="text-xs text-muted-foreground mt-1">+23% above average</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Average Transaction</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">$3.47</div>
-                    <div className="text-sm text-muted-foreground">Per purchase</div>
-                    <div className="text-xs text-muted-foreground mt-1">+$0.12 from last month</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Peak Hours</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 mb-2">2-4 PM</div>
-                    <div className="text-sm text-muted-foreground">Highest sales volume</div>
-                    <div className="text-xs text-muted-foreground mt-1">35% of daily revenue</div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="history" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Payout History</CardTitle>
-                <CardDescription>Your revenue sharing payments over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <DollarSign className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Bi-weekly Payout</div>
-                        <div className="text-sm text-muted-foreground">March 15, 2024 • Silver Tier</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-green-600">+$1,923.50</div>
-                      <Badge className="bg-green-100 text-green-800">Completed</Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <DollarSign className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Bi-weekly Payout</div>
-                        <div className="text-sm text-muted-foreground">March 1, 2024 • Silver Tier</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-green-600">+$1,847.25</div>
-                      <Badge className="bg-green-100 text-green-800">Completed</Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <TrendingUp className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Tier Upgrade Bonus</div>
-                        <div className="text-sm text-muted-foreground">February 20, 2024 • Bronze → Silver</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-blue-600">+$250.00</div>
-                      <Badge variant="outline">Bonus</Badge>
+        {/* Benefits & Features */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                Revenue Sharing Benefits
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Passive Income</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Earn daily without active participation
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Total Earned</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 mb-2">$18,450</div>
-                    <div className="text-sm text-muted-foreground">All-time earnings</div>
-                    <div className="text-xs text-muted-foreground mt-1">Since joining in Jan 2024</div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Transparent Distribution</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      All payouts are publicly verifiable on-chain
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Average Monthly</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">$3,690</div>
-                    <div className="text-sm text-muted-foreground">Monthly average</div>
-                    <div className="text-xs text-muted-foreground mt-1">Based on 5 months</div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Proportional Rewards</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Earnings scale with your token holdings
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Best Month</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 mb-2">$4,230</div>
-                    <div className="text-sm text-muted-foreground">February 2024</div>
-                    <div className="text-xs text-muted-foreground mt-1">+15% above average</div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">No Lock-up Period</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Trade tokens anytime while earning</div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Performance Metrics
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <span className="font-medium">Average Daily Yield</span>
+                  <span className="font-bold text-blue-600">0.034%</span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <span className="font-medium">30-Day APY</span>
+                  <span className="font-bold text-green-600">12.4%</span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                  <span className="font-medium">Total Distributed</span>
+                  <span className="font-bold text-purple-600">$127,439</span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                  <span className="font-medium">Payout Reliability</span>
+                  <span className="font-bold text-orange-600">99.8%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Getting Started */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ArrowRight className="h-5 w-5" />
+              Start Earning Revenue Share
+            </CardTitle>
+            <CardDescription>Begin receiving daily payouts from vending machine profits</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-xl font-bold text-blue-600">1</span>
+                </div>
+                <h4 className="font-semibold">Purchase Tokens</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Buy MVEND tokens to become a revenue shareholder
+                </p>
+              </div>
+
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-xl font-bold text-blue-600">2</span>
+                </div>
+                <h4 className="font-semibold">Hold in Wallet</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Keep tokens in your wallet to be eligible for payouts
+                </p>
+              </div>
+
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-xl font-bold text-blue-600">3</span>
+                </div>
+                <h4 className="font-semibold">Receive Payouts</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Get daily USDC distributions automatically</p>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+
+            <div className="text-center">
+              <Button size="lg" className="px-8">
+                Buy MVEND Tokens
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Start earning from day one</p>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   )
 }

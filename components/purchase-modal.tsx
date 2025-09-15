@@ -1,290 +1,286 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { CheckCircle, Clock, AlertCircle, Package, Coins, ArrowRight, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { usePurchase } from "@/hooks/use-purchase"
+import { useAccount, useBalance } from "wagmi"
 import { formatUnits } from "viem"
-import type { PurchaseState } from "@/lib/types/vending-machine"
+import { ShoppingCart, Wallet, CheckCircle, AlertCircle, Loader2, ExternalLink, CreditCard } from "lucide-react"
+
+interface Product {
+  id: number
+  name: string
+  price: string
+  image: string
+  stock: number
+  trackId: number
+}
+
+interface Token {
+  address: string
+  symbol: string
+  decimals: number
+}
 
 interface PurchaseModalProps {
   isOpen: boolean
   onClose: () => void
-  purchaseState: PurchaseState
-  hasAllowance: boolean
-  onApprove: () => void
-  onPurchase: () => void
-  isConfirming: boolean
-  isConfirmed: boolean
-  isWritePending?: boolean
+  product: Product | null
+  selectedToken: Token | null
 }
 
-export function PurchaseModal({
-  isOpen,
-  onClose,
-  purchaseState,
-  hasAllowance,
-  onApprove,
-  onPurchase,
-  isConfirming,
-  isConfirmed,
-  isWritePending = false,
-}: PurchaseModalProps) {
-  const { selectedTrack, selectedToken, isApproving, isPurchasing, txHash, error } = purchaseState
+export function PurchaseModal({ isOpen, onClose, product, selectedToken }: PurchaseModalProps) {
+  const { address } = useAccount()
+  const [step, setStep] = useState<"approve" | "purchase" | "success">("approve")
 
-  if (!selectedTrack || !selectedToken) return null
+  const {
+    // Approval
+    approveToken,
+    isApproving,
+    approvalSuccess,
+    approvalHash,
 
-  const formatPrice = (price: bigint, decimals: number) => {
-    return formatUnits(price, decimals)
+    // Purchase
+    purchaseProduct,
+    isPurchasing,
+    purchaseSuccess,
+    purchaseHash,
+
+    // Shared
+    error,
+    setError,
+  } = usePurchase()
+
+  // Get user's token balance
+  const { data: balance } = useBalance({
+    address,
+    token: selectedToken?.address as `0x${string}`,
+  })
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setStep("approve")
+      setError(null)
+    }
+  }, [isOpen, setError])
+
+  // Handle approval success
+  useEffect(() => {
+    if (approvalSuccess && step === "approve") {
+      setStep("purchase")
+    }
+  }, [approvalSuccess, step])
+
+  // Handle purchase success
+  useEffect(() => {
+    if (purchaseSuccess && step === "purchase") {
+      setStep("success")
+    }
+  }, [purchaseSuccess, step])
+
+  if (!product || !selectedToken) return null
+
+  const handleApprove = () => {
+    approveToken(selectedToken.address, product.price, selectedToken.decimals)
   }
 
-  const canPurchase = hasAllowance && !isApproving && !isPurchasing && selectedToken.balance >= selectedTrack.price
-
-  // Determine current step
-  const getCurrentStep = () => {
-    if (isPurchasing || (isConfirmed && isPurchasing)) return "purchasing"
-    if (isApproving || (isConfirming && isApproving)) return "approving"
-    if (hasAllowance) return "ready-to-purchase"
-    return "needs-approval"
+  const handlePurchase = () => {
+    purchaseProduct(product.trackId, selectedToken.address)
   }
 
-  const currentStep = getCurrentStep()
+  const handleClose = () => {
+    setStep("approve")
+    setError(null)
+    onClose()
+  }
+
+  const hasInsufficientBalance =
+    balance && Number.parseFloat(formatUnits(balance.value, balance.decimals)) < Number.parseFloat(product.price)
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Purchase {selectedTrack.product.name}
+            <ShoppingCart className="h-5 w-5" />
+            Purchase Product
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  currentStep === "needs-approval"
-                    ? "bg-blue-500 text-white"
-                    : hasAllowance
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-300 text-gray-600"
-                }`}
-              >
-                {hasAllowance ? <CheckCircle className="h-4 w-4" /> : "1"}
-              </div>
-              <span className="text-xs mt-1">Approve</span>
-            </div>
-
-            <ArrowRight className="h-4 w-4 text-gray-400" />
-
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  currentStep === "purchasing"
-                    ? "bg-blue-500 text-white"
-                    : currentStep === "ready-to-purchase"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-300 text-gray-600"
-                }`}
-              >
-                {isPurchasing || (isConfirmed && isPurchasing) ? <Clock className="h-4 w-4 animate-spin" /> : "2"}
-              </div>
-              <span className="text-xs mt-1">Purchase</span>
-            </div>
-          </div>
-
-          <Separator />
-
           {/* Product Info */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Product:</span>
-              <span className="text-sm">{selectedTrack.product.name}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Track:</span>
-              <span className="text-sm">#{selectedTrack.trackId}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Stock:</span>
-              <Badge variant={selectedTrack.stock > 0 ? "default" : "secondary"}>{selectedTrack.stock} available</Badge>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Payment Info */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Price:</span>
-              <span className="text-sm font-mono">
-                {formatPrice(selectedTrack.price, selectedToken.decimals)} {selectedToken.symbol}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Your Balance:</span>
-              <span className="text-sm font-mono">
-                {formatPrice(selectedToken.balance, selectedToken.decimals)} {selectedToken.symbol}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Token Approval:</span>
-              <div className="flex items-center gap-2">
-                {hasAllowance ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600">Approved</span>
-                  </>
-                ) : isApproving || (isConfirming && isApproving) || isWritePending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                    <span className="text-sm text-blue-600">Approving...</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm text-yellow-600">Required</span>
-                  </>
-                )}
+          <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <img
+              src={product.image || "/placeholder.svg"}
+              alt={product.name}
+              className="w-16 h-16 object-cover rounded-lg"
+            />
+            <div className="flex-1">
+              <h3 className="font-semibold">{product.name}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Track #{product.trackId}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="font-bold">
+                  {product.price} {selectedToken.symbol}
+                </span>
+                <Badge variant="outline" className="text-xs">
+                  {product.stock} in stock
+                </Badge>
               </div>
             </div>
           </div>
 
-          {/* Current Step Status */}
-          {currentStep === "approving" && (
-            <>
-              <Separator />
-              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                  <span className="text-sm text-blue-600 dark:text-blue-400">
-                    {isConfirming ? "Confirming approval..." : "Approval transaction sent"}
-                  </span>
-                </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  Please wait for the transaction to confirm, then you can purchase.
-                </p>
-              </div>
-            </>
-          )}
-
-          {currentStep === "ready-to-purchase" && (
-            <>
-              <Separator />
-              <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-600 dark:text-green-400">Ready to purchase!</span>
-                </div>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  Token approval confirmed. Click "Purchase" to complete your order.
-                </p>
-              </div>
-            </>
-          )}
-
-          {currentStep === "purchasing" && (
-            <>
-              <Separator />
-              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                  <span className="text-sm text-blue-600 dark:text-blue-400">
-                    {isConfirmed && isPurchasing ? "Purchase confirmed!" : "Processing purchase..."}
-                  </span>
-                </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  {isConfirmed && isPurchasing
-                    ? "Your snack is being dispensed!"
-                    : "Please wait for the transaction to confirm."}
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Transaction Hash */}
-          {txHash && (
-            <div className="text-xs text-gray-500 break-all bg-gray-50 dark:bg-gray-900 p-2 rounded">
-              <p className="font-medium mb-1">Transaction Hash:</p>
-              <p className="font-mono">{txHash}</p>
+          {/* Balance Check */}
+          {balance && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600 dark:text-gray-400">Your balance:</span>
+              <span className={hasInsufficientBalance ? "text-red-600" : "text-green-600"}>
+                {Number.parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(4)} {selectedToken.symbol}
+              </span>
             </div>
           )}
 
           {/* Error Display */}
           {error && (
-            <>
-              <Separator />
-              <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-sm text-red-600 dark:text-red-400">Error</span>
-                </div>
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
-              </div>
-            </>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 bg-transparent"
-              disabled={isApproving || isPurchasing || isConfirming || isWritePending}
-            >
-              {isApproving || isPurchasing || isConfirming || isWritePending ? "Processing..." : "Cancel"}
-            </Button>
+          {/* Insufficient Balance Warning */}
+          {hasInsufficientBalance && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Insufficient balance. You need {product.price} {selectedToken.symbol} to make this purchase.
+              </AlertDescription>
+            </Alert>
+          )}
 
-            {currentStep === "needs-approval" && (
-              <Button onClick={onApprove} disabled={isApproving || isWritePending} className="flex-1">
-                {isApproving || isWritePending ? (
+          <Separator />
+
+          {/* Step Indicators */}
+          <div className="flex items-center justify-center gap-4">
+            <div
+              className={`flex items-center gap-2 ${step === "approve" ? "text-blue-600" : step === "purchase" || step === "success" ? "text-green-600" : "text-gray-400"}`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "approve" ? "bg-blue-100 text-blue-600" : step === "purchase" || step === "success" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}
+              >
+                {step === "purchase" || step === "success" ? <CheckCircle className="h-4 w-4" /> : "1"}
+              </div>
+              <span className="text-sm font-medium">Approve</span>
+            </div>
+
+            <div
+              className={`w-8 h-1 rounded ${step === "purchase" || step === "success" ? "bg-green-200" : "bg-gray-200"}`}
+            />
+
+            <div
+              className={`flex items-center gap-2 ${step === "purchase" ? "text-blue-600" : step === "success" ? "text-green-600" : "text-gray-400"}`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "purchase" ? "bg-blue-100 text-blue-600" : step === "success" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}
+              >
+                {step === "success" ? <CheckCircle className="h-4 w-4" /> : "2"}
+              </div>
+              <span className="text-sm font-medium">Purchase</span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            {step === "approve" && (
+              <Button
+                onClick={handleApprove}
+                disabled={isApproving || hasInsufficientBalance || !address}
+                className="w-full"
+                size="lg"
+              >
+                {isApproving ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Approving...
                   </>
                 ) : (
                   <>
-                    <Coins className="h-4 w-4 mr-2" />
+                    <Wallet className="mr-2 h-4 w-4" />
                     Approve {selectedToken.symbol}
                   </>
                 )}
               </Button>
             )}
 
-            {currentStep === "approving" && (
-              <Button disabled className="flex-1">
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Waiting for Approval...
-              </Button>
-            )}
-
-            {currentStep === "ready-to-purchase" && (
-              <Button onClick={onPurchase} disabled={!canPurchase || isWritePending} className="flex-1">
-                {isWritePending ? (
+            {step === "purchase" && (
+              <Button onClick={handlePurchase} disabled={isPurchasing} className="w-full" size="lg">
+                {isPurchasing ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Sending...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Purchasing...
                   </>
                 ) : (
                   <>
-                    <Package className="h-4 w-4 mr-2" />
-                    Purchase Now
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Purchase Product
                   </>
                 )}
               </Button>
             )}
 
-            {currentStep === "purchasing" && (
-              <Button disabled className="flex-1">
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {isConfirmed && isPurchasing ? "Success!" : "Purchasing..."}
-              </Button>
+            {step === "success" && (
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center gap-2 text-green-600">
+                  <CheckCircle className="h-8 w-8" />
+                  <span className="text-lg font-semibold">Purchase Successful!</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Your product will be dispensed shortly. Thank you for your purchase!
+                </p>
+                <Button onClick={handleClose} className="w-full">
+                  Close
+                </Button>
+              </div>
             )}
           </div>
+
+          {/* Transaction Links */}
+          {(approvalHash || purchaseHash) && (
+            <div className="space-y-2 text-sm">
+              {approvalHash && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Approval:</span>
+                  <a
+                    href={`https://sepolia.etherscan.io/tx/${approvalHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-blue-600 hover:underline"
+                  >
+                    View on Etherscan
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+              {purchaseHash && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Purchase:</span>
+                  <a
+                    href={`https://sepolia.etherscan.io/tx/${purchaseHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-blue-600 hover:underline"
+                  >
+                    View on Etherscan
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

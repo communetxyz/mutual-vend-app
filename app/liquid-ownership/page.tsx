@@ -1,460 +1,482 @@
+import { SiteNavigation } from "@/components/site-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
 import { MermaidDiagram } from "@/components/mermaid-diagram"
-import { TrendingUp, Users, DollarSign, ArrowUpRight, ArrowDownRight, Shield, Zap } from "lucide-react"
-
-const cooperativeStats = [
-  {
-    title: "Total Members",
-    value: "2,847",
-    change: "+12.3%",
-    trend: "up",
-    icon: Users,
-  },
-  {
-    title: "Total Revenue",
-    value: "$45,230",
-    change: "+8.7%",
-    trend: "up",
-    icon: DollarSign,
-  },
-  {
-    title: "Active Machines",
-    value: "156",
-    change: "+5.2%",
-    trend: "up",
-    icon: Zap,
-  },
-  {
-    title: "Avg. Monthly Return",
-    value: "3.2%",
-    change: "-0.3%",
-    trend: "down",
-    icon: TrendingUp,
-  },
-]
-
-const ownershipTiers = [
-  {
-    name: "Bronze Stakeholder",
-    minShares: 1,
-    maxShares: 100,
-    benefits: ["Monthly dividends", "Voting rights", "Community access"],
-    currentHolders: 1250,
-    color: "bg-amber-100 text-amber-800",
-  },
-  {
-    name: "Silver Partner",
-    minShares: 101,
-    maxShares: 500,
-    benefits: ["Higher dividend rate", "Priority support", "Beta features"],
-    currentHolders: 890,
-    color: "bg-gray-100 text-gray-800",
-  },
-  {
-    name: "Gold Investor",
-    minShares: 501,
-    maxShares: 1000,
-    benefits: ["Premium dividends", "Governance participation", "Exclusive events"],
-    currentHolders: 456,
-    color: "bg-yellow-100 text-yellow-800",
-  },
-  {
-    name: "Platinum Elite",
-    minShares: 1001,
-    maxShares: null,
-    benefits: ["Maximum returns", "Board voting", "Strategic input"],
-    currentHolders: 89,
-    color: "bg-purple-100 text-purple-800",
-  },
-]
-
-const liquidityFlowChart = `
-graph TD
-    A["Member Investment"] --> B["Cooperative Pool"]
-    B --> C["Machine Deployment"]
-    C --> D["Revenue Generation"]
-    D --> E["Profit Distribution"]
-    E --> F["Member Dividends"]
-    E --> G["Reinvestment"]
-    G --> C
-    
-    H["Secondary Market"] --> I["Share Trading"]
-    I --> J["Price Discovery"]
-    J --> K["Liquidity Provision"]
-    
-    B --> L["Governance Token"]
-    L --> M["Voting Rights"]
-    M --> N["Strategic Decisions"]
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style H fill:#fff3e0
-    style N fill:#f3e5f5
-`
-
-const governanceFlowChart = `
-graph LR
-    A["Proposal Submission"] --> B["Community Review"]
-    B --> C["Voting Period"]
-    C --> D{"Quorum Met?"}
-    D -->|Yes| E["Implementation"]
-    D -->|No| F["Proposal Rejected"]
-    E --> G["Execution"]
-    G --> H["Results Tracking"]
-    
-    I["Stakeholder Tiers"] --> J["Voting Weight"]
-    J --> C
-    
-    style A fill:#e3f2fd
-    style E fill:#e8f5e8
-    style F fill:#ffebee
-    style I fill:#f3e5f5
-`
+import {
+  Droplets,
+  Users,
+  TrendingUp,
+  Shield,
+  ArrowRight,
+  CheckCircle,
+  AlertTriangle,
+  DollarSign,
+  PieChart,
+  Calculator,
+} from "lucide-react"
 
 export default function LiquidOwnershipPage() {
+  const ownershipFlowChart = `
+    graph TD
+        A["Initial Investment"] --> B["Ownership Tokens Minted"]
+        B --> C["Revenue Generated"]
+        C --> D["Profits Distributed"]
+        D --> E["Token Holders Receive Rewards"]
+        E --> F["Reinvestment or Withdrawal"]
+        F --> C
+        
+        G["Secondary Market"] --> H["Token Trading"]
+        H --> I["Price Discovery"]
+        I --> J["Liquidity for Investors"]
+        
+        B --> G
+        E --> K["Governance Voting"]
+        K --> L["Operational Decisions"]
+        L --> C
+  `
+
+  const revenueDistributionChart = `
+    pie title Revenue Distribution
+        "Token Holders" : 60
+        "Operations & Maintenance" : 25
+        "Platform Development" : 10
+        "Reserve Fund" : 5
+  `
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <SiteNavigation />
+
+      <main className="flex-1 container px-4 md:px-6 py-8">
+        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Liquid Ownership Model</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Participate in a decentralized cooperative where ownership is liquid, transparent, and democratically
-            governed through blockchain technology.
+          <h1 className="text-4xl font-bold tracking-tighter mb-4 flex items-center justify-center gap-3">
+            <Droplets className="h-10 w-10 text-blue-600" />
+            Liquid Ownership Model
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            Democratizing vending machine ownership through tokenization and shared revenue streams
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {cooperativeStats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                    </div>
-                    <Icon className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center mt-4">
-                    {stat.trend === "up" ? (
-                      <ArrowUpRight className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <ArrowDownRight className="h-4 w-4 text-red-500" />
-                    )}
-                    <span className={`text-sm ml-1 ${stat.trend === "up" ? "text-green-500" : "text-red-500"}`}>
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-muted-foreground ml-1">from last month</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+        {/* Key Metrics */}
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-green-600">$50</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Min Investment</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-blue-600">8-15%</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Expected APY</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-purple-600">100+</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Owners per Machine</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Droplets className="h-8 w-8 text-cyan-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-cyan-600">24/7</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Liquidity</div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="ownership">Ownership Tiers</TabsTrigger>
-            <TabsTrigger value="governance">Governance</TabsTrigger>
-            <TabsTrigger value="liquidity">Liquidity</TabsTrigger>
-          </TabsList>
+        {/* How It Works */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Droplets className="h-5 w-5" />
+              How Liquid Ownership Works
+            </CardTitle>
+            <CardDescription>Transform vending machine ownership into tradeable, liquid assets</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MermaidDiagram chart={ownershipFlowChart} />
+          </CardContent>
+        </Card>
 
-          <TabsContent value="overview" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>How It Works</CardTitle>
-                  <CardDescription>
-                    The liquid ownership model allows fractional ownership of vending machines through tokenized shares
-                    that can be traded on secondary markets.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-600 font-semibold text-sm">1</span>
+        {/* Investment Tiers */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          <Card className="border-green-200 dark:border-green-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Badge variant="secondary">Starter</Badge>
+              </CardTitle>
+              <CardDescription>Perfect for first-time investors</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600">$50 - $500</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Investment Range</div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Fractional ownership</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Daily revenue sharing</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Instant liquidity</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Basic governance rights</span>
+                </div>
+              </div>
+              <Button className="w-full bg-transparent" variant="outline">
+                Start Investing
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Badge>Growth</Badge>
+              </CardTitle>
+              <CardDescription>For serious investors</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600">$500 - $2,500</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Investment Range</div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">All Starter benefits</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Enhanced governance rights</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Priority in new machines</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Detailed analytics access</span>
+                </div>
+              </div>
+              <Button className="w-full">Invest Now</Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-purple-200 dark:border-purple-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Badge variant="destructive">Premium</Badge>
+              </CardTitle>
+              <CardDescription>Maximum ownership benefits</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600">$2,500+</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Investment Range</div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">All Growth benefits</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Proposal submission rights</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Direct operator contact</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Exclusive investment opportunities</span>
+                </div>
+              </div>
+              <Button className="w-full" variant="destructive">
+                Premium Access
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Revenue Distribution */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5" />
+              Revenue Distribution Model
+            </CardTitle>
+            <CardDescription>How machine profits are allocated among stakeholders</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div>
+                <MermaidDiagram chart={revenueDistributionChart} />
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                      <span className="font-medium">Token Holders (60%)</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium">Purchase Shares</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Buy fractional ownership tokens representing shares in the cooperative
-                      </p>
-                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Direct profit sharing</span>
                   </div>
 
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-600 font-semibold text-sm">2</span>
+                  <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
+                      <span className="font-medium">Operations (25%)</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium">Earn Dividends</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Receive proportional returns from machine revenue automatically
-                      </p>
-                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Maintenance & restocking</span>
                   </div>
 
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-600 font-semibold text-sm">3</span>
+                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                      <span className="font-medium">Development (10%)</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium">Participate in Governance</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Vote on key decisions affecting the cooperative's direction
-                      </p>
-                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Platform improvements</span>
                   </div>
 
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-600 font-semibold text-sm">4</span>
+                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                      <span className="font-medium">Reserve Fund (5%)</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium">Trade Freely</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Buy and sell shares on secondary markets for liquidity
-                      </p>
-                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Emergency & expansion</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Key Benefits</CardTitle>
-                  <CardDescription>Why choose liquid ownership over traditional investment models</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Shield className="h-5 w-5 text-green-500" />
-                    <div>
-                      <h4 className="font-medium">Transparent Operations</h4>
-                      <p className="text-sm text-muted-foreground">
-                        All transactions and decisions recorded on blockchain
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <TrendingUp className="h-5 w-5 text-blue-500" />
-                    <div>
-                      <h4 className="font-medium">Passive Income</h4>
-                      <p className="text-sm text-muted-foreground">Earn regular dividends from machine operations</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <Users className="h-5 w-5 text-purple-500" />
-                    <div>
-                      <h4 className="font-medium">Democratic Governance</h4>
-                      <p className="text-sm text-muted-foreground">Every stakeholder has a voice in key decisions</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <Zap className="h-5 w-5 text-orange-500" />
-                    <div>
-                      <h4 className="font-medium">High Liquidity</h4>
-                      <p className="text-sm text-muted-foreground">Trade shares anytime on secondary markets</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
-          </TabsContent>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="ownership" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {ownershipTiers.map((tier, index) => (
-                <Card key={index} className="relative overflow-hidden">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{tier.name}</CardTitle>
-                      <Badge className={tier.color}>{tier.currentHolders} holders</Badge>
+        {/* Benefits & Features */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Investment Benefits
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Passive Income</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Earn daily revenue from machine operations without active management
                     </div>
-                    <CardDescription>
-                      {tier.minShares} - {tier.maxShares || "∞"} shares required
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <h4 className="font-medium">Benefits</h4>
-                      <ul className="space-y-2">
-                        {tier.benefits.map((benefit, benefitIndex) => (
-                          <li key={benefitIndex} className="flex items-center text-sm">
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2" />
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Instant Liquidity</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Trade ownership tokens 24/7 on decentralized exchanges
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Fractional Ownership</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Own a piece of expensive assets with minimal capital
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Transparent Operations</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Real-time visibility into machine performance and financials
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Risk Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Market Risk</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Token values may fluctuate based on machine performance and market conditions
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Operational Risk</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Machine downtime or location changes can affect revenue
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Insurance Coverage</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Comprehensive insurance protects against theft and damage
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">Diversification</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Spread risk across multiple machines and locations
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ROI Calculator */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              Investment Calculator
+            </CardTitle>
+            <CardDescription>Estimate your potential returns based on different investment amounts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Investment Amount</label>
+                  <div className="text-2xl font-bold text-blue-600">$1,000</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Expected APY</label>
+                  <div className="text-lg font-semibold">12%</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Monthly Revenue</label>
+                  <div className="text-2xl font-bold text-green-600">$10.00</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Annual Revenue</label>
+                  <div className="text-lg font-semibold text-green-600">$120.00</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">5-Year Value</label>
+                  <div className="text-2xl font-bold text-purple-600">$1,762</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Total Return</label>
+                  <div className="text-lg font-semibold text-purple-600">76.2%</div>
+                </div>
+              </div>
             </div>
-          </TabsContent>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="governance" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Governance Process</CardTitle>
-                  <CardDescription>How decisions are made in the cooperative</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <MermaidDiagram chart={governanceFlowChart} />
-                </CardContent>
-              </Card>
+        {/* Getting Started */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ArrowRight className="h-5 w-5" />
+              Getting Started
+            </CardTitle>
+            <CardDescription>Begin your liquid ownership journey in three simple steps</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-xl font-bold text-blue-600">1</span>
+                </div>
+                <h4 className="font-semibold">Connect Wallet</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Connect your crypto wallet to access the investment platform
+                </p>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Current Proposals</CardTitle>
-                  <CardDescription>Active governance proposals requiring your vote</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">Expand to University Campuses</h4>
-                      <Badge variant="outline">Active</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Proposal to deploy 50 new machines across 10 university campuses
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Support: 67%</span>
-                        <span>2 days left</span>
-                      </div>
-                      <Progress value={67} className="h-2" />
-                    </div>
-                    <Button size="sm" className="mt-3">
-                      Vote Now
-                    </Button>
-                  </div>
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-xl font-bold text-blue-600">2</span>
+                </div>
+                <h4 className="font-semibold">Choose Investment</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Select machines and investment amounts that match your goals
+                </p>
+              </div>
 
-                  <div className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">Increase Dividend Rate</h4>
-                      <Badge variant="outline">Active</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Proposal to increase monthly dividend distribution from 3% to 4%
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Support: 45%</span>
-                        <span>5 days left</span>
-                      </div>
-                      <Progress value={45} className="h-2" />
-                    </div>
-                    <Button size="sm" className="mt-3">
-                      Vote Now
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-xl font-bold text-blue-600">3</span>
+                </div>
+                <h4 className="font-semibold">Earn Returns</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Start receiving daily revenue shares and track your portfolio
+                </p>
+              </div>
             </div>
-          </TabsContent>
 
-          <TabsContent value="liquidity" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Liquidity Flow</CardTitle>
-                <CardDescription>How value flows through the liquid ownership ecosystem</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MermaidDiagram chart={liquidityFlowChart} />
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Primary Market</CardTitle>
-                  <CardDescription>Direct investment in new machine deployments</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Current Price</span>
-                      <span className="font-medium">$10.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Min. Investment</span>
-                      <span className="font-medium">$100</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Expected ROI</span>
-                      <span className="font-medium text-green-600">12-15%</span>
-                    </div>
-                    <Button className="w-full mt-4">Invest Now</Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Secondary Market</CardTitle>
-                  <CardDescription>Trade existing shares with other members</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Market Price</span>
-                      <span className="font-medium">$10.45</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">24h Volume</span>
-                      <span className="font-medium">$12,450</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Price Change</span>
-                      <span className="font-medium text-green-600">+4.5%</span>
-                    </div>
-                    <Button variant="outline" className="w-full mt-4 bg-transparent">
-                      View Market
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Portfolio</CardTitle>
-                  <CardDescription>Your current holdings and performance</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Total Shares</span>
-                      <span className="font-medium">250</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Current Value</span>
-                      <span className="font-medium">$2,612.50</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Monthly Dividend</span>
-                      <span className="font-medium text-green-600">$83.60</span>
-                    </div>
-                    <Button variant="outline" className="w-full mt-4 bg-transparent">
-                      Manage Portfolio
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="text-center mt-8">
+              <Button size="lg" className="px-8">
+                Start Investing Today
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   )
 }

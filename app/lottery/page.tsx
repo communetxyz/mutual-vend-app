@@ -1,494 +1,389 @@
+import { SiteNavigation } from "@/components/site-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
 import { MermaidDiagram } from "@/components/mermaid-diagram"
-import { Trophy, Calendar, Users, Clock, Gift, Star, TrendingUp, Zap } from "lucide-react"
-
-const lotteryStats = [
-  {
-    title: "Current Jackpot",
-    value: "$12,450",
-    change: "+$2,340",
-    icon: Trophy,
-    color: "text-yellow-600",
-  },
-  {
-    title: "Total Participants",
-    value: "1,847",
-    change: "+156 today",
-    icon: Users,
-    color: "text-blue-600",
-  },
-  {
-    title: "Draws This Month",
-    value: "8",
-    change: "Next in 2 days",
-    icon: Calendar,
-    color: "text-green-600",
-  },
-  {
-    title: "Total Prizes Won",
-    value: "$89,230",
-    change: "All time",
-    icon: Gift,
-    color: "text-purple-600",
-  },
-]
-
-const upcomingDraws = [
-  {
-    id: 1,
-    name: "Weekly Jackpot",
-    prize: "$12,450",
-    participants: 1847,
-    timeLeft: "2 days, 14 hours",
-    ticketPrice: "$5",
-    odds: "1 in 1,847",
-  },
-  {
-    id: 2,
-    name: "Daily Quick Draw",
-    prize: "$500",
-    participants: 234,
-    timeLeft: "18 hours",
-    ticketPrice: "$1",
-    odds: "1 in 234",
-  },
-  {
-    id: 3,
-    name: "Monthly Mega Prize",
-    prize: "$50,000",
-    participants: 3456,
-    timeLeft: "12 days",
-    ticketPrice: "$10",
-    odds: "1 in 3,456",
-  },
-]
-
-const recentWinners = [
-  {
-    address: "0x1234...5678",
-    prize: "$12,450",
-    draw: "Weekly Jackpot #47",
-    date: "2 days ago",
-  },
-  {
-    address: "0x8765...4321",
-    prize: "$500",
-    draw: "Daily Quick Draw #156",
-    date: "1 day ago",
-  },
-  {
-    address: "0x9876...1234",
-    prize: "$250",
-    draw: "Daily Quick Draw #155",
-    date: "2 days ago",
-  },
-]
-
-const lotteryFlowChart = `
-graph TD
-    A["Purchase Tickets"] --> B["Ticket Pool"]
-    B --> C["Random Draw"]
-    C --> D["Winner Selection"]
-    D --> E["Prize Distribution"]
-    E --> F["Winner Receives Prize"]
-    
-    G["Ticket Sales"] --> H["Prize Pool 70%"]
-    G --> I["Platform Fee 10%"]
-    G --> J["Next Draw 20%"]
-    
-    H --> E
-    J --> K["Future Jackpots"]
-    
-    L["Smart Contract"] --> C
-    L --> M["Verifiable Randomness"]
-    M --> N["Transparent Results"]
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style L fill:#fff3e0
-    style N fill:#f3e5f5
-`
+import {
+  Ticket,
+  Trophy,
+  Calendar,
+  Users,
+  Coins,
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  Gift,
+  Zap,
+  Star,
+  TrendingUp,
+} from "lucide-react"
 
 export default function LotteryPage() {
+  const lotteryFlowChart = `
+    graph TD
+        A["Purchase from Machine"] --> B["Automatic Entry"]
+        B --> C["Weekly Draw"]
+        C --> D["Winner Selection"]
+        D --> E["Prize Distribution"]
+        E --> F["Next Round Begins"]
+        F --> C
+        
+        G["Monthly Mega Draw"] --> H["Larger Prize Pool"]
+        H --> I["Multiple Winners"]
+        I --> J["Bonus Rewards"]
+        
+        B --> G
+        E --> K["Claim Rewards"]
+        K --> L["Reinvest or Withdraw"]
+  `
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <SiteNavigation />
+
+      <main className="flex-1 container px-4 md:px-6 py-8">
+        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Community Lottery</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Participate in transparent, blockchain-based lottery draws with verifiable randomness and automatic prize
-            distribution. Every purchase contributes to the community jackpot.
+          <h1 className="text-4xl font-bold tracking-tighter mb-4 flex items-center justify-center gap-3">
+            <Ticket className="h-10 w-10 text-purple-600" />
+            Mutual Vend Lottery
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            Every purchase is a chance to win! Automatic lottery entries with every vending machine transaction
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {lotteryStats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                    </div>
-                    <Icon className={`h-8 w-8 ${stat.color}`} />
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">{stat.change}</p>
-                </CardContent>
-              </Card>
-            )
-          })}
+        {/* Current Jackpot */}
+        <Card className="mb-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+          <CardContent className="p-8 text-center">
+            <div className="space-y-4">
+              <Trophy className="h-16 w-16 mx-auto" />
+              <div>
+                <div className="text-sm opacity-90">Current Weekly Jackpot</div>
+                <div className="text-5xl font-bold">$2,847</div>
+                <div className="text-sm opacity-90">in USDC</div>
+              </div>
+              <div className="flex items-center justify-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span>3 days remaining</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  <span>1,247 entries</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* How It Works */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              How the Lottery Works
+            </CardTitle>
+            <CardDescription>Automatic entries with every purchase - no additional cost!</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MermaidDiagram chart={lotteryFlowChart} />
+          </CardContent>
+        </Card>
+
+        {/* Prize Tiers */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          <Card className="border-yellow-200 dark:border-yellow-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-600" />
+                Weekly Draw
+              </CardTitle>
+              <CardDescription>Every Sunday at 8 PM UTC</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-yellow-600">$500 - $5,000</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Prize Range</div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm">1st Place</span>
+                  <span className="text-sm font-medium">60% of pool</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">2nd Place</span>
+                  <span className="text-sm font-medium">25% of pool</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">3rd Place</span>
+                  <span className="text-sm font-medium">15% of pool</span>
+                </div>
+              </div>
+              <div className="text-center pt-2">
+                <Badge variant="secondary">3 Winners</Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-purple-200 dark:border-purple-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-purple-600" />
+                Monthly Mega
+              </CardTitle>
+              <CardDescription>First Sunday of each month</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600">$2,000 - $20,000</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Prize Range</div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm">Grand Prize</span>
+                  <span className="text-sm font-medium">40% of pool</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Runner-ups (5)</span>
+                  <span className="text-sm font-medium">40% of pool</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Consolation (10)</span>
+                  <span className="text-sm font-medium">20% of pool</span>
+                </div>
+              </div>
+              <div className="text-center pt-2">
+                <Badge>16 Winners</Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-green-200 dark:border-green-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="h-5 w-5 text-green-600" />
+                Special Events
+              </CardTitle>
+              <CardDescription>Holiday and milestone draws</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600">$10,000+</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Prize Range</div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Holiday bonuses</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Milestone celebrations</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Community events</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Partnership prizes</span>
+                </div>
+              </div>
+              <div className="text-center pt-2">
+                <Badge variant="destructive">Variable</Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Tabs defaultValue="draws" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="draws">Active Draws</TabsTrigger>
-            <TabsTrigger value="winners">Recent Winners</TabsTrigger>
-            <TabsTrigger value="how-it-works">How It Works</TabsTrigger>
-            <TabsTrigger value="history">My History</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="draws" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingDraws.map((draw) => (
-                <Card key={draw.id} className="relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-yellow-400 to-yellow-600 rounded-bl-full flex items-center justify-center">
-                    <Trophy className="h-6 w-6 text-white" />
-                  </div>
-
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg pr-16">{draw.name}</CardTitle>
-                    <CardDescription>
-                      Draw #{draw.id} • {draw.participants} participants
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600 mb-1">{draw.prize}</div>
-                      <div className="text-sm text-muted-foreground">Current Prize Pool</div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <div className="font-medium">Time Left</div>
-                        <div className="text-muted-foreground">{draw.timeLeft}</div>
-                      </div>
-                      <div>
-                        <div className="font-medium">Ticket Price</div>
-                        <div className="text-muted-foreground">{draw.ticketPrice}</div>
-                      </div>
-                      <div className="col-span-2">
-                        <div className="font-medium">Your Odds</div>
-                        <div className="text-muted-foreground">{draw.odds}</div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Tickets Sold</span>
-                        <span>{draw.participants} / ∞</span>
-                      </div>
-                      <Progress value={Math.min((draw.participants / 2000) * 100, 100)} className="h-2" />
-                    </div>
-
-                    <Button className="w-full">Buy Tickets</Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="winners" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Winners</CardTitle>
-                <CardDescription>Latest lottery winners and their prizes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentWinners.map((winner, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
-                          <Trophy className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium">{winner.address}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {winner.draw} • {winner.date}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-green-600">{winner.prize}</div>
-                        <Badge variant="outline">Winner</Badge>
-                      </div>
-                    </div>
-                  ))}
+        {/* Entry Methods */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Ticket className="h-5 w-5" />
+              How to Enter
+            </CardTitle>
+            <CardDescription>Multiple ways to earn lottery entries</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+                  <Coins className="h-8 w-8 text-blue-600" />
                 </div>
-              </CardContent>
-            </Card>
+                <h4 className="font-semibold">Purchase Items</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">1 entry per $1 spent</p>
+                <Badge variant="secondary">Automatic</Badge>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Biggest Win This Month</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 mb-2">$50,000</div>
-                    <div className="text-sm text-muted-foreground">Monthly Mega Prize #12</div>
-                    <div className="text-xs text-muted-foreground mt-1">Won by 0x9876...5432</div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
+                  <Users className="h-8 w-8 text-green-600" />
+                </div>
+                <h4 className="font-semibold">Refer Friends</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">5 bonus entries per referral</p>
+                <Badge variant="secondary">Bonus</Badge>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Most Frequent Winner</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">7 Wins</div>
-                    <div className="text-sm text-muted-foreground">0x1234...7890</div>
-                    <div className="text-xs text-muted-foreground mt-1">Total winnings: $8,450</div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto">
+                  <TrendingUp className="h-8 w-8 text-purple-600" />
+                </div>
+                <h4 className="font-semibold">Hold Tokens</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">1 entry per 100 tokens held</p>
+                <Badge variant="secondary">Passive</Badge>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Lucky Numbers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="flex justify-center space-x-2 mb-2">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold">
-                        7
-                      </div>
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-sm font-bold">
-                        23
-                      </div>
-                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-sm font-bold">
-                        42
-                      </div>
-                    </div>
-                    <div className="text-sm text-muted-foreground">Most drawn numbers</div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mx-auto">
+                  <Calendar className="h-8 w-8 text-yellow-600" />
+                </div>
+                <h4 className="font-semibold">Daily Check-in</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">1 entry per day</p>
+                <Badge variant="secondary">Daily</Badge>
+              </div>
             </div>
-          </TabsContent>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="how-it-works" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Lottery Process</CardTitle>
-                  <CardDescription>How our transparent lottery system works</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <MermaidDiagram chart={lotteryFlowChart} />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Key Features</CardTitle>
-                  <CardDescription>What makes our lottery fair and transparent</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <Zap className="h-5 w-5 text-blue-500 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">Verifiable Randomness</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Uses Chainlink VRF for provably fair random number generation
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <Clock className="h-5 w-5 text-green-500 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">Automatic Distribution</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Winners receive prizes automatically via smart contracts
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <Star className="h-5 w-5 text-yellow-500 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">Transparent Operations</h4>
-                      <p className="text-sm text-muted-foreground">
-                        All draws and results are publicly verifiable on-chain
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <TrendingUp className="h-5 w-5 text-purple-500 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">Growing Jackpots</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Unclaimed prizes roll over to increase future jackpots
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Prize Distribution</CardTitle>
-                <CardDescription>How ticket sales are allocated</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">70%</div>
-                    <div className="font-medium">Prize Pool</div>
-                    <div className="text-sm text-muted-foreground">Goes directly to winners</div>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">20%</div>
-                    <div className="font-medium">Future Jackpots</div>
-                    <div className="text-sm text-muted-foreground">Builds bigger prizes</div>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">10%</div>
-                    <div className="font-medium">Platform Fee</div>
-                    <div className="text-sm text-muted-foreground">Covers operations</div>
+        {/* Recent Winners */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5" />
+              Recent Winners
+            </CardTitle>
+            <CardDescription>Congratulations to our latest lottery winners!</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Trophy className="h-6 w-6 text-yellow-600" />
+                  <div>
+                    <div className="font-semibold">0x7a2f...8b4c</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Weekly Draw #47</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <div className="text-right">
+                  <div className="font-bold text-yellow-600">$1,847 USDC</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">2 days ago</div>
+                </div>
+              </div>
 
-          <TabsContent value="history" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Stats</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Tickets Purchased</span>
-                      <span className="font-medium">47</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Total Spent</span>
-                      <span className="font-medium">$235</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Wins</span>
-                      <span className="font-medium text-green-600">3</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Total Won</span>
-                      <span className="font-medium text-green-600">$150</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Win Rate</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">6.4%</div>
-                    <div className="text-sm text-muted-foreground">3 wins out of 47 tickets</div>
-                    <Progress value={6.4} className="mt-3" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Net Position</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-red-600 mb-2">-$85</div>
-                    <div className="text-sm text-muted-foreground">Total spent vs. winnings</div>
-                    <div className="text-xs text-muted-foreground mt-2">Keep playing for bigger wins!</div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Ticket History</CardTitle>
-                <CardDescription>Recent lottery participation and results</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <Trophy className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Daily Quick Draw #156</div>
-                        <div className="text-sm text-muted-foreground">2 tickets • 1 day ago</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge className="bg-green-100 text-green-800">Won $50</Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                        <Clock className="h-4 w-4 text-gray-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Weekly Jackpot #46</div>
-                        <div className="text-sm text-muted-foreground">5 tickets • 1 week ago</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant="outline">No win</Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <Trophy className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Daily Quick Draw #148</div>
-                        <div className="text-sm text-muted-foreground">1 ticket • 2 weeks ago</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge className="bg-green-100 text-green-800">Won $100</Badge>
-                    </div>
+              <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Star className="h-6 w-6 text-purple-600" />
+                  <div>
+                    <div className="font-semibold">0x9c1e...3f7a</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Monthly Mega #12</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+                <div className="text-right">
+                  <div className="font-bold text-purple-600">$8,234 USDC</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">1 week ago</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Gift className="h-6 w-6 text-green-600" />
+                  <div>
+                    <div className="font-semibold">0x4d8b...9e2f</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Holiday Special</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-green-600">$15,000 USDC</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">3 weeks ago</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Your Entries */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Ticket className="h-5 w-5" />
+              Your Lottery Status
+            </CardTitle>
+            <CardDescription>Connect your wallet to view your entries and chances</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <Ticket className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Connect Wallet to View Entries</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                See your current entries, win history, and chances for upcoming draws
+              </p>
+              <Button size="lg">
+                Connect Wallet
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Rules & Terms */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              Lottery Rules & Terms
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h4 className="font-semibold">Eligibility</h4>
+                <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                  <li>• Must be 18+ years old</li>
+                  <li>• Valid wallet address required</li>
+                  <li>• Minimum $1 purchase for entry</li>
+                  <li>• No geographic restrictions</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold">Prize Distribution</h4>
+                <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                  <li>• Automatic distribution to winners</li>
+                  <li>• Prizes paid in USDC</li>
+                  <li>• No claiming period - instant payout</li>
+                  <li>• Winners announced publicly</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold">Fair Play</h4>
+                <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                  <li>• Provably fair random selection</li>
+                  <li>• Blockchain-verified draws</li>
+                  <li>• Open source lottery contract</li>
+                  <li>• Community oversight</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold">Entry Limits</h4>
+                <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                  <li>• No maximum entries per person</li>
+                  <li>• Entries expire after draw</li>
+                  <li>• Bonus entries stack with purchases</li>
+                  <li>• Historical entries tracked</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   )
 }

@@ -1,156 +1,152 @@
 "use client"
 
-import { useState } from "react"
+import React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Badge } from "@/components/ui/badge"
-import { Menu, Zap, ShoppingCart, Users, Shield, Trophy, PieChart, DollarSign, Wrench, BookOpen } from "lucide-react"
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu"
+import { Bot, Printer, Wrench, PieChart, TrendingUp, Diamond, Shield, ShoppingCart, Rocket } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const navigation = [
-  {
-    name: "Vending Machine",
-    href: "/vending-machine",
-    icon: ShoppingCart,
-    description: "Purchase products with crypto",
+const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
+  ({ className, title, children, ...props }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink asChild>
+          <a
+            ref={ref}
+            className={cn(
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+              className,
+            )}
+            {...props}
+          >
+            <div className="text-sm font-medium leading-none">{title}</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">{children}</p>
+          </a>
+        </NavigationMenuLink>
+      </li>
+    )
   },
-  {
-    name: "How It Works",
-    href: "/how-it-works",
-    icon: BookOpen,
-    description: "Learn about our system",
-  },
-  {
-    name: "Liquid Ownership",
-    href: "/liquid-ownership",
-    icon: Users,
-    description: "Cooperative ownership model",
-  },
-  {
-    name: "Revenue Share",
-    href: "/revenue-share",
-    icon: DollarSign,
-    description: "Earn from network success",
-  },
-  {
-    name: "ZK Verification",
-    href: "/zk-verification",
-    icon: Shield,
-    description: "Privacy-preserving identity",
-  },
-  {
-    name: "Lottery",
-    href: "/lottery",
-    icon: Trophy,
-    description: "Community lottery system",
-  },
-  {
-    name: "Fabrication",
-    href: "/fabrication-research",
-    icon: Wrench,
-    description: "Build your own machine",
-  },
-  {
-    name: "Funding",
-    href: "/funding",
-    icon: PieChart,
-    description: "Investment opportunities",
-  },
-]
+)
+ListItem.displayName = "ListItem"
 
 export function SiteNavigation() {
-  const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-bold text-xl">Mutual Vend</span>
-            </Link>
-
-            <Badge variant="outline" className="hidden sm:inline-flex">
-              Beta
-            </Badge>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-1">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
-
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Mobile Navigation */}
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild className="lg:hidden">
-              <Button variant="ghost" size="sm">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-80">
-              <div className="flex items-center space-x-2 mb-6">
-                <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
-                  <Zap className="h-5 w-5 text-white" />
-                </div>
-                <span className="font-bold text-xl">Mutual Vend</span>
-                <Badge variant="outline">Beta</Badge>
-              </div>
-
-              <nav className="space-y-2">
-                {navigation.map((item) => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href
-
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className={cn(
-                        "flex items-start space-x-3 px-3 py-3 rounded-lg transition-colors",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent",
-                      )}
+    <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+      <Link href="/" className="flex items-center justify-center" prefetch={false}>
+        <Bot className="h-6 w-6" />
+        <span className="ml-2 text-lg font-bold">Mutual Vend</span>
+      </Link>
+      <NavigationMenu className="ml-auto">
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="text-sm font-medium">Learn</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                <li className="row-span-4">
+                  <NavigationMenuLink asChild>
+                    <a
+                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                      href="/how-it-works"
                     >
-                      <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <div className="font-medium">{item.name}</div>
-                        <div className="text-xs opacity-70 mt-1">{item.description}</div>
-                      </div>
-                    </Link>
-                  )
-                })}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
+                      <Bot className="h-6 w-6" />
+                      <div className="mb-2 mt-4 text-lg font-medium">How It Works</div>
+                      <p className="text-sm leading-tight text-muted-foreground">
+                        Deep dive into stocking and revenue sharing mechanisms that power our network.
+                      </p>
+                    </a>
+                  </NavigationMenuLink>
+                </li>
+                <ListItem href="/#features" title="Features">
+                  Explore the core features that make Mutual Vend revolutionary.
+                </ListItem>
+                <ListItem href="/funding" title="Funding">
+                  <div className="flex items-center gap-2">
+                    <Rocket className="h-4 w-4" />
+                    Learn how to fund your own Mutual Vend machine
+                  </div>
+                </ListItem>
+                <ListItem href="/#faq" title="FAQ">
+                  Get answers to frequently asked questions about the platform.
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="text-sm font-medium">Build</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                <ListItem href="/#blueprints" title="Blueprints">
+                  <div className="flex items-center gap-2">
+                    <Printer className="h-4 w-4" />
+                    Download 3D printing files and assembly guides
+                  </div>
+                </ListItem>
+                <ListItem href="/fabrication-research" title="Research">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="h-4 w-4" />
+                    Open-source fabrication research and development
+                  </div>
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="text-sm font-medium">Earn</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1 lg:w-[600px]">
+                <ListItem href="/revenue-share" title="Revenue Share">
+                  <div className="flex items-center gap-2">
+                    <PieChart className="h-4 w-4" />
+                    Earn profits from every purchase for 2 weeks using stablecoins
+                  </div>
+                </ListItem>
+                <ListItem href="/liquid-ownership" title="Liquid Ownership">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Buy and sell fractionalized machine ownership
+                  </div>
+                </ListItem>
+                <ListItem href="/lottery" title="Lossless Lottery">
+                  <div className="flex items-center gap-2">
+                    <Diamond className="h-4 w-4" />
+                    Win machines through fair, no-loss auctions
+                  </div>
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="text-sm font-medium">Future</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1 lg:w-[600px]">
+                <ListItem href="/zk-verification" title="ZK Verification">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Trustless verification using zero-knowledge proofs
+                  </div>
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+      <div className="ml-4">
+        <Link href="/vending-machine">
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Buy Now
+          </button>
+        </Link>
       </div>
     </header>
   )

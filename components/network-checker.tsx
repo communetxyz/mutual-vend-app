@@ -2,10 +2,10 @@
 
 import { useAccount, useChainId, useSwitchChain } from "wagmi"
 import { gnosis } from "wagmi/chains"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, CheckCircle, Wifi } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 export function NetworkChecker() {
   const { isConnected } = useAccount()
@@ -13,39 +13,29 @@ export function NetworkChecker() {
   const { switchChain, isPending } = useSwitchChain()
 
   const isCorrectNetwork = chainId === gnosis.id
-  const isGnosisChain = chainId === gnosis.id
 
-  if (!isConnected) {
-    return (
-      <Card className="border-yellow-200 bg-yellow-50">
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-3">
-            <Wifi className="h-5 w-5 text-yellow-600" />
-            <div>
-              <p className="font-medium text-yellow-800">Wallet Not Connected</p>
-              <p className="text-sm text-yellow-700">Please connect your wallet to use the vending machine</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
+  const handleSwitchNetwork = async () => {
+    try {
+      await switchChain({ chainId: gnosis.id })
+      toast.success("Successfully switched to Gnosis Chain!")
+    } catch (error) {
+      console.error("Failed to switch network:", error)
+      toast.error("Failed to switch network. Please try manually in your wallet.")
+    }
   }
 
-  if (!isCorrectNetwork) {
+  if (!isConnected) {
+    return null
+  }
+
+  if (isCorrectNetwork) {
     return (
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <div>
-                <p className="font-medium text-red-800">Wrong Network</p>
-                <p className="text-sm text-red-700">Please switch to Gnosis Chain to continue</p>
-              </div>
-            </div>
-            <Button onClick={() => switchChain({ chainId: gnosis.id })} disabled={isPending} size="sm">
-              {isPending ? "Switching..." : "Switch Network"}
-            </Button>
+      <Card className="border-green-200 dark:border-green-800">
+        <CardContent className="flex items-center gap-3 p-4">
+          <CheckCircle className="h-5 w-5 text-green-500" />
+          <div>
+            <div className="font-medium text-green-700 dark:text-green-300">Connected to Gnosis Chain</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Ready to interact with vending machines</div>
           </div>
         </CardContent>
       </Card>
@@ -53,16 +43,25 @@ export function NetworkChecker() {
   }
 
   return (
-    <Card className="border-green-200 bg-green-50">
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-3">
-          <CheckCircle className="h-5 w-5 text-green-600" />
-          <div>
-            <p className="font-medium text-green-800">Connected to Gnosis Chain</p>
-            <p className="text-sm text-green-700">Ready to make purchases</p>
-          </div>
-          <Badge className="bg-green-100 text-green-800 ml-auto">Chain ID: {chainId}</Badge>
-        </div>
+    <Card className="border-yellow-200 dark:border-yellow-800">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
+          <AlertTriangle className="h-5 w-5" />
+          Wrong Network
+        </CardTitle>
+        <CardDescription>You need to be connected to Gnosis Chain to use the vending machine.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={handleSwitchNetwork} disabled={isPending} className="w-full">
+          {isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Switching...
+            </>
+          ) : (
+            "Switch to Gnosis Chain"
+          )}
+        </Button>
       </CardContent>
     </Card>
   )

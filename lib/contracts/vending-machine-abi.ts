@@ -281,11 +281,6 @@ export const VENDING_MACHINE_ABI = [
             type: "uint256",
             internalType: "uint256",
           },
-          {
-            name: "isActive",
-            type: "bool",
-            internalType: "bool",
-          },
         ],
       },
     ],
@@ -293,39 +288,17 @@ export const VENDING_MACHINE_ABI = [
   },
   {
     type: "function",
-    name: "getTrackCount",
-    inputs: [],
+    name: "getTrackInventory",
+    inputs: [
+      {
+        name: "trackId",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
     outputs: [
       {
         name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getMachineStats",
-    inputs: [],
-    outputs: [
-      {
-        name: "totalTracks",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "activeTracks",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "totalRevenue",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "totalSales",
         type: "uint256",
         internalType: "uint256",
       },
@@ -465,19 +438,6 @@ export const VENDING_MACHINE_ABI = [
   },
   {
     type: "function",
-    name: "owner",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "renounceRole",
     inputs: [
       {
@@ -573,8 +533,8 @@ export const VENDING_MACHINE_ABI = [
     inputs: [
       {
         name: "trackId",
-        type: "uint256",
-        internalType: "uint256",
+        type: "uint8",
+        internalType: "uint8",
       },
       {
         name: "token",
@@ -587,7 +547,13 @@ export const VENDING_MACHINE_ABI = [
         internalType: "address",
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
   },
   {
@@ -844,37 +810,6 @@ export const VENDING_MACHINE_ABI = [
       },
       {
         name: "additionalStock",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "ProductVended",
-    inputs: [
-      {
-        name: "trackId",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "buyer",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "token",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "price",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
