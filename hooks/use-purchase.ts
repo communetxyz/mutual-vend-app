@@ -38,6 +38,7 @@ export function usePurchase() {
     error: null,
   })
   const [retryCount, setRetryCount] = useState(0)
+  const [useDirectWallet, setUseDirectWallet] = useState(false)
 
   // Validate and switch to Gnosis Chain with retry logic
   const ensureCorrectNetwork = async (): Promise<boolean> => {
@@ -217,55 +218,39 @@ export function usePurchase() {
     return allowance ? allowance >= requiredAllowance : false
   }
 
-  const executeWriteContract = async (contractCall: () => void, isApproval = false) => {
+  // Direct wallet interaction for WalletConnect when wagmi fails
+  const executeDirectWalletTransaction = async (
+    contractAddress: string,
+    abi: any[],
+    functionName: string,
+    args: any[],
+    isApproval = false,
+  ): Promise<string> => {
+    if (!connectorClient) {
+      throw new Error("No wallet client available")
+    }
+
+    console.log(`🔗 Using direct wallet interaction for ${isApproval ? "approval" : "purchase"}`)
+    console.log("Contract:", contractAddress)
+    console.log("Function:", functionName)
+    console.log("Args:", args)
+
     try {
-      // Reset any previous write state
-      resetWrite()
+      // Use the connector client directly
+      const hash = await connectorClient.writeContract({
+        address: contractAddress as `0x${string}`,
+        abi,
+        functionName,
+        args,
+        account: address as `0x${string}`,
+        chain: gnosis,
+      })
 
-      // For WalletConnect, ensure connection is stable
-      if (connector?.type === "walletConnect") {
-        console.log("🔗 WalletConnect - Ensuring stable connection...")
-
-        if (!connectorClient) {
-          throw new Error("WalletConnect client not ready")
-        }
-
-        // Give WalletConnect extra time to stabilize
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-
-        // Check if connection is still active
-        if (!connectorClient.account) {
-          throw new Error("WalletConnect session expired")
-        }
-      }
-
-      console.log(`📱 Sending ${isApproval ? "approval" : "purchase"} request to wallet...`)
-      contractCall()
-
-      // Show user guidance for WalletConnect
-      if (connector?.type === "walletConnect") {
-        toast.info("Check your mobile wallet app to approve the transaction", {
-          duration: 8000,
-        })
-      }
+      console.log(`✅ Direct wallet transaction hash:`, hash)
+      return hash
     } catch (error: any) {
-      console.error(`❌ ${isApproval ? "Approval" : "Purchase"} setup failed:`, error)
-
-      let errorMessage = `${isApproval ? "Approval" : "Purchase"} failed`
-
-      if (error.message?.includes("client not ready") || error.message?.includes("session expired")) {
-        errorMessage = "Wallet connection lost. Please reconnect and try again."
-      } else if (error.message?.includes("network")) {
-        errorMessage = "Network error - please check your connection"
-      }
-
-      setPurchaseState((prev) => ({
-        ...prev,
-        error: errorMessage,
-        isApproving: false,
-        isPurchasing: false,
-      }))
-      toast.error(errorMessage)
+      console.error(`❌ Direct wallet transaction failed:`, error)
+      throw error
     }
   }
 
@@ -353,6 +338,25 @@ export function usePurchase() {
     try {
       console.log("🔄 Starting approval with timeout handling...")
 
+      // For WalletConnect after failed attempts, try direct wallet interaction
+      if (connector?.type === "walletConnect" && (retryCount > 0 || useDirectWallet)) {
+        console.log("🔗 Using direct wallet interaction for WalletConnect approval")
+
+        const hash = await executeDirectWalletTransaction(
+          purchaseState.selectedToken.address,
+          ERC20_ABI,
+          "approve",
+          [VENDING_MACHINE_ADDRESS, approvalAmount],
+          true,
+        )
+
+        setPurchaseState((prev) => ({ ...prev, txHash: hash }))
+        toast.success(`Approval transaction sent! Hash: ${hash.slice(0, 10)}...`)
+        setRetryCount(0)
+        return
+      }
+
+      // Try wagmi writeContract first
       await executeWithTimeout(
         () => {
           console.log("📝 Calling writeContract for approval...")
@@ -365,8 +369,8 @@ export function usePurchase() {
           })
         },
         true,
-        45000,
-      ) // 45 second timeout for approvals
+        25000, // Shorter timeout for first attempt
+      )
 
       console.log("✅ Approval transaction initiated successfully")
     } catch (error: any) {
@@ -377,15 +381,16 @@ export function usePurchase() {
       if (error.message?.includes("timeout")) {
         errorMessage = "Approval timed out. Please check your wallet app and try again."
 
-        // Check if this is a WalletConnect timeout and should retry
+        // For WalletConnect timeouts, switch to direct wallet interaction
         if (connector?.type === "walletConnect" && retryCount < 2) {
-          console.log(`🔄 WalletConnect approval timeout. Retry attempt ${retryCount + 1}/2`)
+          console.log(`🔄 WalletConnect approval timeout. Switching to direct wallet interaction...`)
           setRetryCount((prev) => prev + 1)
-          toast.error(`Approval timeout. Retrying... (${retryCount + 1}/2)`)
+          setUseDirectWallet(true)
+          toast.error(`Approval timeout. Trying direct wallet connection... (${retryCount + 1}/2)`)
 
           setTimeout(() => {
             retryApproval()
-          }, 3000)
+          }, 2000)
           return
         }
       } else if (error.message?.includes("rejected")) {
@@ -401,6 +406,7 @@ export function usePurchase() {
       }))
       toast.error(errorMessage)
       setRetryCount(0)
+      setUseDirectWallet(false)
     }
   }
 
@@ -442,6 +448,25 @@ export function usePurchase() {
     try {
       console.log("🔄 Starting purchase with timeout handling...")
 
+      // For WalletConnect after failed attempts, try direct wallet interaction
+      if (connector?.type === "walletConnect" && (retryCount > 0 || useDirectWallet)) {
+        console.log("🔗 Using direct wallet interaction for WalletConnect purchase")
+
+        const hash = await executeDirectWalletTransaction(
+          VENDING_MACHINE_ADDRESS,
+          VENDING_MACHINE_ABI,
+          "vendFromTrack",
+          [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address, address],
+          false,
+        )
+
+        setPurchaseState((prev) => ({ ...prev, txHash: hash }))
+        toast.success(`Purchase transaction sent! Hash: ${hash.slice(0, 10)}...`)
+        setRetryCount(0)
+        return
+      }
+
+      // Try wagmi writeContract first
       await executeWithTimeout(
         () => {
           console.log("🛒 Calling writeContract for purchase...")
@@ -458,8 +483,8 @@ export function usePurchase() {
           })
         },
         false,
-        60000,
-      ) // 60 second timeout for purchases
+        25000, // Shorter timeout for first attempt
+      )
 
       console.log("✅ Purchase transaction initiated successfully")
     } catch (error: any) {
@@ -470,15 +495,16 @@ export function usePurchase() {
       if (error.message?.includes("timeout")) {
         errorMessage = "Purchase timed out. Please check your wallet app and try again."
 
-        // Check if this is a WalletConnect timeout and should retry
+        // For WalletConnect timeouts, switch to direct wallet interaction
         if (connector?.type === "walletConnect" && retryCount < 2) {
-          console.log(`🔄 WalletConnect purchase timeout. Retry attempt ${retryCount + 1}/2`)
+          console.log(`🔄 WalletConnect purchase timeout. Switching to direct wallet interaction...`)
           setRetryCount((prev) => prev + 1)
-          toast.error(`Purchase timeout. Retrying... (${retryCount + 1}/2)`)
+          setUseDirectWallet(true)
+          toast.error(`Purchase timeout. Trying direct wallet connection... (${retryCount + 1}/2)`)
 
           setTimeout(() => {
             retryPurchase()
-          }, 3000)
+          }, 2000)
           return
         }
       } else if (error.message?.includes("rejected")) {
@@ -494,6 +520,7 @@ export function usePurchase() {
       }))
       toast.error(errorMessage)
       setRetryCount(0)
+      setUseDirectWallet(false)
     }
   }
 
@@ -513,6 +540,7 @@ export function usePurchase() {
       error: null,
     })
     setRetryCount(0)
+    setUseDirectWallet(false)
   }
 
   return {
