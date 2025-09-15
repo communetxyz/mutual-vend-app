@@ -32,6 +32,7 @@ export default function VendingMachinePage() {
     isConfirmed,
     refetchAllowance,
     connectorChainId,
+    isWritePending,
   } = usePurchase()
 
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
@@ -174,6 +175,7 @@ export default function VendingMachinePage() {
           onPurchase={executePurchase}
           isConfirming={isConfirming}
           isConfirmed={isConfirmed}
+          isWritePending={isWritePending}
         />
       </main>
 

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { CheckCircle, Clock, AlertCircle, Package, Coins, ArrowRight } from "lucide-react"
+import { CheckCircle, Clock, AlertCircle, Package, Coins, ArrowRight, Loader2 } from "lucide-react"
 import { formatUnits } from "viem"
 import type { PurchaseState } from "@/lib/types/vending-machine"
 
@@ -17,6 +17,7 @@ interface PurchaseModalProps {
   onPurchase: () => void
   isConfirming: boolean
   isConfirmed: boolean
+  isWritePending?: boolean
 }
 
 export function PurchaseModal({
@@ -28,6 +29,7 @@ export function PurchaseModal({
   onPurchase,
   isConfirming,
   isConfirmed,
+  isWritePending = false,
 }: PurchaseModalProps) {
   const { selectedTrack, selectedToken, isApproving, isPurchasing, txHash, error } = purchaseState
 
@@ -137,9 +139,9 @@ export function PurchaseModal({
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="text-sm text-green-600">Approved</span>
                   </>
-                ) : isApproving || (isConfirming && isApproving) ? (
+                ) : isApproving || (isConfirming && isApproving) || isWritePending ? (
                   <>
-                    <Clock className="h-4 w-4 text-blue-500 animate-spin" />
+                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
                     <span className="text-sm text-blue-600">Approving...</span>
                   </>
                 ) : (
@@ -158,7 +160,7 @@ export function PurchaseModal({
               <Separator />
               <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500 animate-spin" />
+                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
                   <span className="text-sm text-blue-600 dark:text-blue-400">
                     {isConfirming ? "Confirming approval..." : "Approval transaction sent"}
                   </span>
@@ -190,7 +192,7 @@ export function PurchaseModal({
               <Separator />
               <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500 animate-spin" />
+                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
                   <span className="text-sm text-blue-600 dark:text-blue-400">
                     {isConfirmed && isPurchasing ? "Purchase confirmed!" : "Processing purchase..."}
                   </span>
@@ -232,16 +234,16 @@ export function PurchaseModal({
               variant="outline"
               onClick={onClose}
               className="flex-1 bg-transparent"
-              disabled={isApproving || isPurchasing || isConfirming}
+              disabled={isApproving || isPurchasing || isConfirming || isWritePending}
             >
-              {isApproving || isPurchasing || isConfirming ? "Processing..." : "Cancel"}
+              {isApproving || isPurchasing || isConfirming || isWritePending ? "Processing..." : "Cancel"}
             </Button>
 
             {currentStep === "needs-approval" && (
-              <Button onClick={onApprove} disabled={isApproving} className="flex-1">
-                {isApproving ? (
+              <Button onClick={onApprove} disabled={isApproving || isWritePending} className="flex-1">
+                {isApproving || isWritePending ? (
                   <>
-                    <Clock className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Approving...
                   </>
                 ) : (
@@ -255,21 +257,30 @@ export function PurchaseModal({
 
             {currentStep === "approving" && (
               <Button disabled className="flex-1">
-                <Clock className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Waiting for Approval...
               </Button>
             )}
 
             {currentStep === "ready-to-purchase" && (
-              <Button onClick={onPurchase} disabled={!canPurchase} className="flex-1">
-                <Package className="h-4 w-4 mr-2" />
-                Purchase Now
+              <Button onClick={onPurchase} disabled={!canPurchase || isWritePending} className="flex-1">
+                {isWritePending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Package className="h-4 w-4 mr-2" />
+                    Purchase Now
+                  </>
+                )}
               </Button>
             )}
 
             {currentStep === "purchasing" && (
               <Button disabled className="flex-1">
-                <Clock className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 {isConfirmed && isPurchasing ? "Success!" : "Purchasing..."}
               </Button>
             )}
