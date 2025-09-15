@@ -269,6 +269,66 @@ export function usePurchase() {
     }
   }
 
+  const executeWithTimeout = async (contractCall: () => void, isApproval = false, timeoutMs = 30000) => {
+    return new Promise<void>((resolve, reject) => {
+      let timeoutId: NodeJS.Timeout
+      let resolved = false
+
+      // Set up timeout
+      timeoutId = setTimeout(() => {
+        if (!resolved) {
+          resolved = true
+          console.error(`❌ ${isApproval ? "Approval" : "Purchase"} timeout after ${timeoutMs}ms`)
+          reject(new Error(`Transaction timeout - no response from wallet after ${timeoutMs / 1000} seconds`))
+        }
+      }, timeoutMs)
+
+      // Monitor writeData changes for success
+      const checkSuccess = () => {
+        if (writeData && !resolved) {
+          resolved = true
+          clearTimeout(timeoutId)
+          console.log(`✅ ${isApproval ? "Approval" : "Purchase"} transaction hash received:`, writeData)
+          resolve()
+        }
+      }
+
+      // Monitor writeError for failure
+      const checkError = () => {
+        if (writeError && !resolved) {
+          resolved = true
+          clearTimeout(timeoutId)
+          console.error(`❌ ${isApproval ? "Approval" : "Purchase"} error:`, writeError)
+          reject(writeError)
+        }
+      }
+
+      try {
+        // Execute the contract call
+        contractCall()
+
+        // Start monitoring (we'll check every 500ms)
+        const monitorInterval = setInterval(() => {
+          if (resolved) {
+            clearInterval(monitorInterval)
+            return
+          }
+          checkSuccess()
+          checkError()
+        }, 500)
+
+        // Clean up interval when resolved
+        setTimeout(() => clearInterval(monitorInterval), timeoutMs + 1000)
+      } catch (error) {
+        if (!resolved) {
+          resolved = true
+          clearTimeout(timeoutId)
+          reject(error)
+        }
+      }
+    })
+  }
+
   const approveToken = async () => {
     console.log("=== Starting Approval ===")
 
@@ -290,15 +350,58 @@ export function usePurchase() {
 
     const approvalAmount = purchaseState.selectedTrack.price * 2n
 
-    await executeWriteContract(() => {
-      writeContract({
-        address: purchaseState.selectedToken!.address as `0x${string}`,
-        abi: ERC20_ABI,
-        functionName: "approve",
-        args: [VENDING_MACHINE_ADDRESS, approvalAmount],
-        chainId: gnosis.id,
-      })
-    }, true)
+    try {
+      console.log("🔄 Starting approval with timeout handling...")
+
+      await executeWithTimeout(
+        () => {
+          console.log("📝 Calling writeContract for approval...")
+          writeContract({
+            address: purchaseState.selectedToken!.address as `0x${string}`,
+            abi: ERC20_ABI,
+            functionName: "approve",
+            args: [VENDING_MACHINE_ADDRESS, approvalAmount],
+            chainId: gnosis.id,
+          })
+        },
+        true,
+        45000,
+      ) // 45 second timeout for approvals
+
+      console.log("✅ Approval transaction initiated successfully")
+    } catch (error: any) {
+      console.error("❌ Approval failed:", error)
+
+      let errorMessage = "Approval failed"
+
+      if (error.message?.includes("timeout")) {
+        errorMessage = "Approval timed out. Please check your wallet app and try again."
+
+        // Check if this is a WalletConnect timeout and should retry
+        if (connector?.type === "walletConnect" && retryCount < 2) {
+          console.log(`🔄 WalletConnect approval timeout. Retry attempt ${retryCount + 1}/2`)
+          setRetryCount((prev) => prev + 1)
+          toast.error(`Approval timeout. Retrying... (${retryCount + 1}/2)`)
+
+          setTimeout(() => {
+            retryApproval()
+          }, 3000)
+          return
+        }
+      } else if (error.message?.includes("rejected")) {
+        errorMessage = "Approval was rejected by user"
+      } else if (error.message?.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds for gas"
+      }
+
+      setPurchaseState((prev) => ({
+        ...prev,
+        error: errorMessage,
+        isApproving: false,
+      }))
+      toast.error(errorMessage)
+      setRetryCount(0)
+    }
   }
 
   const retryApproval = async () => {
@@ -336,15 +439,62 @@ export function usePurchase() {
 
     setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null, txHash: null }))
 
-    await executeWriteContract(() => {
-      writeContract({
-        address: VENDING_MACHINE_ADDRESS,
-        abi: VENDING_MACHINE_ABI,
-        functionName: "vendFromTrack",
-        args: [purchaseState.selectedTrack!.trackId, purchaseState.selectedToken!.address as `0x${string}`, address],
-        chainId: gnosis.id,
-      })
-    }, false)
+    try {
+      console.log("🔄 Starting purchase with timeout handling...")
+
+      await executeWithTimeout(
+        () => {
+          console.log("🛒 Calling writeContract for purchase...")
+          writeContract({
+            address: VENDING_MACHINE_ADDRESS,
+            abi: VENDING_MACHINE_ABI,
+            functionName: "vendFromTrack",
+            args: [
+              purchaseState.selectedTrack!.trackId,
+              purchaseState.selectedToken!.address as `0x${string}`,
+              address,
+            ],
+            chainId: gnosis.id,
+          })
+        },
+        false,
+        60000,
+      ) // 60 second timeout for purchases
+
+      console.log("✅ Purchase transaction initiated successfully")
+    } catch (error: any) {
+      console.error("❌ Purchase failed:", error)
+
+      let errorMessage = "Purchase failed"
+
+      if (error.message?.includes("timeout")) {
+        errorMessage = "Purchase timed out. Please check your wallet app and try again."
+
+        // Check if this is a WalletConnect timeout and should retry
+        if (connector?.type === "walletConnect" && retryCount < 2) {
+          console.log(`🔄 WalletConnect purchase timeout. Retry attempt ${retryCount + 1}/2`)
+          setRetryCount((prev) => prev + 1)
+          toast.error(`Purchase timeout. Retrying... (${retryCount + 1}/2)`)
+
+          setTimeout(() => {
+            retryPurchase()
+          }, 3000)
+          return
+        }
+      } else if (error.message?.includes("rejected")) {
+        errorMessage = "Purchase was rejected by user"
+      } else if (error.message?.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds for gas"
+      }
+
+      setPurchaseState((prev) => ({
+        ...prev,
+        error: errorMessage,
+        isPurchasing: false,
+      }))
+      toast.error(errorMessage)
+      setRetryCount(0)
+    }
   }
 
   const retryPurchase = async () => {
