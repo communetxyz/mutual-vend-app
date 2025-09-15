@@ -100,12 +100,17 @@ export function usePurchase() {
 
   // Monitor writeContract data changes (this is where the hash comes from)
   useEffect(() => {
+    console.log("writeData changed:", writeData)
+    console.log("isWritePending:", isWritePending)
+    console.log("writeError:", writeError?.message)
+
     if (writeData) {
       console.log("✅ Transaction hash received:", writeData)
+      console.log("Transaction type:", purchaseState.isApproving ? "approval" : "purchase")
       setPurchaseState((prev) => ({ ...prev, txHash: writeData }))
       toast.success(`Transaction sent! Hash: ${writeData.slice(0, 10)}...`)
     }
-  }, [writeData])
+  }, [writeData, isWritePending, writeError, purchaseState.isApproving])
 
   // Monitor write contract errors
   useEffect(() => {
@@ -346,7 +351,9 @@ export function usePurchase() {
       }
 
       console.log("Calling writeContract for purchase...")
-      writeContract({
+
+      // Store the promise to monitor it
+      const writePromise = writeContract({
         address: VENDING_MACHINE_ADDRESS,
         abi: VENDING_MACHINE_ABI,
         functionName: "vendFromTrack",
@@ -355,20 +362,46 @@ export function usePurchase() {
       })
 
       console.log("writeContract called, waiting for response...")
+      console.log("writePromise:", writePromise)
+
+      // Monitor the write state changes
+      let checkCount = 0
+      const stateChecker = setInterval(() => {
+        checkCount++
+        console.log(`State check #${checkCount}:`, {
+          isWritePending,
+          writeData,
+          writeError: writeError?.message,
+          purchaseState: purchaseState.isPurchasing,
+        })
+
+        if (checkCount > 60) {
+          // Stop after 60 checks (30 seconds)
+          clearInterval(stateChecker)
+          console.log("⚠️ Stopped monitoring - too many checks")
+        }
+
+        if (writeData || writeError || !purchaseState.isPurchasing) {
+          clearInterval(stateChecker)
+          console.log("✅ State monitoring complete")
+        }
+      }, 500)
 
       // Add timeout for WalletConnect
       if (connector?.type === "walletConnect") {
         setTimeout(() => {
           if (purchaseState.isPurchasing && !writeData && !writeError) {
             console.log("⚠️ WalletConnect timeout - no response from wallet")
+            console.log("Final state:", { isWritePending, writeData, writeError })
             setPurchaseState((prev) => ({
               ...prev,
-              error: "Wallet didn't respond. Please check your mobile wallet app.",
+              error: "Wallet didn't respond. Please check your mobile wallet app and try again.",
               isPurchasing: false,
             }))
-            toast.error("Wallet didn't respond. Please check your mobile wallet app.")
+            toast.error("Wallet didn't respond. Please check your mobile wallet app and try again.")
+            clearInterval(stateChecker)
           }
-        }, 30000) // 30 second timeout
+        }, 45000) // 45 second timeout
       }
     } catch (error: any) {
       console.error("❌ Purchase failed:", error)
