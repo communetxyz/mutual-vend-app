@@ -21,7 +21,13 @@ export function usePurchase() {
   const { address, connector } = useAccount()
   const chainId = useChainId()
   const { switchChain } = useSwitchChain()
-  const { writeContract, isPending: isWritePending, error: writeError, data: writeData } = useWriteContract()
+  const {
+    writeContract,
+    isPending: isWritePending,
+    error: writeError,
+    data: writeData,
+    reset: resetWrite,
+  } = useWriteContract()
   const { data: connectorClient } = useConnectorClient()
   const [purchaseState, setPurchaseState] = useState<PurchaseState>({
     selectedTrack: null,
@@ -115,6 +121,8 @@ export function usePurchase() {
         errorMessage = "Network error - please check your connection"
       } else if (writeError.message.includes("connector")) {
         errorMessage = "Wallet connection error - please reconnect"
+      } else if (writeError.message.includes("timeout")) {
+        errorMessage = "Transaction timeout - please try again"
       }
 
       setPurchaseState((prev) => ({
@@ -184,6 +192,7 @@ export function usePurchase() {
     console.log("Connector type:", connector?.type)
     console.log("Current chainId:", chainId)
     console.log("Address:", address)
+    console.log("isWritePending:", isWritePending)
 
     if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
       toast.error("Missing purchase information")
@@ -205,6 +214,9 @@ export function usePurchase() {
     }
 
     try {
+      // Reset any previous write state
+      resetWrite()
+
       setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null, txHash: null }))
 
       const approvalAmount = purchaseState.selectedTrack.price * 2n
@@ -215,9 +227,18 @@ export function usePurchase() {
       console.log("Amount:", approvalAmount.toString())
       console.log("Chain ID:", gnosis.id)
 
-      // Add delay for all wallet types to ensure proper connection
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      // For WalletConnect, add extra delay and check connection
+      if (connector?.type === "walletConnect") {
+        console.log("WalletConnect detected - checking connection...")
+        if (!connectorClient) {
+          throw new Error("WalletConnect client not ready")
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
 
+      console.log("Calling writeContract for approval...")
       writeContract({
         address: purchaseState.selectedToken.address as `0x${string}`,
         abi: ERC20_ABI,
@@ -225,6 +246,23 @@ export function usePurchase() {
         args: [VENDING_MACHINE_ADDRESS, approvalAmount],
         chainId: gnosis.id,
       })
+
+      console.log("writeContract called, waiting for response...")
+
+      // Add timeout for WalletConnect
+      if (connector?.type === "walletConnect") {
+        setTimeout(() => {
+          if (purchaseState.isApproving && !writeData && !writeError) {
+            console.log("⚠️ WalletConnect timeout - no response from wallet")
+            setPurchaseState((prev) => ({
+              ...prev,
+              error: "Wallet didn't respond. Please check your mobile wallet app.",
+              isApproving: false,
+            }))
+            toast.error("Wallet didn't respond. Please check your mobile wallet app.")
+          }
+        }, 30000) // 30 second timeout
+      }
     } catch (error: any) {
       console.error("❌ Approval failed:", error)
       let errorMessage = "Approval failed"
@@ -237,6 +275,8 @@ export function usePurchase() {
         errorMessage = "Network error - please check your connection"
       } else if (error.message?.includes("connector")) {
         errorMessage = "Wallet connection error - please reconnect"
+      } else if (error.message?.includes("client not ready")) {
+        errorMessage = "Wallet not ready - please reconnect"
       }
 
       setPurchaseState((prev) => ({
@@ -254,6 +294,7 @@ export function usePurchase() {
     console.log("Connector type:", connector?.type)
     console.log("Current chainId:", chainId)
     console.log("Address:", address)
+    console.log("isWritePending:", isWritePending)
 
     if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
       toast.error("Missing purchase information")
@@ -281,6 +322,9 @@ export function usePurchase() {
     }
 
     try {
+      // Reset any previous write state
+      resetWrite()
+
       setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null, txHash: null }))
 
       console.log("=== Purchase Transaction Details ===")
@@ -290,9 +334,18 @@ export function usePurchase() {
       console.log("Recipient:", address)
       console.log("Chain ID:", gnosis.id)
 
-      // Add delay for all wallet types to ensure proper connection
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      // For WalletConnect, add extra delay and check connection
+      if (connector?.type === "walletConnect") {
+        console.log("WalletConnect detected - checking connection...")
+        if (!connectorClient) {
+          throw new Error("WalletConnect client not ready")
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
 
+      console.log("Calling writeContract for purchase...")
       writeContract({
         address: VENDING_MACHINE_ADDRESS,
         abi: VENDING_MACHINE_ABI,
@@ -300,6 +353,23 @@ export function usePurchase() {
         args: [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address as `0x${string}`, address],
         chainId: gnosis.id,
       })
+
+      console.log("writeContract called, waiting for response...")
+
+      // Add timeout for WalletConnect
+      if (connector?.type === "walletConnect") {
+        setTimeout(() => {
+          if (purchaseState.isPurchasing && !writeData && !writeError) {
+            console.log("⚠️ WalletConnect timeout - no response from wallet")
+            setPurchaseState((prev) => ({
+              ...prev,
+              error: "Wallet didn't respond. Please check your mobile wallet app.",
+              isPurchasing: false,
+            }))
+            toast.error("Wallet didn't respond. Please check your mobile wallet app.")
+          }
+        }, 30000) // 30 second timeout
+      }
     } catch (error: any) {
       console.error("❌ Purchase failed:", error)
       let errorMessage = "Purchase failed"
@@ -316,6 +386,8 @@ export function usePurchase() {
         errorMessage = "Network error - please check your connection"
       } else if (error.message?.includes("connector")) {
         errorMessage = "Wallet connection error - please reconnect"
+      } else if (error.message?.includes("client not ready")) {
+        errorMessage = "Wallet not ready - please reconnect"
       }
 
       setPurchaseState((prev) => ({
@@ -328,6 +400,7 @@ export function usePurchase() {
   }
 
   const resetPurchase = () => {
+    resetWrite() // Reset the writeContract state
     setPurchaseState({
       selectedTrack: null,
       selectedToken: null,
