@@ -10,7 +10,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Bot, Printer, Wrench, PieChart, TrendingUp, Diamond, Shield, ShoppingCart } from "lucide-react"
+import { Bot, Printer, Wrench, PieChart, TrendingUp, Diamond, Shield, ShoppingCart, Rocket } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
@@ -66,10 +66,10 @@ export function SiteNavigation() {
                 <ListItem href="/#features" title="Features">
                   Explore the core features that make Mutual Vend revolutionary.
                 </ListItem>
-                <ListItem href="/zk-verification" title="ZK Verification">
+                <ListItem href="/funding" title="Funding">
                   <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Trustless verification using zero-knowledge proofs
+                    <Rocket className="h-4 w-4" />
+                    Learn how to fund your own Mutual Vend machine
                   </div>
                 </ListItem>
                 <ListItem href="/#faq" title="FAQ">
@@ -119,6 +119,20 @@ export function SiteNavigation() {
                   <div className="flex items-center gap-2">
                     <Diamond className="h-4 w-4" />
                     Win machines through fair, no-loss auctions
+                  </div>
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="text-sm font-medium">Future</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1 lg:w-[600px]">
+                <ListItem href="/zk-verification" title="ZK Verification">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Trustless verification using zero-knowledge proofs
                   </div>
                 </ListItem>
               </ul>

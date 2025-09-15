@@ -21,6 +21,15 @@ export const config = createConfig({
         icons: ["https://mutualvend.com/icon.png"],
       },
       showQrModal: true,
+      qrModalOptions: {
+        themeMode: "light",
+        themeVariables: {
+          "--wcm-z-index": "1000",
+        },
+      },
+      // Add these options for better reliability
+      enableAnalytics: false,
+      enableOnRamp: false,
     }),
     coinbaseWallet({
       appName: "Mutual Vend",

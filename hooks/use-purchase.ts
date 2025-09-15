@@ -34,20 +34,34 @@ export function usePurchase() {
 
   // Validate and switch to Gnosis Chain with retry logic
   const ensureCorrectNetwork = async (): Promise<boolean> => {
+    console.log("=== Network Check ===")
     console.log("Current chainId:", chainId, "Target:", gnosis.id)
+    console.log("Connector client chain:", connectorClient?.chain?.id)
+    console.log("Connector type:", connectorClient?.connector?.type)
 
     if (chainId !== gnosis.id) {
       try {
         toast.info("Switching to Gnosis Chain...")
-        await switchChain({ chainId: gnosis.id })
 
-        // Wait a bit for the switch to complete
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        // For WalletConnect, we need to be more patient
+        if (connectorClient?.connector?.type === "walletConnect") {
+          console.log("WalletConnect detected, using extended timeout...")
+          await switchChain({ chainId: gnosis.id })
 
-        // Double-check the chain after switching
-        if (connectorClient?.chain?.id !== gnosis.id) {
-          console.error("Chain switch failed. Connector still on:", connectorClient?.chain?.id)
-          toast.error("Chain switch incomplete. Please manually switch to Gnosis Chain in your wallet.")
+          // Wait longer for WalletConnect to process
+          await new Promise((resolve) => setTimeout(resolve, 3000))
+        } else {
+          await switchChain({ chainId: gnosis.id })
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+        }
+
+        // Verify the switch worked
+        const finalChainId = connectorClient?.chain?.id
+        console.log("After switch - Connector chain:", finalChainId)
+
+        if (finalChainId !== gnosis.id) {
+          console.error("Chain switch failed. Expected:", gnosis.id, "Got:", finalChainId)
+          toast.error("Please manually switch to Gnosis Chain in your wallet app")
           return false
         }
 
@@ -55,7 +69,7 @@ export function usePurchase() {
         return true
       } catch (error) {
         console.error("Failed to switch chain:", error)
-        toast.error("Please manually switch to Gnosis Chain in your wallet")
+        toast.error("Please manually switch to Gnosis Chain in your wallet app")
         return false
       }
     }
@@ -133,7 +147,8 @@ export function usePurchase() {
   }
 
   const approveToken = async () => {
-    console.log("Starting approval process...")
+    console.log("=== Starting Approval ===")
+    console.log("Connector type:", connectorClient?.connector?.type)
     console.log("Current chainId:", chainId)
     console.log("Connector client chain:", connectorClient?.chain?.id)
 
@@ -146,11 +161,9 @@ export function usePurchase() {
     const networkOk = await ensureCorrectNetwork()
     if (!networkOk) return
 
-    // Final validation - check both wagmi chainId and connector client
-    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
-      toast.error(
-        `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
-      )
+    // Double-check network state
+    if (chainId !== gnosis.id) {
+      toast.error("Network switch incomplete. Please try again.")
       return
     }
 
@@ -159,10 +172,17 @@ export function usePurchase() {
 
       const approvalAmount = purchaseState.selectedTrack.price * 2n // Approve 2x for future purchases
 
-      console.log("Sending approval transaction on chain:", gnosis.id)
+      console.log("=== Approval Transaction Details ===")
       console.log("Token address:", purchaseState.selectedToken.address)
       console.log("Spender address:", VENDING_MACHINE_ADDRESS)
       console.log("Amount:", approvalAmount.toString())
+      console.log("Chain ID:", gnosis.id)
+
+      // For WalletConnect, add a small delay before transaction
+      if (connectorClient?.connector?.type === "walletConnect") {
+        console.log("WalletConnect: Adding pre-transaction delay...")
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
 
       writeContract(
         {
@@ -170,27 +190,37 @@ export function usePurchase() {
           abi: ERC20_ABI,
           functionName: "approve",
           args: [VENDING_MACHINE_ADDRESS, approvalAmount],
-          chainId: gnosis.id, // Explicitly force Gnosis Chain
+          chainId: gnosis.id,
         },
         {
           onSuccess: (hash) => {
-            console.log("Approval transaction hash:", hash)
+            console.log("✅ Approval transaction hash:", hash)
             setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-            toast.success(`Approval transaction sent! Waiting for confirmation...`)
+            toast.success(`Approval sent! Hash: ${hash.slice(0, 10)}...`)
           },
           onError: (error) => {
-            console.error("Approval failed:", error)
+            console.error("❌ Approval failed:", error)
+            let errorMessage = "Approval failed"
+
+            if (error.message.includes("User rejected")) {
+              errorMessage = "Transaction was rejected by user"
+            } else if (error.message.includes("insufficient funds")) {
+              errorMessage = "Insufficient funds for gas"
+            } else if (error.message.includes("network")) {
+              errorMessage = "Network error - please check your connection"
+            }
+
             setPurchaseState((prev) => ({
               ...prev,
-              error: "Approval failed: " + error.message,
+              error: errorMessage,
               isApproving: false,
             }))
-            toast.error("Approval failed. Check console for details.")
+            toast.error(errorMessage)
           },
         },
       )
     } catch (error) {
-      console.error("Approval error:", error)
+      console.error("❌ Approval error:", error)
       setPurchaseState((prev) => ({
         ...prev,
         error: "Approval error: " + (error as Error).message,
@@ -201,7 +231,8 @@ export function usePurchase() {
   }
 
   const executePurchase = async () => {
-    console.log("Starting purchase process...")
+    console.log("=== Starting Purchase ===")
+    console.log("Connector type:", connectorClient?.connector?.type)
     console.log("Current chainId:", chainId)
     console.log("Connector client chain:", connectorClient?.chain?.id)
 
@@ -214,14 +245,7 @@ export function usePurchase() {
     const networkOk = await ensureCorrectNetwork()
     if (!networkOk) return
 
-    // Final validation - check both wagmi chainId and connector client
-    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
-      toast.error(
-        `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
-      )
-      return
-    }
-
+    // Validate balances and stock
     if (purchaseState.selectedToken.balance < purchaseState.selectedTrack.price) {
       toast.error("Insufficient token balance")
       return
@@ -235,10 +259,18 @@ export function usePurchase() {
     try {
       setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null }))
 
-      console.log("Sending purchase transaction on chain:", gnosis.id)
+      console.log("=== Purchase Transaction Details ===")
       console.log("Contract address:", VENDING_MACHINE_ADDRESS)
       console.log("Track ID:", purchaseState.selectedTrack.trackId)
       console.log("Token address:", purchaseState.selectedToken.address)
+      console.log("Recipient:", address)
+      console.log("Chain ID:", gnosis.id)
+
+      // For WalletConnect, add a small delay before transaction
+      if (connectorClient?.connector?.type === "walletConnect") {
+        console.log("WalletConnect: Adding pre-transaction delay...")
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
 
       writeContract(
         {
@@ -246,27 +278,41 @@ export function usePurchase() {
           abi: VENDING_MACHINE_ABI,
           functionName: "vendFromTrack",
           args: [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address as `0x${string}`, address],
-          chainId: gnosis.id, // Explicitly force Gnosis Chain
+          chainId: gnosis.id,
         },
         {
           onSuccess: (hash) => {
-            console.log("Purchase transaction hash:", hash)
+            console.log("✅ Purchase transaction hash:", hash)
             setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-            toast.success(`Purchase transaction sent! Waiting for confirmation...`)
+            toast.success(`Purchase sent! Hash: ${hash.slice(0, 10)}...`)
           },
           onError: (error) => {
-            console.error("Purchase failed:", error)
+            console.error("❌ Purchase failed:", error)
+            let errorMessage = "Purchase failed"
+
+            if (error.message.includes("User rejected")) {
+              errorMessage = "Transaction was rejected by user"
+            } else if (error.message.includes("insufficient funds")) {
+              errorMessage = "Insufficient funds for gas"
+            } else if (error.message.includes("InsufficientStock")) {
+              errorMessage = "Product is out of stock"
+            } else if (error.message.includes("InsufficientBalance")) {
+              errorMessage = "Insufficient token balance"
+            } else if (error.message.includes("network")) {
+              errorMessage = "Network error - please check your connection"
+            }
+
             setPurchaseState((prev) => ({
               ...prev,
-              error: "Purchase failed: " + error.message,
+              error: errorMessage,
               isPurchasing: false,
             }))
-            toast.error("Purchase failed. Check console for details.")
+            toast.error(errorMessage)
           },
         },
       )
     } catch (error) {
-      console.error("Purchase error:", error)
+      console.error("❌ Purchase error:", error)
       setPurchaseState((prev) => ({
         ...prev,
         error: "Purchase error: " + (error as Error).message,

@@ -95,7 +95,7 @@ export default function MutualVendPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    A classic snack vending machine powered by an Arduino. (Note: This link appears to be broken).
+                    A classic snack vending machine powered by an Arduino.
                   </p>
                   <Button asChild variant="outline">
                     <Link

@@ -19,6 +19,7 @@ import {
   Users,
   DollarSign,
   Vote,
+  Rocket,
 } from "lucide-react"
 
 // Animation component for revenue sharing
@@ -502,18 +503,17 @@ export default function HowItWorksPage() {
 
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="text-center pb-4">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400 mb-3">
-                    <Shield className="h-6 w-6" />
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400 mb-3">
+                    <Rocket className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-lg">ZK Verification</CardTitle>
+                  <CardTitle className="text-lg">Funding Guide</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    Understand how trustless cooperative verification works using zero-knowledge proofs and
-                    hardware-attested cameras.
+                    Learn how to crowdfund and deploy your own Mutual Vend machine in your community.
                   </p>
                   <Button asChild variant="outline" size="sm">
-                    <Link href="/zk-verification">Learn More</Link>
+                    <Link href="/funding">Learn More</Link>
                   </Button>
                 </CardContent>
               </Card>
