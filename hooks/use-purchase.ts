@@ -338,25 +338,47 @@ export function usePurchase() {
     try {
       console.log("🔄 Starting approval with timeout handling...")
 
-      // For WalletConnect after failed attempts, try direct wallet interaction
+      // For WalletConnect after failed attempts, use direct wallet interaction
       if (connector?.type === "walletConnect" && (retryCount > 0 || useDirectWallet)) {
         console.log("🔗 Using direct wallet interaction for WalletConnect approval")
 
-        const hash = await executeDirectWalletTransaction(
-          purchaseState.selectedToken.address,
-          ERC20_ABI,
-          "approve",
-          [VENDING_MACHINE_ADDRESS, approvalAmount],
-          true,
-        )
+        try {
+          const hash = await executeDirectWalletTransaction(
+            purchaseState.selectedToken.address,
+            ERC20_ABI,
+            "approve",
+            [VENDING_MACHINE_ADDRESS, approvalAmount],
+            true,
+          )
 
-        setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-        toast.success(`Approval transaction sent! Hash: ${hash.slice(0, 10)}...`)
-        setRetryCount(0)
-        return
+          setPurchaseState((prev) => ({ ...prev, txHash: hash }))
+          toast.success(`Approval transaction sent! Hash: ${hash.slice(0, 10)}...`)
+          setRetryCount(0)
+          setUseDirectWallet(false)
+          return
+        } catch (directError: any) {
+          console.error("❌ Direct wallet approval failed:", directError)
+
+          let errorMessage = "Direct wallet approval failed"
+          if (directError.message?.includes("rejected")) {
+            errorMessage = "Approval was rejected by user"
+          } else if (directError.message?.includes("insufficient funds")) {
+            errorMessage = "Insufficient funds for gas"
+          }
+
+          setPurchaseState((prev) => ({
+            ...prev,
+            error: errorMessage,
+            isApproving: false,
+          }))
+          toast.error(errorMessage)
+          setRetryCount(0)
+          setUseDirectWallet(false)
+          return
+        }
       }
 
-      // Try wagmi writeContract first
+      // Try wagmi writeContract first (for first attempt or non-WalletConnect)
       await executeWithTimeout(
         () => {
           console.log("📝 Calling writeContract for approval...")
@@ -369,7 +391,7 @@ export function usePurchase() {
           })
         },
         true,
-        25000, // Shorter timeout for first attempt
+        25000, // 25 second timeout for first attempt
       )
 
       console.log("✅ Approval transaction initiated successfully")
@@ -448,25 +470,47 @@ export function usePurchase() {
     try {
       console.log("🔄 Starting purchase with timeout handling...")
 
-      // For WalletConnect after failed attempts, try direct wallet interaction
+      // For WalletConnect after failed attempts, use direct wallet interaction
       if (connector?.type === "walletConnect" && (retryCount > 0 || useDirectWallet)) {
         console.log("🔗 Using direct wallet interaction for WalletConnect purchase")
 
-        const hash = await executeDirectWalletTransaction(
-          VENDING_MACHINE_ADDRESS,
-          VENDING_MACHINE_ABI,
-          "vendFromTrack",
-          [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address, address],
-          false,
-        )
+        try {
+          const hash = await executeDirectWalletTransaction(
+            VENDING_MACHINE_ADDRESS,
+            VENDING_MACHINE_ABI,
+            "vendFromTrack",
+            [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address, address],
+            false,
+          )
 
-        setPurchaseState((prev) => ({ ...prev, txHash: hash }))
-        toast.success(`Purchase transaction sent! Hash: ${hash.slice(0, 10)}...`)
-        setRetryCount(0)
-        return
+          setPurchaseState((prev) => ({ ...prev, txHash: hash }))
+          toast.success(`Purchase transaction sent! Hash: ${hash.slice(0, 10)}...`)
+          setRetryCount(0)
+          setUseDirectWallet(false)
+          return
+        } catch (directError: any) {
+          console.error("❌ Direct wallet interaction failed:", directError)
+
+          let errorMessage = "Direct wallet purchase failed"
+          if (directError.message?.includes("rejected")) {
+            errorMessage = "Purchase was rejected by user"
+          } else if (directError.message?.includes("insufficient funds")) {
+            errorMessage = "Insufficient funds for gas"
+          }
+
+          setPurchaseState((prev) => ({
+            ...prev,
+            error: errorMessage,
+            isPurchasing: false,
+          }))
+          toast.error(errorMessage)
+          setRetryCount(0)
+          setUseDirectWallet(false)
+          return
+        }
       }
 
-      // Try wagmi writeContract first
+      // Try wagmi writeContract first (for first attempt or non-WalletConnect)
       await executeWithTimeout(
         () => {
           console.log("🛒 Calling writeContract for purchase...")
@@ -483,7 +527,7 @@ export function usePurchase() {
           })
         },
         false,
-        25000, // Shorter timeout for first attempt
+        25000, // 25 second timeout for first attempt
       )
 
       console.log("✅ Purchase transaction initiated successfully")
