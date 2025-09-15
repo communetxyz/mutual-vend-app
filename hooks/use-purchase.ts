@@ -37,6 +37,7 @@ export function usePurchase() {
     txHash: null,
     error: null,
   })
+  const [retryCount, setRetryCount] = useState(0)
 
   // Validate and switch to Gnosis Chain with retry logic
   const ensureCorrectNetwork = async (): Promise<boolean> => {
@@ -100,34 +101,57 @@ export function usePurchase() {
 
   // Monitor writeContract data changes (this is where the hash comes from)
   useEffect(() => {
-    console.log("writeData changed:", writeData)
-    console.log("isWritePending:", isWritePending)
-    console.log("writeError:", writeError?.message)
-
     if (writeData) {
       console.log("✅ Transaction hash received:", writeData)
       console.log("Transaction type:", purchaseState.isApproving ? "approval" : "purchase")
       setPurchaseState((prev) => ({ ...prev, txHash: writeData }))
+      setRetryCount(0) // Reset retry count on success
       toast.success(`Transaction sent! Hash: ${writeData.slice(0, 10)}...`)
     }
-  }, [writeData, isWritePending, writeError, purchaseState.isApproving])
+  }, [writeData, purchaseState.isApproving])
 
-  // Monitor write contract errors
+  // Monitor write contract errors with retry logic
   useEffect(() => {
     if (writeError) {
       console.error("❌ Write contract error:", writeError)
+
+      // Check if it's a WalletConnect timeout/expiry error
+      const isWalletConnectTimeout =
+        writeError.message.includes("Request expired") ||
+        writeError.message.includes("timeout") ||
+        writeError.message.includes("expired") ||
+        writeError.message.includes("connection closed")
+
+      if (isWalletConnectTimeout && retryCount < 2) {
+        console.log(`🔄 WalletConnect timeout detected. Retry attempt ${retryCount + 1}/2`)
+        setRetryCount((prev) => prev + 1)
+
+        toast.error(`Connection timeout. Retrying... (${retryCount + 1}/2)`)
+
+        // Wait a moment then retry
+        setTimeout(() => {
+          if (purchaseState.isApproving) {
+            retryApproval()
+          } else if (purchaseState.isPurchasing) {
+            retryPurchase()
+          }
+        }, 2000)
+        return
+      }
+
+      // Handle other errors or max retries reached
       let errorMessage = "Transaction failed"
 
       if (writeError.message.includes("User rejected") || writeError.message.includes("rejected")) {
         errorMessage = "Transaction was rejected by user"
       } else if (writeError.message.includes("insufficient funds")) {
         errorMessage = "Insufficient funds for gas"
+      } else if (isWalletConnectTimeout) {
+        errorMessage = "Connection timeout. Please ensure your mobile wallet is connected and try again."
       } else if (writeError.message.includes("network")) {
         errorMessage = "Network error - please check your connection"
       } else if (writeError.message.includes("connector")) {
         errorMessage = "Wallet connection error - please reconnect"
-      } else if (writeError.message.includes("timeout")) {
-        errorMessage = "Transaction timeout - please try again"
       }
 
       setPurchaseState((prev) => ({
@@ -137,8 +161,9 @@ export function usePurchase() {
         isPurchasing: false,
       }))
       toast.error(errorMessage)
+      setRetryCount(0) // Reset retry count
     }
-  }, [writeError])
+  }, [writeError, retryCount, purchaseState.isApproving, purchaseState.isPurchasing])
 
   // Auto-refetch allowance when approval transaction is confirmed
   useEffect(() => {
@@ -182,6 +207,7 @@ export function usePurchase() {
       selectedToken: token,
       error: null,
     }))
+    setRetryCount(0) // Reset retry count for new transaction
   }
 
   const checkAllowance = () => {
@@ -191,13 +217,60 @@ export function usePurchase() {
     return allowance ? allowance >= requiredAllowance : false
   }
 
+  const executeWriteContract = async (contractCall: () => void, isApproval = false) => {
+    try {
+      // Reset any previous write state
+      resetWrite()
+
+      // For WalletConnect, ensure connection is stable
+      if (connector?.type === "walletConnect") {
+        console.log("🔗 WalletConnect - Ensuring stable connection...")
+
+        if (!connectorClient) {
+          throw new Error("WalletConnect client not ready")
+        }
+
+        // Give WalletConnect extra time to stabilize
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+
+        // Check if connection is still active
+        if (!connectorClient.account) {
+          throw new Error("WalletConnect session expired")
+        }
+      }
+
+      console.log(`📱 Sending ${isApproval ? "approval" : "purchase"} request to wallet...`)
+      contractCall()
+
+      // Show user guidance for WalletConnect
+      if (connector?.type === "walletConnect") {
+        toast.info("Check your mobile wallet app to approve the transaction", {
+          duration: 8000,
+        })
+      }
+    } catch (error: any) {
+      console.error(`❌ ${isApproval ? "Approval" : "Purchase"} setup failed:`, error)
+
+      let errorMessage = `${isApproval ? "Approval" : "Purchase"} failed`
+
+      if (error.message?.includes("client not ready") || error.message?.includes("session expired")) {
+        errorMessage = "Wallet connection lost. Please reconnect and try again."
+      } else if (error.message?.includes("network")) {
+        errorMessage = "Network error - please check your connection"
+      }
+
+      setPurchaseState((prev) => ({
+        ...prev,
+        error: errorMessage,
+        isApproving: false,
+        isPurchasing: false,
+      }))
+      toast.error(errorMessage)
+    }
+  }
+
   const approveToken = async () => {
     console.log("=== Starting Approval ===")
-    console.log("Connector name:", connector?.name)
-    console.log("Connector type:", connector?.type)
-    console.log("Current chainId:", chainId)
-    console.log("Address:", address)
-    console.log("isWritePending:", isWritePending)
 
     if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
       toast.error("Missing purchase information")
@@ -213,93 +286,28 @@ export function usePurchase() {
     const networkOk = await ensureCorrectNetwork()
     if (!networkOk) return
 
-    if (chainId !== gnosis.id) {
-      toast.error("Network switch incomplete. Please try again.")
-      return
-    }
+    setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null, txHash: null }))
 
-    try {
-      // Reset any previous write state
-      resetWrite()
+    const approvalAmount = purchaseState.selectedTrack.price * 2n
 
-      setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null, txHash: null }))
-
-      const approvalAmount = purchaseState.selectedTrack.price * 2n
-
-      console.log("=== Approval Transaction Details ===")
-      console.log("Token address:", purchaseState.selectedToken.address)
-      console.log("Spender address:", VENDING_MACHINE_ADDRESS)
-      console.log("Amount:", approvalAmount.toString())
-      console.log("Chain ID:", gnosis.id)
-
-      // For WalletConnect, add extra delay and check connection
-      if (connector?.type === "walletConnect") {
-        console.log("WalletConnect detected - checking connection...")
-        if (!connectorClient) {
-          throw new Error("WalletConnect client not ready")
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 500))
-      }
-
-      console.log("Calling writeContract for approval...")
+    await executeWriteContract(() => {
       writeContract({
-        address: purchaseState.selectedToken.address as `0x${string}`,
+        address: purchaseState.selectedToken!.address as `0x${string}`,
         abi: ERC20_ABI,
         functionName: "approve",
         args: [VENDING_MACHINE_ADDRESS, approvalAmount],
         chainId: gnosis.id,
       })
+    }, true)
+  }
 
-      console.log("writeContract called, waiting for response...")
-
-      // Add timeout for WalletConnect
-      if (connector?.type === "walletConnect") {
-        setTimeout(() => {
-          if (purchaseState.isApproving && !writeData && !writeError) {
-            console.log("⚠️ WalletConnect timeout - no response from wallet")
-            setPurchaseState((prev) => ({
-              ...prev,
-              error: "Wallet didn't respond. Please check your mobile wallet app.",
-              isApproving: false,
-            }))
-            toast.error("Wallet didn't respond. Please check your mobile wallet app.")
-          }
-        }, 30000) // 30 second timeout
-      }
-    } catch (error: any) {
-      console.error("❌ Approval failed:", error)
-      let errorMessage = "Approval failed"
-
-      if (error.message?.includes("User rejected") || error.message?.includes("rejected")) {
-        errorMessage = "Transaction was rejected by user"
-      } else if (error.message?.includes("insufficient funds")) {
-        errorMessage = "Insufficient funds for gas"
-      } else if (error.message?.includes("network")) {
-        errorMessage = "Network error - please check your connection"
-      } else if (error.message?.includes("connector")) {
-        errorMessage = "Wallet connection error - please reconnect"
-      } else if (error.message?.includes("client not ready")) {
-        errorMessage = "Wallet not ready - please reconnect"
-      }
-
-      setPurchaseState((prev) => ({
-        ...prev,
-        error: errorMessage,
-        isApproving: false,
-      }))
-      toast.error(errorMessage)
-    }
+  const retryApproval = async () => {
+    console.log("🔄 Retrying approval...")
+    await approveToken()
   }
 
   const executePurchase = async () => {
     console.log("=== Starting Purchase ===")
-    console.log("Connector name:", connector?.name)
-    console.log("Connector type:", connector?.type)
-    console.log("Current chainId:", chainId)
-    console.log("Address:", address)
-    console.log("isWritePending:", isWritePending)
 
     if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
       toast.error("Missing purchase information")
@@ -326,110 +334,22 @@ export function usePurchase() {
       return
     }
 
-    try {
-      // Reset any previous write state
-      resetWrite()
+    setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null, txHash: null }))
 
-      setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null, txHash: null }))
-
-      console.log("=== Purchase Transaction Details ===")
-      console.log("Contract address:", VENDING_MACHINE_ADDRESS)
-      console.log("Track ID:", purchaseState.selectedTrack.trackId)
-      console.log("Token address:", purchaseState.selectedToken.address)
-      console.log("Recipient:", address)
-      console.log("Chain ID:", gnosis.id)
-
-      // For WalletConnect, add extra delay and check connection
-      if (connector?.type === "walletConnect") {
-        console.log("WalletConnect detected - checking connection...")
-        if (!connectorClient) {
-          throw new Error("WalletConnect client not ready")
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 500))
-      }
-
-      console.log("Calling writeContract for purchase...")
-
-      // Store the promise to monitor it
-      const writePromise = writeContract({
+    await executeWriteContract(() => {
+      writeContract({
         address: VENDING_MACHINE_ADDRESS,
         abi: VENDING_MACHINE_ABI,
         functionName: "vendFromTrack",
-        args: [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address as `0x${string}`, address],
+        args: [purchaseState.selectedTrack!.trackId, purchaseState.selectedToken!.address as `0x${string}`, address],
         chainId: gnosis.id,
       })
+    }, false)
+  }
 
-      console.log("writeContract called, waiting for response...")
-      console.log("writePromise:", writePromise)
-
-      // Monitor the write state changes
-      let checkCount = 0
-      const stateChecker = setInterval(() => {
-        checkCount++
-        console.log(`State check #${checkCount}:`, {
-          isWritePending,
-          writeData,
-          writeError: writeError?.message,
-          purchaseState: purchaseState.isPurchasing,
-        })
-
-        if (checkCount > 60) {
-          // Stop after 60 checks (30 seconds)
-          clearInterval(stateChecker)
-          console.log("⚠️ Stopped monitoring - too many checks")
-        }
-
-        if (writeData || writeError || !purchaseState.isPurchasing) {
-          clearInterval(stateChecker)
-          console.log("✅ State monitoring complete")
-        }
-      }, 500)
-
-      // Add timeout for WalletConnect
-      if (connector?.type === "walletConnect") {
-        setTimeout(() => {
-          if (purchaseState.isPurchasing && !writeData && !writeError) {
-            console.log("⚠️ WalletConnect timeout - no response from wallet")
-            console.log("Final state:", { isWritePending, writeData, writeError })
-            setPurchaseState((prev) => ({
-              ...prev,
-              error: "Wallet didn't respond. Please check your mobile wallet app and try again.",
-              isPurchasing: false,
-            }))
-            toast.error("Wallet didn't respond. Please check your mobile wallet app and try again.")
-            clearInterval(stateChecker)
-          }
-        }, 45000) // 45 second timeout
-      }
-    } catch (error: any) {
-      console.error("❌ Purchase failed:", error)
-      let errorMessage = "Purchase failed"
-
-      if (error.message?.includes("User rejected") || error.message?.includes("rejected")) {
-        errorMessage = "Transaction was rejected by user"
-      } else if (error.message?.includes("insufficient funds")) {
-        errorMessage = "Insufficient funds for gas"
-      } else if (error.message?.includes("InsufficientStock")) {
-        errorMessage = "Product is out of stock"
-      } else if (error.message?.includes("InsufficientBalance")) {
-        errorMessage = "Insufficient token balance"
-      } else if (error.message?.includes("network")) {
-        errorMessage = "Network error - please check your connection"
-      } else if (error.message?.includes("connector")) {
-        errorMessage = "Wallet connection error - please reconnect"
-      } else if (error.message?.includes("client not ready")) {
-        errorMessage = "Wallet not ready - please reconnect"
-      }
-
-      setPurchaseState((prev) => ({
-        ...prev,
-        error: errorMessage,
-        isPurchasing: false,
-      }))
-      toast.error(errorMessage)
-    }
+  const retryPurchase = async () => {
+    console.log("🔄 Retrying purchase...")
+    await executePurchase()
   }
 
   const resetPurchase = () => {
@@ -442,6 +362,7 @@ export function usePurchase() {
       txHash: null,
       error: null,
     })
+    setRetryCount(0)
   }
 
   return {
@@ -457,5 +378,6 @@ export function usePurchase() {
     isCorrectNetwork: chainId === gnosis.id,
     connectorChainId: connectorClient?.chain?.id,
     isWritePending,
+    retryCount,
   }
 }
