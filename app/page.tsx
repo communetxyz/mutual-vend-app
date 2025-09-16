@@ -5,18 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
-import { Printer, PackageCheck, Diamond, PieChart, Users, Download } from "lucide-react"
+import { Printer, PackageCheck, Diamond, PieChart, Download } from "lucide-react"
 import Link from "next/link"
-import MermaidDiagram from "@/components/mermaid-diagram"
 import { SiteNavigation } from "@/components/site-navigation"
-
-const stockingFlowchart = `graph TD
-    A["Stocker wants to add inventory"] --> B{Posts Collateral};
-    B --> C["Adds products to machine"];
-    C --> D{Community Verification via Voting};
-    D -- "Vote: Correct" --> E["Collateral Unlocked + Reward"];
-    D -- "Vote: Incorrect" --> F["Collateral Slashed"];
-    E --> G["Machine is ready for sales"];`
 
 const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
   ({ className, title, children, ...props }, ref) => {
@@ -218,68 +209,52 @@ export default function MutualVendPage() {
             </div>
             <div className="flex w-full items-center justify-center">
               <div className="w-full rounded-lg border bg-card p-6 dark:bg-gray-900">
-                <MermaidDiagram chart={stockingFlowchart} />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-10 sm:px-10 md:gap-16 md:grid-cols-2">
-              <div className="space-y-4">
-                <div className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800">
-                  Core Features
-                </div>
-                <h2 className="lg:leading-tighter text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl xl:text-[3.4rem] 2xl:text-[3.75rem]">
-                  The Future of Decentralized Commerce
-                </h2>
-                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed dark:text-gray-400">
-                  Mutual Vend combines cutting-edge technologies to create a self-sustaining, community-owned retail
-                  network.
-                </p>
-              </div>
-              <div className="flex flex-col items-start space-y-4">
-                <div className="grid gap-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Download className="h-6 w-6" />
-                      </div>
-                      <CardTitle>3D Printable & Open Source</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Accessible and customizable. Print your machine on your terms and modify it as you see fit.
+                <h3 className="text-lg font-semibold mb-4 text-center">Stocking Process Flow</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      1
+                    </div>
+                    <div>
+                      <p className="font-medium">Stocker Posts Collateral</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Stocker wants to add inventory and posts required collateral
                       </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Diamond className="h-6 w-6" />
-                      </div>
-                      <CardTitle>Crypto Integrated</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Seamless, secure, and low-fee payments on the blockchain. No banks required.
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      2
+                    </div>
+                    <div>
+                      <p className="font-medium">Add Products to Machine</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Products are physically added to the vending machine
                       </p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Users className="h-6 w-6" />
-                      </div>
-                      <CardTitle>Community Governed</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Vote on new products, verify stock, and shape the future of the Mutual Vend network.
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                    <div className="flex-shrink-0 w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      3
+                    </div>
+                    <div>
+                      <p className="font-medium">Community Verification</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Community votes to verify inventory is correct
                       </p>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                    <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      4
+                    </div>
+                    <div>
+                      <p className="font-medium">Collateral Released + Reward</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        If verified correct, collateral is unlocked and stocker receives reward
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
