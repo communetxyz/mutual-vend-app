@@ -4,10 +4,10 @@ export interface Product {
 }
 
 export interface Track {
-  trackId: bigint
+  trackId: number
+  product: Product
   price: bigint
   stock: bigint
-  product: Product
 }
 
 export interface TokenInfo {
@@ -24,5 +24,11 @@ export interface PurchaseState {
   isPurchasing: boolean
   txHash: string | null
   error: string | null
-  step: "idle" | "approving" | "purchasing" | "completed"
+}
+
+export interface MachineInfo {
+  totalTracks: number
+  activeTracks: number
+  totalRevenue: bigint
+  totalSales: number
 }
