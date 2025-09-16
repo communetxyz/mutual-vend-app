@@ -1,137 +1,127 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useReadContract, useChainId } from "wagmi"
+import { useAccount, useChainId } from "wagmi"
+import { readContract } from "@wagmi/core"
+import { config } from "@/lib/web3/config"
+import { vendingMachineAbi } from "@/lib/contracts/vending-machine-abi"
+import { erc20Abi } from "@/lib/contracts/erc20-abi"
 import { gnosis } from "wagmi/chains"
-import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
-import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
 import type { Track, TokenInfo, MachineInfo } from "@/lib/types/vending-machine"
 
+const VENDING_MACHINE_ADDRESS = process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS as `0x${string}`
+
 export function useVendingMachine() {
+  const { address } = useAccount()
   const chainId = useChainId()
   const [tracks, setTracks] = useState<Track[]>([])
   const [acceptedTokens, setAcceptedTokens] = useState<TokenInfo[]>([])
   const [machineInfo, setMachineInfo] = useState<MachineInfo | null>(null)
+  const [voteTokenAddress, setVoteTokenAddress] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Get all tracks
-  const { data: tracksData, refetch: refetchTracksData } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
-    abi: VENDING_MACHINE_ABI,
-    functionName: "getAllTracks",
-    chainId: gnosis.id,
-    query: {
-      enabled: chainId === gnosis.id,
-    },
-  })
+  const isCorrectNetwork = chainId === gnosis.id
 
-  // Get accepted tokens
-  const { data: acceptedTokensData } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
-    abi: VENDING_MACHINE_ABI,
-    functionName: "getAcceptedTokens",
-    chainId: gnosis.id,
-    query: {
-      enabled: chainId === gnosis.id,
-    },
-  })
-
-  // Get vote token address
-  const { data: voteTokenAddress } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
-    abi: VENDING_MACHINE_ABI,
-    functionName: "voteToken",
-    chainId: gnosis.id,
-    query: {
-      enabled: chainId === gnosis.id,
-    },
-  })
-
-  // Process tracks data
-  useEffect(() => {
-    if (tracksData) {
-      try {
-        const processedTracks = (tracksData as any[]).map((track) => ({
-          trackId: Number(track.trackId),
-          product: {
-            name: track.product.name,
-            imageURI: track.product.imageURI,
-          },
-          price: track.price,
-          stock: track.stock,
-        }))
-        setTracks(processedTracks)
-        setError(null)
-      } catch (err) {
-        console.error("Error processing tracks data:", err)
-        setError("Failed to process tracks data")
-      }
+  const fetchVendingMachineData = async () => {
+    if (!isCorrectNetwork || !VENDING_MACHINE_ADDRESS) {
+      setLoading(false)
+      return
     }
-  }, [tracksData])
 
-  // Process accepted tokens data
-  useEffect(() => {
-    const processTokens = async () => {
-      if (acceptedTokensData && chainId === gnosis.id) {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Fetch tracks
+      const tracksResult = await readContract(config, {
+        address: VENDING_MACHINE_ADDRESS,
+        abi: vendingMachineAbi,
+        functionName: "getAllTracks",
+      })
+
+      // Fetch accepted tokens
+      const tokensResult = await readContract(config, {
+        address: VENDING_MACHINE_ADDRESS,
+        abi: vendingMachineAbi,
+        functionName: "getAcceptedTokens",
+      })
+
+      // Fetch vote token
+      const voteTokenResult = await readContract(config, {
+        address: VENDING_MACHINE_ADDRESS,
+        abi: vendingMachineAbi,
+        functionName: "voteToken",
+      })
+
+      // Process tracks
+      const processedTracks = tracksResult.map((track: any) => ({
+        trackId: track.trackId,
+        product: {
+          name: track.product.name,
+          imageURI: track.product.imageURI,
+        },
+        price: track.price,
+        stock: track.stock,
+      }))
+
+      // Process tokens with balances and metadata
+      const processedTokens: TokenInfo[] = []
+
+      for (const tokenAddress of tokensResult) {
         try {
-          const tokenPromises = (acceptedTokensData as string[]).map(async (tokenAddress) => {
-            // For now, we'll use mock data for token info
-            // In a real implementation, you'd fetch this from the token contracts
-            const mockTokens: { [key: string]: Omit<TokenInfo, "balance"> } = {
-              "0x4ECaBa5870353805a9F068101A40E0f32ed605C6": {
-                address: "0x4ECaBa5870353805a9F068101A40E0f32ed605C6",
-                symbol: "USDT",
-                decimals: 6,
-              },
-              "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83": {
-                address: "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83",
-                symbol: "USDC",
-                decimals: 6,
-              },
-            }
-
-            const tokenInfo = mockTokens[tokenAddress]
-            if (tokenInfo) {
-              return {
-                ...tokenInfo,
-                balance: 0n, // Will be updated when user connects wallet
-              }
-            }
-
-            return {
+          // Fetch token metadata
+          const [symbol, decimals, balance] = await Promise.all([
+            readContract(config, {
               address: tokenAddress,
-              symbol: "UNKNOWN",
-              decimals: 18,
-              balance: 0n,
-            }
-          })
+              abi: erc20Abi,
+              functionName: "symbol",
+            }),
+            readContract(config, {
+              address: tokenAddress,
+              abi: erc20Abi,
+              functionName: "decimals",
+            }),
+            address
+              ? readContract(config, {
+                  address: tokenAddress,
+                  abi: erc20Abi,
+                  functionName: "balanceOf",
+                  args: [address],
+                })
+              : 0n,
+          ])
 
-          const tokens = await Promise.all(tokenPromises)
-          setAcceptedTokens(tokens)
-          setError(null)
-        } catch (err) {
-          console.error("Error processing tokens data:", err)
-          setError("Failed to process tokens data")
+          processedTokens.push({
+            address: tokenAddress,
+            symbol: symbol as string,
+            decimals: decimals as number,
+            balance: balance as bigint,
+          })
+        } catch (tokenError) {
+          console.error(`Error fetching token data for ${tokenAddress}:`, tokenError)
         }
       }
-    }
 
-    processTokens()
-  }, [acceptedTokensData, chainId])
-
-  // Set loading state
-  useEffect(() => {
-    if (chainId === gnosis.id) {
-      setLoading(!tracksData && !acceptedTokensData)
-    } else {
+      setTracks(processedTracks)
+      setAcceptedTokens(processedTokens)
+      setVoteTokenAddress(voteTokenResult as string)
+      setMachineInfo({
+        totalTracks: processedTracks.length,
+        totalProducts: processedTracks.filter((track) => track.stock > 0n).length,
+        acceptedTokensCount: processedTokens.length,
+      })
+    } catch (err) {
+      console.error("Error fetching vending machine data:", err)
+      setError("Failed to load vending machine data. Please try again.")
+    } finally {
       setLoading(false)
     }
-  }, [tracksData, acceptedTokensData, chainId])
-
-  const refetchTracks = () => {
-    refetchTracksData()
   }
+
+  useEffect(() => {
+    fetchVendingMachineData()
+  }, [isCorrectNetwork, address])
 
   return {
     tracks,
@@ -140,6 +130,6 @@ export function useVendingMachine() {
     voteTokenAddress,
     loading,
     error,
-    refetchTracks,
+    refetchTracks: fetchVendingMachineData,
   }
 }

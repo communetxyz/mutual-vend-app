@@ -1,26 +1,24 @@
 "use client"
 
-import { useAccount, useConnect, useDisconnect } from "wagmi"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Wallet, LogOut, CheckCircle } from "lucide-react"
+import { useConnect, useAccount, useDisconnect } from "wagmi"
+import { Wallet, LogOut } from "lucide-react"
 
 export function WalletConnect() {
-  const { address, isConnected } = useAccount()
   const { connectors, connect, isPending } = useConnect()
+  const { isConnected, address } = useAccount()
   const { disconnect } = useDisconnect()
 
-  if (isConnected && address) {
+  if (isConnected) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-500" />
+            <Wallet className="h-5 w-5" />
             Wallet Connected
           </CardTitle>
-          <CardDescription>
-            {address.slice(0, 6)}...{address.slice(-4)}
-          </CardDescription>
+          <CardDescription>{address && `${address.slice(0, 6)}...${address.slice(-4)}`}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={() => disconnect()} variant="outline" className="w-full">
@@ -39,7 +37,7 @@ export function WalletConnect() {
           <Wallet className="h-5 w-5" />
           Connect Wallet
         </CardTitle>
-        <CardDescription>Connect your wallet to start purchasing from the vending machine</CardDescription>
+        <CardDescription>Connect your wallet to purchase products from the vending machine</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {connectors.map((connector) => (
@@ -47,10 +45,9 @@ export function WalletConnect() {
             key={connector.uid}
             onClick={() => connect({ connector })}
             disabled={isPending}
+            className="w-full"
             variant="outline"
-            className="w-full justify-start"
           >
-            <Wallet className="h-4 w-4 mr-2" />
             {connector.name}
           </Button>
         ))}

@@ -1,124 +1,190 @@
 "use client"
 
-import { useState } from "react"
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi"
-import { parseUnits } from "viem"
-import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
-import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
+import React from "react"
+
+import { useState, useCallback } from "react"
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount, useChainId } from "wagmi"
+import { vendingMachineAbi } from "@/lib/contracts/vending-machine-abi"
+import { erc20Abi } from "@/lib/contracts/erc20-abi"
+import type { Track, TokenInfo, PurchaseState } from "@/lib/types/vending-machine"
+
+const VENDING_MACHINE_ADDRESS = process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS as `0x${string}`
 
 export function usePurchase() {
   const { address } = useAccount()
-  const [isApproving, setIsApproving] = useState(false)
-  const [isPurchasing, setIsPurchasing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const chainId = useChainId()
+  const [purchaseState, setPurchaseState] = useState<PurchaseState>({
+    selectedTrack: null,
+    selectedToken: null,
+    isApproving: false,
+    isPurchasing: false,
+    txHash: null,
+    error: null,
+    step: "idle",
+  })
 
-  // Separate hooks for approval and purchase - just like the working approve feature
+  // Separate hooks for approval and purchase
   const {
     writeContract: writeApproval,
     data: approvalHash,
     error: approvalError,
-    isPending: approvalPending,
+    isPending: isApprovalPending,
   } = useWriteContract()
 
   const {
     writeContract: writePurchase,
     data: purchaseHash,
     error: purchaseError,
-    isPending: purchasePending,
+    isPending: isPurchasePending,
   } = useWriteContract()
 
-  // Wait for approval transaction
-  const { isLoading: approvalConfirming, isSuccess: approvalSuccess } = useWaitForTransactionReceipt({
+  // Wait for transaction confirmations
+  const { isLoading: isApprovalConfirming, isSuccess: isApprovalConfirmed } = useWaitForTransactionReceipt({
     hash: approvalHash,
   })
 
-  // Wait for purchase transaction
-  const { isLoading: purchaseConfirming, isSuccess: purchaseSuccess } = useWaitForTransactionReceipt({
+  const { isLoading: isPurchaseConfirming, isSuccess: isPurchaseConfirmed } = useWaitForTransactionReceipt({
     hash: purchaseHash,
   })
 
-  const approveToken = async (tokenAddress: string, amount: string, decimals: number) => {
-    if (!address) {
-      setError("Please connect your wallet")
-      return
-    }
+  // Check allowance
+  const { data: allowanceData, refetch: refetchAllowance } = useReadContract({
+    address: purchaseState.selectedToken?.address as `0x${string}`,
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: address && purchaseState.selectedToken ? [address, VENDING_MACHINE_ADDRESS] : undefined,
+    query: {
+      enabled: !!(address && purchaseState.selectedToken && VENDING_MACHINE_ADDRESS),
+    },
+  })
+
+  const selectTrackAndToken = useCallback((track: Track, token: TokenInfo) => {
+    setPurchaseState({
+      selectedTrack: track,
+      selectedToken: token,
+      isApproving: false,
+      isPurchasing: false,
+      txHash: null,
+      error: null,
+      step: "idle",
+    })
+  }, [])
+
+  const checkAllowance = useCallback(() => {
+    if (!allowanceData || !purchaseState.selectedTrack) return false
+    return (allowanceData as bigint) >= purchaseState.selectedTrack.price
+  }, [allowanceData, purchaseState.selectedTrack])
+
+  const approveToken = useCallback(async () => {
+    if (!purchaseState.selectedToken || !purchaseState.selectedTrack) return
 
     try {
-      setError(null)
-      setIsApproving(true)
-
-      const parsedAmount = parseUnits(amount, decimals)
+      setPurchaseState((prev) => ({ ...prev, isApproving: true, step: "approving", error: null }))
 
       writeApproval({
-        address: tokenAddress as `0x${string}`,
-        abi: ERC20_ABI,
+        address: purchaseState.selectedToken.address as `0x${string}`,
+        abi: erc20Abi,
         functionName: "approve",
-        args: [process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS as `0x${string}`, parsedAmount],
+        args: [VENDING_MACHINE_ADDRESS, purchaseState.selectedTrack.price],
       })
-    } catch (err) {
-      console.error("Approval error:", err)
-      setError(err instanceof Error ? err.message : "Failed to approve token")
-      setIsApproving(false)
+    } catch (error) {
+      console.error("Approval error:", error)
+      setPurchaseState((prev) => ({
+        ...prev,
+        isApproving: false,
+        error: "Failed to approve token spending",
+        step: "idle",
+      }))
     }
-  }
+  }, [purchaseState.selectedToken, purchaseState.selectedTrack, writeApproval])
 
-  const purchaseProduct = async (trackId: number, tokenAddress: string) => {
-    if (!address) {
-      setError("Please connect your wallet")
-      return
-    }
+  const executePurchase = useCallback(async () => {
+    if (!purchaseState.selectedTrack || !purchaseState.selectedToken) return
 
     try {
-      setError(null)
-      setIsPurchasing(true)
+      setPurchaseState((prev) => ({ ...prev, isPurchasing: true, step: "purchasing", error: null }))
 
       writePurchase({
-        address: process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS as `0x${string}`,
-        abi: VENDING_MACHINE_ABI,
-        functionName: "purchaseProduct",
-        args: [BigInt(trackId), tokenAddress as `0x${string}`],
+        address: VENDING_MACHINE_ADDRESS,
+        abi: vendingMachineAbi,
+        functionName: "purchase",
+        args: [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address as `0x${string}`],
       })
-    } catch (err) {
-      console.error("Purchase error:", err)
-      setError(err instanceof Error ? err.message : "Failed to purchase product")
-      setIsPurchasing(false)
+    } catch (error) {
+      console.error("Purchase error:", error)
+      setPurchaseState((prev) => ({
+        ...prev,
+        isPurchasing: false,
+        error: "Failed to execute purchase",
+        step: "idle",
+      }))
     }
-  }
+  }, [purchaseState.selectedTrack, purchaseState.selectedToken, writePurchase])
 
-  // Update states based on transaction status
-  if (approvalSuccess && isApproving) {
-    setIsApproving(false)
-  }
+  const resetPurchase = useCallback(() => {
+    setPurchaseState({
+      selectedTrack: null,
+      selectedToken: null,
+      isApproving: false,
+      isPurchasing: false,
+      txHash: null,
+      error: null,
+      step: "idle",
+    })
+  }, [])
 
-  if (purchaseSuccess && isPurchasing) {
-    setIsPurchasing(false)
-  }
+  // Update state based on transaction status
+  React.useEffect(() => {
+    if (approvalError) {
+      setPurchaseState((prev) => ({
+        ...prev,
+        isApproving: false,
+        error: "Approval transaction failed",
+        step: "idle",
+      }))
+    }
+  }, [approvalError])
 
-  if (approvalError && isApproving) {
-    setError(approvalError.message)
-    setIsApproving(false)
-  }
+  React.useEffect(() => {
+    if (purchaseError) {
+      setPurchaseState((prev) => ({
+        ...prev,
+        isPurchasing: false,
+        error: "Purchase transaction failed",
+        step: "idle",
+      }))
+    }
+  }, [purchaseError])
 
-  if (purchaseError && isPurchasing) {
-    setError(purchaseError.message)
-    setIsPurchasing(false)
-  }
+  React.useEffect(() => {
+    if (isApprovalConfirmed) {
+      setPurchaseState((prev) => ({ ...prev, isApproving: false }))
+      refetchAllowance()
+    }
+  }, [isApprovalConfirmed, refetchAllowance])
+
+  React.useEffect(() => {
+    if (isPurchaseConfirmed) {
+      setPurchaseState((prev) => ({
+        ...prev,
+        isPurchasing: false,
+        step: "completed",
+        txHash: purchaseHash || null,
+      }))
+    }
+  }, [isPurchaseConfirmed, purchaseHash])
 
   return {
-    // Approval states
+    purchaseState,
+    selectTrackAndToken,
+    checkAllowance,
     approveToken,
-    isApproving: isApproving || approvalPending || approvalConfirming,
-    approvalSuccess,
-    approvalHash,
-
-    // Purchase states
-    purchaseProduct,
-    isPurchasing: isPurchasing || purchasePending || purchaseConfirming,
-    purchaseSuccess,
-    purchaseHash,
-
-    // Shared states
-    error,
-    setError,
+    executePurchase,
+    resetPurchase,
+    isConfirming: isApprovalConfirming || isPurchaseConfirming,
+    isConfirmed: isPurchaseConfirmed,
+    refetchAllowance,
+    connectorChainId: chainId,
+    isWritePending: isApprovalPending || isPurchasePending,
   }
 }

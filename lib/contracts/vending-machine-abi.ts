@@ -3,56 +3,9 @@ export const VENDING_MACHINE_ABI = [
     type: "constructor",
     inputs: [
       {
-        name: "_numTracks",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "_maxStockPerTrack",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "_voteTokenName",
-        type: "string",
-        internalType: "string",
-      },
-      {
-        name: "_voteTokenSymbol",
-        type: "string",
-        internalType: "string",
-      },
-      {
-        name: "_initialAcceptedTokens",
-        type: "address[]",
-        internalType: "address[]",
-      },
-      {
-        name: "_initialProducts",
-        type: "tuple[]",
-        internalType: "struct IVendingMachine.Product[]",
-        components: [
-          {
-            name: "name",
-            type: "string",
-            internalType: "string",
-          },
-          {
-            name: "imageURI",
-            type: "string",
-            internalType: "string",
-          },
-        ],
-      },
-      {
-        name: "_initialStocks",
-        type: "uint256[]",
-        internalType: "uint256[]",
-      },
-      {
-        name: "_initialPrices",
-        type: "uint256[]",
-        internalType: "uint256[]",
+        name: "_voteToken",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "nonpayable",
@@ -156,36 +109,23 @@ export const VENDING_MACHINE_ABI = [
   },
   {
     type: "function",
-    name: "getAcceptedTokens",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address[]",
-        internalType: "address[]",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "getAllTracks",
     inputs: [],
     outputs: [
       {
         name: "",
         type: "tuple[]",
-        internalType: "struct IVendingMachine.Track[]",
+        internalType: "struct VendingMachine.Track[]",
         components: [
           {
             name: "trackId",
-            type: "uint8",
-            internalType: "uint8",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
             name: "product",
             type: "tuple",
-            internalType: "struct IVendingMachine.Product",
+            internalType: "struct VendingMachine.Product",
             components: [
               {
                 name: "name",
@@ -239,25 +179,25 @@ export const VENDING_MACHINE_ABI = [
     inputs: [
       {
         name: "trackId",
-        type: "uint8",
-        internalType: "uint8",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [
       {
         name: "",
         type: "tuple",
-        internalType: "struct IVendingMachine.Track",
+        internalType: "struct VendingMachine.Track",
         components: [
           {
             name: "trackId",
-            type: "uint8",
-            internalType: "uint8",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
             name: "product",
             type: "tuple",
-            internalType: "struct IVendingMachine.Product",
+            internalType: "struct VendingMachine.Product",
             components: [
               {
                 name: "name",
@@ -564,7 +504,7 @@ export const VENDING_MACHINE_ABI = [
       {
         name: "",
         type: "address",
-        internalType: "contract VoteToken",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -591,6 +531,78 @@ export const VENDING_MACHINE_ABI = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "addAcceptedToken",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "addProduct",
+    inputs: [
+      {
+        name: "name",
+        type: "string",
+        internalType: "string",
+      },
+      {
+        name: "price",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "stock",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "imageURI",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "purchase",
+    inputs: [
+      {
+        name: "trackId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getTrackCount",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "event",
@@ -952,3 +964,6 @@ export const VENDING_MACHINE_ABI = [
     inputs: [],
   },
 ] as const
+
+// Export with the expected name
+export const vendingMachineAbi = VENDING_MACHINE_ABI
