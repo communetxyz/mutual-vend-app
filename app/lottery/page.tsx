@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import MermaidDiagram from "@/components/mermaid-diagram"
 import {
   Ticket,
   Trophy,
@@ -20,24 +19,6 @@ import {
 } from "lucide-react"
 
 export default function LotteryPage() {
-  const lotteryFlowChart = `
-    graph TD
-        A["Purchase from Machine"] --> B["Automatic Entry"]
-        B --> C["Weekly Draw"]
-        C --> D["Winner Selection"]
-        D --> E["Prize Distribution"]
-        E --> F["Next Round Begins"]
-        F --> C
-        
-        G["Monthly Mega Draw"] --> H["Larger Prize Pool"]
-        H --> I["Multiple Winners"]
-        I --> J["Bonus Rewards"]
-        
-        B --> G
-        E --> K["Claim Rewards"]
-        K --> L["Reinvest or Withdraw"]
-  `
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
       <SiteNavigation />
@@ -88,7 +69,53 @@ export default function LotteryPage() {
             <CardDescription>Automatic entries with every purchase - no additional cost!</CardDescription>
           </CardHeader>
           <CardContent>
-            <MermaidDiagram chart={lotteryFlowChart} />
+            <div className="space-y-6">
+              <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <h3 className="text-lg font-semibold mb-4">Lottery Process</h3>
+                <div className="grid md:grid-cols-2 gap-6 text-sm">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-purple-600">1</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Purchase from Machine</div>
+                        <div className="text-gray-600 dark:text-gray-400">Every purchase earns entries</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-purple-600">2</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Automatic Entry</div>
+                        <div className="text-gray-600 dark:text-gray-400">No additional steps required</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-pink-600">3</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Weekly Draw</div>
+                        <div className="text-gray-600 dark:text-gray-400">Fair random selection</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-pink-600">4</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Prize Distribution</div>
+                        <div className="text-gray-600 dark:text-gray-400">Instant payout to winners</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

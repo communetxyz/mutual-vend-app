@@ -2,7 +2,6 @@ import { SiteNavigation } from "@/components/site-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { MermaidDiagram } from "@/components/mermaid-diagram"
 import {
   Shield,
   Eye,
@@ -18,23 +17,6 @@ import {
 } from "lucide-react"
 
 export default function ZKVerificationPage() {
-  const zkFlowChart = `
-    graph TD
-        A["User Purchase"] --> B["Generate ZK Proof"]
-        B --> C["Verify Age/Location"]
-        C --> D["Proof Validation"]
-        D --> E["Transaction Approved"]
-        E --> F["Product Dispensed"]
-        
-        G["Privacy Preserved"] --> H["No Personal Data Stored"]
-        H --> I["Compliance Maintained"]
-        I --> J["Regulatory Approval"]
-        
-        B --> G
-        D --> K["Audit Trail"]
-        K --> L["Regulatory Reporting"]
-  `
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
       <SiteNavigation />
@@ -92,7 +74,53 @@ export default function ZKVerificationPage() {
             <CardDescription>Privacy-first verification using cryptographic proofs</CardDescription>
           </CardHeader>
           <CardContent>
-            <MermaidDiagram chart={zkFlowChart} />
+            <div className="space-y-6">
+              <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <h3 className="text-lg font-semibold mb-4">Zero-Knowledge Verification Process</h3>
+                <div className="grid md:grid-cols-2 gap-6 text-sm">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-blue-600">1</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">User Purchase Request</div>
+                        <div className="text-gray-600 dark:text-gray-400">Customer initiates purchase</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-blue-600">2</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Generate ZK Proof</div>
+                        <div className="text-gray-600 dark:text-gray-400">Create cryptographic proof</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-green-600">3</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Verify Eligibility</div>
+                        <div className="text-gray-600 dark:text-gray-400">Confirm age/location compliance</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-green-600">4</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Transaction Approved</div>
+                        <div className="text-gray-600 dark:text-gray-400">Product dispensed securely</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

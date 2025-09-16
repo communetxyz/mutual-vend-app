@@ -2,7 +2,6 @@ import { SiteNavigation } from "@/components/site-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { MermaidDiagram } from "@/components/mermaid-diagram"
 import {
   TrendingUp,
   DollarSign,
@@ -19,29 +18,6 @@ import {
 } from "lucide-react"
 
 export default function RevenueSharePage() {
-  const revenueFlowChart = `
-    graph TD
-        A["Machine Revenue"] --> B["Revenue Distribution"]
-        B --> C["Token Holders (60%)"]
-        B --> D["Operations (25%)"]
-        B --> E["Development (10%)"]
-        B --> F["Reserve Fund (5%)"]
-        
-        C --> G["Daily Payouts"]
-        G --> H["Automatic Distribution"]
-        H --> I["Wallet Credits"]
-        
-        D --> J["Maintenance"]
-        D --> K["Restocking"]
-        D --> L["Location Fees"]
-        
-        E --> M["Platform Updates"]
-        E --> N["New Features"]
-        
-        F --> O["Emergency Fund"]
-        F --> P["Expansion Capital"]
-  `
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
       <SiteNavigation />
@@ -100,7 +76,29 @@ export default function RevenueSharePage() {
             <CardDescription>How machine profits are automatically distributed among stakeholders</CardDescription>
           </CardHeader>
           <CardContent>
-            <MermaidDiagram chart={revenueFlowChart} />
+            <div className="space-y-4">
+              <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <h3 className="text-lg font-semibold mb-4">Revenue Distribution Process</h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="font-medium">1. Machine Revenue Collection</div>
+                    <div className="text-gray-600 dark:text-gray-400">All sales revenue is collected automatically</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="font-medium">2. Automatic Distribution</div>
+                    <div className="text-gray-600 dark:text-gray-400">Smart contracts distribute funds daily</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="font-medium">3. Token Holder Payouts</div>
+                    <div className="text-gray-600 dark:text-gray-400">60% goes directly to token holders</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="font-medium">4. Operations & Development</div>
+                    <div className="text-gray-600 dark:text-gray-400">Remaining funds support platform growth</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

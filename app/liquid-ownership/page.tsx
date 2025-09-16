@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import MermaidDiagram from "@/components/mermaid-diagram"
 import {
   Droplets,
   Users,
@@ -18,33 +17,6 @@ import {
 } from "lucide-react"
 
 export default function LiquidOwnershipPage() {
-  const ownershipFlowChart = `
-    graph TD
-        A["Initial Investment"] --> B["Ownership Tokens Minted"]
-        B --> C["Revenue Generated"]
-        C --> D["Profits Distributed"]
-        D --> E["Token Holders Receive Rewards"]
-        E --> F["Reinvestment or Withdrawal"]
-        F --> C
-        
-        G["Secondary Market"] --> H["Token Trading"]
-        H --> I["Price Discovery"]
-        I --> J["Liquidity for Investors"]
-        
-        B --> G
-        E --> K["Governance Voting"]
-        K --> L["Operational Decisions"]
-        L --> C
-  `
-
-  const revenueDistributionChart = `
-    pie title Revenue Distribution
-        "Token Holders" : 60
-        "Operations & Maintenance" : 25
-        "Platform Development" : 10
-        "Reserve Fund" : 5
-  `
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
       <SiteNavigation />
@@ -103,7 +75,53 @@ export default function LiquidOwnershipPage() {
             <CardDescription>Transform vending machine ownership into tradeable, liquid assets</CardDescription>
           </CardHeader>
           <CardContent>
-            <MermaidDiagram chart={ownershipFlowChart} />
+            <div className="space-y-6">
+              <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <h3 className="text-lg font-semibold mb-4">Ownership Flow Process</h3>
+                <div className="grid md:grid-cols-2 gap-6 text-sm">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-blue-600">1</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Initial Investment</div>
+                        <div className="text-gray-600 dark:text-gray-400">Purchase ownership tokens</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-blue-600">2</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Revenue Generation</div>
+                        <div className="text-gray-600 dark:text-gray-400">Machine generates profits</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-green-600">3</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Profit Distribution</div>
+                        <div className="text-gray-600 dark:text-gray-400">Automatic payouts to holders</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-green-600">4</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Liquid Trading</div>
+                        <div className="text-gray-600 dark:text-gray-400">Trade tokens on secondary market</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -230,9 +248,6 @@ export default function LiquidOwnershipPage() {
           </CardHeader>
           <CardContent>
             <div className="grid lg:grid-cols-2 gap-8">
-              <div>
-                <MermaidDiagram chart={revenueDistributionChart} />
-              </div>
               <div className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
@@ -265,6 +280,32 @@ export default function LiquidOwnershipPage() {
                       <span className="font-medium">Reserve Fund (5%)</span>
                     </div>
                     <span className="text-sm text-gray-600 dark:text-gray-400">Emergency & expansion</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-semibold">Revenue Allocation Benefits</h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                    <div>
+                      <div className="font-medium">Transparent Distribution</div>
+                      <div className="text-gray-600 dark:text-gray-400">All allocations are publicly verifiable</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                    <div>
+                      <div className="font-medium">Automatic Payouts</div>
+                      <div className="text-gray-600 dark:text-gray-400">Smart contracts handle all distributions</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                    <div>
+                      <div className="font-medium">Sustainable Growth</div>
+                      <div className="text-gray-600 dark:text-gray-400">Funds reinvested for long-term success</div>
+                    </div>
                   </div>
                 </div>
               </div>
