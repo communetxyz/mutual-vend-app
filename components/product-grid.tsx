@@ -1,5 +1,4 @@
 "use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,13 +10,18 @@ import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 import { CitizenWalletPayment } from "@/components/citizen-wallet-payment"
 
 interface ProductGridProps {
-  tracks: Track[]
-  acceptedTokens: TokenInfo[]
-  onPurchase: (track: Track, token: TokenInfo) => void
-  isConnected: boolean
+  tracks?: Track[]
+  acceptedTokens?: TokenInfo[]
+  onPurchase?: (track: Track, token: TokenInfo) => void
+  isConnected?: boolean
 }
 
-export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }: ProductGridProps) {
+export function ProductGrid({
+  tracks = [],
+  acceptedTokens = [],
+  onPurchase = () => {},
+  isConnected = false,
+}: ProductGridProps) {
   const [selectedTokens, setSelectedTokens] = useState<{ [trackId: number]: string }>({})
 
   const handleTokenSelect = (trackId: number, tokenAddress: string) => {
@@ -45,7 +49,7 @@ export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }:
     return formatUnits(price, decimals)
   }
 
-  if (tracks.length === 0) {
+  if (!tracks || tracks.length === 0) {
     return (
       <div className="text-center py-12">
         <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />

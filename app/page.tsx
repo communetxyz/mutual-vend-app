@@ -1,349 +1,282 @@
-import { cn } from "@/lib/utils"
-import { NavigationMenuLink } from "@/components/ui/navigation-menu"
-import React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Input } from "@/components/ui/input"
-import { Printer, PackageCheck, Diamond, PieChart, Download } from "lucide-react"
-import Link from "next/link"
 import { SiteNavigation } from "@/components/site-navigation"
+import { WalletConnect } from "@/components/wallet-connect"
+import { NetworkChecker } from "@/components/network-checker"
+import { ProductGrid } from "@/components/product-grid"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Coins, Users, Zap, Shield, ArrowRight } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
-const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
-  ({ className, title, children, ...props }, ref) => {
-    return (
-      <li>
-        <NavigationMenuLink asChild>
-          <a
-            ref={ref}
-            className={cn(
-              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-              className,
-            )}
-            {...props}
-          >
-            <div className="text-sm font-medium leading-none">{title}</div>
-            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">{children}</p>
-          </a>
-        </NavigationMenuLink>
-      </li>
-    )
-  },
-)
-ListItem.displayName = "ListItem"
-
-export default function MutualVendPage() {
+export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <SiteNavigation />
-      <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Own a Piece of the Vending Machine You Use
-                  </h1>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                    Mutual Vend is a decentralized, 3D-printable vending machine network where every purchase earns you
-                    a share of the profits.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg">Join the Waitlist</Button>
-                  <Button variant="outline" size="lg">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Blueprints
-                  </Button>
-                </div>
-              </div>
-              <img
-                src="/vending-machine-prototype-2.png"
-                width="550"
-                height="550"
-                alt="Mutual Vend Machine Prototype"
-                className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square"
-              />
-            </div>
-          </div>
-        </section>
 
-        <section id="blueprints" className="w-full py-12 md:py-24 lg:py-32 border-t bg-white dark:bg-gray-900">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Inspiration & Blueprints</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                  Get inspired by what others have built. These open-source projects can be a great starting point.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-12 mt-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Arduino Snack Machine</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    A classic snack vending machine powered by an Arduino.
-                  </p>
-                  <Button asChild variant="outline">
-                    <Link
-                      href="https://www.instructables.com/Snack-Vending-Machine-Powered-by-Arduino/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on Instructables
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Bitcoin Candy Machine</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    An Arduino-based candy machine that accepts Bitcoin for payments.
-                  </p>
-                  <Button asChild variant="outline">
-                    <Link
-                      href="https://www.hackster.io/elkrem/arduino-based-bitcoin-candy-vending-machine-9f53d8"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on Hackster.io
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Modular Coin-Operated Machine</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    A 3D-printed vending machine that accepts physical fiat coins with modular slot configurations.
-                    Features scalable designs for different product sizes and detailed assembly guides.
-                  </p>
-                  <Button asChild variant="outline">
-                    <Link
-                      href="https://makerworld.com/en/models/1520761-coin-operated-vending-machine?from=search#profileId-1678295"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on MakerWorld
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-gray-100 px-3 py-1 text-sm dark:bg-gray-800">
-                  How It Works
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">A Simple, Powerful Cycle</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                  Our ecosystem is designed for transparency and community participation at every step.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-4 lg:gap-16 mt-12">
-              <div className="grid gap-1 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Printer className="h-8 w-8" />
-                </div>
-                <h3 className="text-lg font-bold">1. Print & Assemble</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Download the open-source files and 3D print your own Mutual Vend machine.
-                </p>
-              </div>
-              <div className="grid gap-1 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <PackageCheck className="h-8 w-8" />
-                </div>
-                <h3 className="text-lg font-bold">2. Stock the Machine</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Community members post collateral to stock the machine. Others vote to verify the inventory.
-                </p>
-              </div>
-              <div className="grid gap-1 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Diamond className="h-8 w-8" />
-                </div>
-                <h3 className="text-lg font-bold">3. Pay with Crypto</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Customers purchase items easily and securely using their favorite cryptocurrency.
-                </p>
-              </div>
-              <Link href="/revenue-share" className="grid gap-1 text-center" prefetch={false}>
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <PieChart className="h-8 w-8" />
-                </div>
-                <h3 className="text-lg font-bold">4. Earn Revshare</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Every purchase grants the customer a temporary share of the machine's revenue.
-                </p>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+              Own a piece of the{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                vending machine
+              </span>{" "}
+              you use
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+              3D-printable, crypto-powered, community-owned vending machines that reward users and shareholders alike.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/vending-machine">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  Try the Demo
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/how-it-works">
+                <Button variant="outline" size="lg">
+                  Learn More
+                </Button>
               </Link>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
-          <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                Trustless Stocking, Powered by the Community.
-              </h2>
-              <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                Our innovative collateral and voting system ensures machines are always stocked honestly and
-                efficiently, without a central operator.
-              </p>
-            </div>
-            <div className="flex w-full items-center justify-center">
-              <div className="w-full rounded-lg border bg-card p-6 dark:bg-gray-900">
-                <h3 className="text-lg font-semibold mb-4 text-center">Stocking Process Flow</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      1
-                    </div>
-                    <div>
-                      <p className="font-medium">Stocker Posts Collateral</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Stocker wants to add inventory and posts required collateral
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
-                    <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      2
-                    </div>
-                    <div>
-                      <p className="font-medium">Add Products to Machine</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Products are physically added to the vending machine
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20">
-                    <div className="flex-shrink-0 w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      3
-                    </div>
-                    <div>
-                      <p className="font-medium">Community Verification</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Community votes to verify inventory is correct
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
-                    <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      4
-                    </div>
-                    <div>
-                      <p className="font-medium">Collateral Released + Reward</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        If verified correct, collateral is unlocked and stocker receives reward
-                      </p>
-                    </div>
-                  </div>
-                </div>
+      {/* Features Grid */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Revolutionary Vending Experience</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
+            Combining 3D printing, blockchain technology, and community ownership
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <CardHeader>
+              <Coins className="h-12 w-12 text-blue-600 mb-4" />
+              <CardTitle>Crypto Payments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Pay with various cryptocurrencies including stablecoins and earn rewards with every purchase.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <CardHeader>
+              <Users className="h-12 w-12 text-purple-600 mb-4" />
+              <CardTitle>Shared Ownership</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Own liquid shares in vending machines and earn passive income from every transaction.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <CardHeader>
+              <Zap className="h-12 w-12 text-green-600 mb-4" />
+              <CardTitle>3D Printable</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Open-source designs that can be manufactured locally, reducing costs and environmental impact.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <CardHeader>
+              <Shield className="h-12 w-12 text-red-600 mb-4" />
+              <CardTitle>Transparent</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                All transactions and ownership records are publicly verifiable on the blockchain.
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Demo Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Try Our Interactive Demo</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Experience the future of vending machines with our Web3-powered prototype
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="mb-8">
+                <NetworkChecker />
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="faq" className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Frequently Asked Questions</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                  Have questions? We have answers.
-                </p>
+              <div className="mb-8">
+                <WalletConnect />
               </div>
+              <ProductGrid />
             </div>
-            <div className="mx-auto mt-12 max-w-3xl">
-              <Accordion type="single" collapsible>
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>What is Mutual Vend?</AccordionTrigger>
-                  <AccordionContent>
-                    Mutual Vend is a decentralized network of 3D-printable vending machines. It's run by its community
-                    of users, who stock the machines, verify inventory, and share in the revenue generated from sales.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>How does the revenue share (revshare) work?</AccordionTrigger>
-                  <AccordionContent>
-                    When you buy an item, a portion of the payment is converted into a temporary revenue-sharing token.
-                    This token entitles you to a percentage of all sales from that specific machine for a set period
-                    (e.g., 2 weeks). Payouts are distributed automatically in crypto.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>What cryptocurrencies can I use?</AccordionTrigger>
-                  <AccordionContent>
-                    The network primarily uses stablecoins like USDC and USDT for price stability and ease of use. The
-                    network's native token is $BREAD, used for governance and rewards. The community can vote to add
-                    support for additional stablecoins they choose.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>How do I become a stocker or verifier?</AccordionTrigger>
-                  <AccordionContent>
-                    To become a stocker, you need to stake stablecoin collateral in a smart contract. This collateral
-                    acts as a security deposit. Verifiers are randomly selected token holders who can vote on whether a
-                    machine has been stocked correctly. Verifiers earn a small fee for participating.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-          </div>
-        </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 border-t">
-          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Join the Vending Revolution</h2>
-              <p className="mx-auto max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                Be the first to know when we launch. Sign up for our waitlist to get updates, early access, and a voice
-                in our growing community.
-              </p>
-            </div>
-            <div className="mx-auto w-full max-w-sm space-y-2">
-              <form className="flex space-x-2">
-                <Input type="email" placeholder="Enter your email" className="max-w-lg flex-1" />
-                <Button type="submit">Join Waitlist</Button>
-              </form>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Sign up to get notified when we launch.
-                <Link href="#" className="underline underline-offset-2" prefetch={false}>
-                  Terms & Conditions
-                </Link>
-              </p>
+            <div className="space-y-6">
+              <div className="relative">
+                <Image
+                  src="/futuristic-crypto-vending-machine.png"
+                  alt="Futuristic crypto vending machine"
+                  width={600}
+                  height={400}
+                  className="rounded-lg shadow-xl"
+                />
+              </div>
+
+              <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>How It Works</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        1
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white">Connect Wallet</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Connect your Web3 wallet to start purchasing
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        2
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white">Select Product</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Choose from available items in the machine
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white">Pay & Earn</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Pay with crypto and earn ownership rewards
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </section>
-      </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Terms of Service
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Privacy
-          </Link>
-        </nav>
-      </footer>
+        </div>
+      </section>
+
+      {/* Stocking Process Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Community-Driven Stocking Process</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300">Transparent and democratic inventory management</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+            <CardHeader>
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mb-4">
+                1
+              </div>
+              <CardTitle className="text-blue-800 dark:text-blue-200">Community Proposal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-blue-700 dark:text-blue-300">
+                Shareholders propose new products and vote on inventory decisions through decentralized governance.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
+            <CardHeader>
+              <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center text-xl font-bold mb-4">
+                2
+              </div>
+              <CardTitle className="text-purple-800 dark:text-purple-200">Automated Procurement</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-purple-700 dark:text-purple-300">
+                Smart contracts automatically purchase approved items when inventory runs low, ensuring continuous
+                availability.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+            <CardHeader>
+              <div className="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center text-xl font-bold mb-4">
+                3
+              </div>
+              <CardTitle className="text-green-800 dark:text-green-200">Local Fulfillment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-green-700 dark:text-green-300">
+                Community members or service providers restock machines and earn rewards for maintenance activities.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700">
+            <CardHeader>
+              <div className="w-12 h-12 bg-orange-600 text-white rounded-full flex items-center justify-center text-xl font-bold mb-4">
+                4
+              </div>
+              <CardTitle className="text-orange-800 dark:text-orange-200">Revenue Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-orange-700 dark:text-orange-300">
+                Profits are automatically distributed to shareholders based on their ownership percentage and
+                participation.
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">Ready to Join the Revolution?</h2>
+          <p className="text-xl text-blue-100 mb-8">Start earning from vending machines in your community today</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/vending-machine">
+              <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+                Try Demo Now
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link href="/funding">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 bg-transparent">
+                Learn About Funding
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
