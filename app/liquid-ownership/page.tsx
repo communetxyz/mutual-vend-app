@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { MermaidDiagram } from "@/components/mermaid-diagram"
+import MermaidDiagram from "@/components/mermaid-diagram"
 import {
   Droplets,
   Users,
