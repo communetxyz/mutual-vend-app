@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Mutual Vend - Decentralized Vending Machines",
-  description: "Revolutionary crypto-powered vending machines with shared ownership and rewards",
+  description: "Own a piece of the vending machine you use. 3D-printable, crypto-powered, community-owned.",
     generator: 'v0.app'
 }
 
@@ -23,7 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Web3Provider>
           {children}
-          <Toaster position="top-right" />
+          <Toaster />
         </Web3Provider>
       </body>
     </html>
