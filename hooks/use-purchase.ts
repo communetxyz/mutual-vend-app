@@ -10,8 +10,7 @@ import {
   useSwitchChain,
 } from "wagmi"
 import { gnosis } from "wagmi/chains"
-import { VENDING_MACHINE_ABI } from "@/lib/contracts"
-import { ERC20_ABI } from "@/lib/contracts"
+import { VENDING_MACHINE_ABI, ERC20_ABI } from "@/lib/contracts"
 import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
 import type { Track, TokenInfo, PurchaseState } from "@/lib/types/vending-machine"
 import { toast } from "sonner"
