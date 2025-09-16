@@ -1,57 +1,36 @@
 "use client"
 
+import { useAccount, useConnect, useDisconnect } from "wagmi"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useConnect, useAccount, useDisconnect } from "wagmi"
 import { Wallet, LogOut } from "lucide-react"
 
 export function WalletConnect() {
-  const { connectors, connect, isPending } = useConnect()
-  const { isConnected, address } = useAccount()
+  const { address, isConnected } = useAccount()
+  const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
 
   if (isConnected) {
     return (
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            Wallet Connected
-          </CardTitle>
-          <CardDescription>{address && `${address.slice(0, 6)}...${address.slice(-4)}`}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={() => disconnect()} variant="outline" className="w-full">
-            <LogOut className="h-4 w-4 mr-2" />
-            Disconnect
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">
+          {address?.slice(0, 6)}...{address?.slice(-4)}
+        </span>
+        <Button variant="outline" size="sm" onClick={() => disconnect()}>
+          <LogOut className="h-4 w-4 mr-2" />
+          Disconnect
+        </Button>
+      </div>
     )
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wallet className="h-5 w-5" />
-          Connect Wallet
-        </CardTitle>
-        <CardDescription>Connect your wallet to purchase products from the vending machine</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {connectors.map((connector) => (
-          <Button
-            key={connector.uid}
-            onClick={() => connect({ connector })}
-            disabled={isPending}
-            className="w-full"
-            variant="outline"
-          >
-            {connector.name}
-          </Button>
-        ))}
-      </CardContent>
-    </Card>
+    <div className="flex gap-2">
+      {connectors.map((connector) => (
+        <Button key={connector.uid} variant="outline" size="sm" onClick={() => connect({ connector })}>
+          <Wallet className="h-4 w-4 mr-2" />
+          Connect {connector.name}
+        </Button>
+      ))}
+    </div>
   )
 }

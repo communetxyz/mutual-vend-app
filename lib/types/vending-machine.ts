@@ -5,9 +5,9 @@ export interface Product {
 
 export interface Track {
   trackId: bigint
-  product: Product
   price: bigint
   stock: bigint
+  product: Product
 }
 
 export interface TokenInfo {
@@ -15,12 +15,6 @@ export interface TokenInfo {
   symbol: string
   decimals: number
   balance: bigint
-}
-
-export interface MachineInfo {
-  totalTracks: number
-  totalProducts: number
-  acceptedTokensCount: number
 }
 
 export interface PurchaseState {

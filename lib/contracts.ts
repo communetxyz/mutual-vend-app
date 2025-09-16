@@ -1,3 +1,8 @@
+// Re-export everything from the individual contract files
+export { VENDING_MACHINE_ABI, vendingMachineAbi } from "./contracts/vending-machine-abi"
+export { ERC20_ABI, erc20Abi } from "./contracts/erc20-abi"
+
+// Make sure VENDING_MACHINE_ABI is available as a named export
 export const VENDING_MACHINE_ABI = [
   {
     type: "constructor",
@@ -1031,6 +1036,3 @@ export const VENDING_MACHINE_ABI = [
     inputs: [],
   },
 ] as const
-
-// Export with the expected name
-export const vendingMachineAbi = VENDING_MACHINE_ABI

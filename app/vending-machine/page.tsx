@@ -1,26 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAccount, useChainId, useConnectorClient } from "wagmi"
-import { gnosis } from "wagmi/chains"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { WalletConnect } from "@/components/wallet-connect"
+import { useState } from "react"
+import { SiteNavigation } from "@/components/site-navigation"
+import { NetworkChecker } from "@/components/network-checker"
+import { MachineStats } from "@/components/machine-stats"
 import { ProductGrid } from "@/components/product-grid"
 import { PurchaseModal } from "@/components/purchase-modal"
-import { NetworkChecker } from "@/components/network-checker"
 import { useVendingMachine } from "@/hooks/use-vending-machine"
 import { usePurchase } from "@/hooks/use-purchase"
-import { SiteNavigation } from "@/components/site-navigation"
-import { Bot, RefreshCw, Package, AlertTriangle, AlertCircle } from "lucide-react"
-import { toast } from "sonner"
+import { useAccount } from "wagmi"
+import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 export default function VendingMachinePage() {
   const { isConnected } = useAccount()
-  const chainId = useChainId()
-  const { data: connectorClient } = useConnectorClient()
-  const { tracks, acceptedTokens, machineInfo, voteTokenAddress, loading, error, refetchTracks } = useVendingMachine()
+  const { tracks, acceptedTokens } = useVendingMachine()
   const {
     purchaseState,
     selectTrackAndToken,
@@ -30,147 +23,56 @@ export default function VendingMachinePage() {
     resetPurchase,
     isConfirming,
     isConfirmed,
-    refetchAllowance,
-    connectorChainId,
     isWritePending,
   } = usePurchase()
 
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false)
-  const isCorrectNetwork = chainId === gnosis.id
-  const connectorOnCorrectNetwork = connectorChainId === gnosis.id
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handlePurchase = (track: any, token: any) => {
-    if (!isCorrectNetwork || !connectorOnCorrectNetwork) {
-      toast.error("Please ensure your wallet is connected to Gnosis Chain")
-      return
-    }
+  const handlePurchase = (track: Track, token: TokenInfo) => {
     selectTrackAndToken(track, token)
-    setShowPurchaseModal(true)
-    refetchAllowance()
+    setIsModalOpen(true)
   }
 
-  const handleClosePurchaseModal = () => {
-    setShowPurchaseModal(false)
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
     resetPurchase()
   }
 
-  const handleRefresh = () => {
-    refetchTracks()
-    toast.success("Inventory data refreshed")
-  }
-
-  // Only auto-close modal after successful purchase (not approval)
-  useEffect(() => {
-    if (isConfirmed && purchaseState.isPurchasing && purchaseState.txHash) {
-      console.log("Purchase confirmed, will close modal in 3 seconds...")
-      setTimeout(() => {
-        handleClosePurchaseModal()
-        refetchTracks()
-        toast.success("Purchase complete! Your snack has been dispensed!")
-      }, 3000)
-    }
-  }, [isConfirmed, purchaseState.isPurchasing, purchaseState.txHash])
+  const hasAllowance = checkAllowance()
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-background">
       <SiteNavigation />
 
-      <main className="flex-1 container px-4 md:px-6 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tighter flex items-center gap-2">
-              <Bot className="h-8 w-8" />
-              Mutual Vend Machine
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Purchase snacks with crypto and earn rewards on Gnosis Chain
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="flex items-center gap-2">
-              <div
-                className={`w-2 h-2 rounded-full animate-pulse ${isCorrectNetwork && connectorOnCorrectNetwork ? "bg-green-500" : "bg-red-500"}`}
-              />
-              {isCorrectNetwork && connectorOnCorrectNetwork ? "Gnosis Chain" : `Wrong Network`}
-            </Badge>
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-          </div>
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Crypto Vending Machine</h1>
+          <p className="text-muted-foreground">
+            Purchase snacks and drinks using cryptocurrency. Connect your wallet to get started.
+          </p>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <Alert className="mb-8 border-red-200 dark:border-red-800">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
-          </Alert>
-        )}
+        <NetworkChecker />
 
-        {/* Network Warning */}
-        {isConnected && (!isCorrectNetwork || !connectorOnCorrectNetwork) && (
-          <div className="mb-8">
-            <NetworkChecker />
-          </div>
-        )}
+        <div className="space-y-8">
+          <MachineStats />
 
-        {/* Wallet Connection */}
-        {!isConnected && (
-          <div className="flex justify-center mb-8">
-            <WalletConnect />
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading && isCorrectNetwork && connectorOnCorrectNetwork && (
-          <div className="text-center py-12">
-            <RefreshCw className="h-8 w-8 mx-auto text-gray-400 animate-spin mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">Loading vending machine data from Gnosis Chain...</p>
-          </div>
-        )}
-
-        {/* Products Grid */}
-        {!loading && isCorrectNetwork && connectorOnCorrectNetwork && !error && (
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Package className="h-6 w-6" />
-                Available Products
-              </h2>
-              <Badge variant="secondary">
-                {tracks.length} {tracks.length === 1 ? "product" : "products"}
-              </Badge>
-            </div>
-
+            <h2 className="text-2xl font-semibold mb-4">Available Products</h2>
             <ProductGrid
               tracks={tracks}
               acceptedTokens={acceptedTokens}
               onPurchase={handlePurchase}
-              isConnected={isConnected && isCorrectNetwork && connectorOnCorrectNetwork}
+              isConnected={isConnected}
             />
           </div>
-        )}
+        </div>
 
-        {/* Wrong Network Message */}
-        {isConnected && (!isCorrectNetwork || !connectorOnCorrectNetwork) && !loading && (
-          <div className="text-center py-12">
-            <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Network Configuration Issue</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Your wallet needs to be properly connected to Gnosis Chain to view and purchase products.
-            </p>
-            <NetworkChecker />
-          </div>
-        )}
-
-        {/* Purchase Modal */}
         <PurchaseModal
-          isOpen={showPurchaseModal}
-          onClose={handleClosePurchaseModal}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
           purchaseState={purchaseState}
-          hasAllowance={checkAllowance()}
+          hasAllowance={hasAllowance}
           onApprove={approveToken}
           onPurchase={executePurchase}
           isConfirming={isConfirming}
@@ -178,10 +80,6 @@ export default function VendingMachinePage() {
           isWritePending={isWritePending}
         />
       </main>
-
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
-      </footer>
     </div>
   )
 }

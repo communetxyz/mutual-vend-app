@@ -18,6 +18,8 @@ export const config = createConfig({
   },
 })
 
+export const VENDING_MACHINE_ADDRESS = process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS as `0x${string}`
+
 declare module "wagmi" {
   interface Register {
     config: typeof config

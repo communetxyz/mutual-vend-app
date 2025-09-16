@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { CheckCircle, Clock, AlertCircle, ExternalLink, Loader2 } from "lucide-react"
+import { CheckCircle, Clock, AlertCircle, Package, Coins, ArrowRight, Loader2 } from "lucide-react"
 import { formatUnits } from "viem"
 import type { PurchaseState } from "@/lib/types/vending-machine"
 
@@ -17,7 +17,7 @@ interface PurchaseModalProps {
   onPurchase: () => void
   isConfirming: boolean
   isConfirmed: boolean
-  isWritePending: boolean
+  isWritePending?: boolean
 }
 
 export function PurchaseModal({
@@ -29,136 +29,278 @@ export function PurchaseModal({
   onPurchase,
   isConfirming,
   isConfirmed,
-  isWritePending,
+  isWritePending = false,
 }: PurchaseModalProps) {
-  const { selectedTrack, selectedToken, step, error, txHash } = purchaseState
+  const { selectedTrack, selectedToken, isApproving, isPurchasing, txHash, error, step } = purchaseState
 
   if (!selectedTrack || !selectedToken) return null
 
-  const price = formatUnits(selectedTrack.price, selectedToken.decimals)
-  const balance = formatUnits(selectedToken.balance, selectedToken.decimals)
-
-  const getStepIcon = (stepName: string, currentStep: string, isCompleted: boolean) => {
-    if (isCompleted) return <CheckCircle className="h-5 w-5 text-green-500" />
-    if (stepName === currentStep) return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-    return <Clock className="h-5 w-5 text-gray-400" />
+  const formatPrice = (price: bigint, decimals: number) => {
+    return formatUnits(price, decimals)
   }
 
-  const getStepStatus = (stepName: string, currentStep: string, isCompleted: boolean) => {
-    if (isCompleted) return "completed"
-    if (stepName === currentStep) return "active"
-    return "pending"
+  const canPurchase = hasAllowance && !isApproving && !isPurchasing && selectedToken.balance >= selectedTrack.price
+
+  // Determine current step - simplified logic
+  const getCurrentStep = () => {
+    if (step === "purchasing" || isPurchasing) return "purchasing"
+    if (step === "approving" || isApproving) return "approving"
+    if (hasAllowance) return "ready-to-purchase"
+    return "needs-approval"
   }
+
+  const currentStep = getCurrentStep()
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Purchase {selectedTrack.product.name}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Purchase {selectedTrack.product.name}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Product Info */}
-          <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📦</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium">{selectedTrack.product.name}</h3>
-              <p className="text-sm text-gray-500">Track #{selectedTrack.trackId}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline">{selectedToken.symbol}</Badge>
-                <span className="text-sm font-medium">
-                  {price} {selectedToken.symbol}
-                </span>
+          {/* Progress Steps */}
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  currentStep === "needs-approval"
+                    ? "bg-blue-500 text-white"
+                    : hasAllowance
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-300 text-gray-600"
+                }`}
+              >
+                {hasAllowance ? <CheckCircle className="h-4 w-4" /> : "1"}
               </div>
+              <span className="text-xs mt-1">Approve</span>
             </div>
-          </div>
 
-          {/* Balance Check */}
-          <div className="flex justify-between text-sm">
-            <span>Your Balance:</span>
-            <span className={selectedToken.balance < selectedTrack.price ? "text-red-500" : "text-green-500"}>
-              {balance} {selectedToken.symbol}
-            </span>
+            <ArrowRight className="h-4 w-4 text-gray-400" />
+
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  currentStep === "purchasing"
+                    ? "bg-blue-500 text-white"
+                    : currentStep === "ready-to-purchase"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-600"
+                }`}
+              >
+                {isPurchasing ? <Clock className="h-4 w-4 animate-spin" /> : "2"}
+              </div>
+              <span className="text-xs mt-1">Purchase</span>
+            </div>
           </div>
 
           <Separator />
 
-          {/* Transaction Steps */}
-          <div className="space-y-4">
-            <h4 className="font-medium">Transaction Steps</h4>
-
-            {/* Step 1: Approval */}
-            <div className="flex items-center gap-3">
-              {getStepIcon("approving", step, hasAllowance)}
-              <div className="flex-1">
-                <p className="text-sm font-medium">{hasAllowance ? "Token Approved" : "Approve Token Spending"}</p>
-                <p className="text-xs text-gray-500">
-                  {hasAllowance ? "Ready to purchase" : "Allow the vending machine to spend your tokens"}
-                </p>
-              </div>
-              {!hasAllowance && (
-                <Button size="sm" onClick={onApprove} disabled={step === "approving" || isWritePending}>
-                  {step === "approving" ? "Approving..." : "Approve"}
-                </Button>
-              )}
+          {/* Product Info */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Product:</span>
+              <span className="text-sm">{selectedTrack.product.name}</span>
             </div>
-
-            {/* Step 2: Purchase */}
-            <div className="flex items-center gap-3">
-              {getStepIcon("purchasing", step, step === "completed")}
-              <div className="flex-1">
-                <p className="text-sm font-medium">Execute Purchase</p>
-                <p className="text-xs text-gray-500">Complete the purchase transaction</p>
-              </div>
-              <Button
-                size="sm"
-                onClick={onPurchase}
-                disabled={!hasAllowance || step === "purchasing" || isWritePending}
-              >
-                {step === "purchasing" ? "Purchasing..." : "Purchase"}
-              </Button>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Track:</span>
+              <span className="text-sm">#{selectedTrack.trackId}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Stock:</span>
+              <Badge variant={selectedTrack.stock > 0 ? "default" : "secondary"}>{selectedTrack.stock} available</Badge>
             </div>
           </div>
 
-          {/* Error Display */}
-          {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-lg">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
+          <Separator />
+
+          {/* Payment Info */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Price:</span>
+              <span className="text-sm font-mono">
+                {formatPrice(selectedTrack.price, selectedToken.decimals)} {selectedToken.symbol}
+              </span>
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Your Balance:</span>
+              <span className="text-sm font-mono">
+                {formatPrice(selectedToken.balance, selectedToken.decimals)} {selectedToken.symbol}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Token Approval:</span>
+              <div className="flex items-center gap-2">
+                {hasAllowance ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-green-600">Approved</span>
+                  </>
+                ) : isApproving || isWritePending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                    <span className="text-sm text-blue-600">Approving...</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm text-yellow-600">Required</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Current Step Status */}
+          {currentStep === "approving" && (
+            <>
+              <Separator />
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                  <span className="text-sm text-blue-600 dark:text-blue-400">
+                    {isConfirming ? "Confirming approval..." : "Approval transaction sent"}
+                  </span>
+                </div>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  Please wait for the transaction to confirm, then you can purchase.
+                </p>
+              </div>
+            </>
           )}
 
-          {/* Success Message */}
+          {currentStep === "ready-to-purchase" && (
+            <>
+              <Separator />
+              <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-green-600 dark:text-green-400">Ready to purchase!</span>
+                </div>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  Token approval confirmed. Click "Purchase" to complete your order.
+                </p>
+              </div>
+            </>
+          )}
+
+          {currentStep === "purchasing" && (
+            <>
+              <Separator />
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                  <span className="text-sm text-blue-600 dark:text-blue-400">
+                    {isConfirmed ? "Purchase confirmed!" : "Processing purchase..."}
+                  </span>
+                </div>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  {isConfirmed ? "Your snack is being dispensed!" : "Please wait for the transaction to confirm."}
+                </p>
+              </div>
+            </>
+          )}
+
           {step === "completed" && (
-            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 rounded-lg">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm">Purchase completed successfully!</span>
-            </div>
+            <>
+              <Separator />
+              <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-green-600 dark:text-green-400">Purchase completed!</span>
+                </div>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">Your snack has been dispensed. Enjoy!</p>
+              </div>
+            </>
           )}
 
           {/* Transaction Hash */}
           {txHash && (
-            <div className="flex items-center gap-2 text-sm">
-              <span>Transaction:</span>
-              <a
-                href={`https://gnosisscan.io/tx/${txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
-              >
-                View on Explorer
-                <ExternalLink className="h-3 w-3" />
-              </a>
+            <div className="text-xs text-gray-500 break-all bg-gray-50 dark:bg-gray-900 p-2 rounded">
+              <p className="font-medium mb-1">Transaction Hash:</p>
+              <p className="font-mono">{txHash}</p>
             </div>
           )}
 
+          {/* Error Display */}
+          {error && (
+            <>
+              <Separator />
+              <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  <span className="text-sm text-red-600 dark:text-red-400">Error</span>
+                </div>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
+              </div>
+            </>
+          )}
+
           {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
-              {step === "completed" ? "Close" : "Cancel"}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex-1 bg-transparent"
+              disabled={isApproving || isPurchasing || isConfirming || isWritePending}
+            >
+              {isApproving || isPurchasing || isConfirming || isWritePending ? "Processing..." : "Cancel"}
             </Button>
+
+            {currentStep === "needs-approval" && (
+              <Button onClick={onApprove} disabled={isApproving || isWritePending} className="flex-1">
+                {isApproving || isWritePending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Approving...
+                  </>
+                ) : (
+                  <>
+                    <Coins className="h-4 w-4 mr-2" />
+                    Approve {selectedToken.symbol}
+                  </>
+                )}
+              </Button>
+            )}
+
+            {currentStep === "approving" && (
+              <Button disabled className="flex-1">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Waiting for Approval...
+              </Button>
+            )}
+
+            {currentStep === "ready-to-purchase" && (
+              <Button onClick={onPurchase} disabled={!canPurchase || isWritePending} className="flex-1">
+                {isWritePending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Package className="h-4 w-4 mr-2" />
+                    Purchase Now
+                  </>
+                )}
+              </Button>
+            )}
+
+            {currentStep === "purchasing" && (
+              <Button disabled className="flex-1">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {isConfirmed ? "Success!" : "Purchasing..."}
+              </Button>
+            )}
+
+            {step === "completed" && (
+              <Button onClick={onClose} className="flex-1">
+                Close
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
