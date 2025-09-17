@@ -121,12 +121,6 @@ export function SiteNavigation() {
                     Win machines through fair, no-loss auctions
                   </div>
                 </ListItem>
-                <ListItem href="/citizen-wallet" title="Citizen Wallet">
-                  <div className="flex items-center gap-2">
-                    <Wallet className="h-4 w-4" />
-                    Generate BREAD payment links with gasless transactions
-                  </div>
-                </ListItem>
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
@@ -151,6 +145,14 @@ export function SiteNavigation() {
           <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
             <ShoppingCart className="h-4 w-4 mr-2" />
             Buy Now
+          </button>
+        </Link>
+      </div>
+      <div className="ml-2">
+        <Link href="/citizen-wallet-vending">
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2">
+            <Wallet className="h-4 w-4 mr-2" />
+            Citizen Wallet
           </button>
         </Link>
       </div>
