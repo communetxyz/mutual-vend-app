@@ -1,51 +1,35 @@
 "use client"
-import { useAccount, useChainId, useSwitchChain } from "wagmi"
+
+import { useChainId, useSwitchChain } from "wagmi"
+import { gnosis } from "wagmi/chains"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle, CheckCircle } from "lucide-react"
-
-const GNOSIS_CHAIN_ID = 100
+import { AlertTriangle, Network } from "lucide-react"
 
 export function NetworkChecker() {
-  const { isConnected } = useAccount()
   const chainId = useChainId()
   const { switchChain, isPending } = useSwitchChain()
 
-  if (!isConnected) {
+  const isCorrectNetwork = chainId === gnosis.id
+
+  if (isCorrectNetwork) {
     return null
   }
 
-  const isCorrectNetwork = chainId === GNOSIS_CHAIN_ID
-
-  if (isCorrectNetwork) {
-    return (
-      <Card className="border-green-200 bg-green-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-700">
-            <CheckCircle className="h-5 w-5" />
-            Connected to Gnosis Chain
-          </CardTitle>
-          <CardDescription className="text-green-600">
-            You're on the correct network for vending machine transactions
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
-
   return (
-    <Card className="border-yellow-200 bg-yellow-50">
+    <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-yellow-700">
+        <CardTitle className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
           <AlertTriangle className="h-5 w-5" />
           Wrong Network
         </CardTitle>
-        <CardDescription className="text-yellow-600">
+        <CardDescription className="text-yellow-700 dark:text-yellow-300">
           Please switch to Gnosis Chain to use the vending machine
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Button onClick={() => switchChain({ chainId: GNOSIS_CHAIN_ID })} disabled={isPending} className="w-full">
+        <Button onClick={() => switchChain({ chainId: gnosis.id })} disabled={isPending} className="w-full">
+          <Network className="h-4 w-4 mr-2" />
           {isPending ? "Switching..." : "Switch to Gnosis Chain"}
         </Button>
       </CardContent>

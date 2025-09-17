@@ -12,9 +12,15 @@ export interface Track {
 
 export interface TokenInfo {
   address: string
+  name: string
   symbol: string
   decimals: number
   balance: bigint
+}
+
+export interface MachineInfo {
+  numTracks: number
+  maxStockPerTrack: bigint
 }
 
 export interface PurchaseState {
@@ -26,9 +32,16 @@ export interface PurchaseState {
   error: string | null
 }
 
-export interface MachineInfo {
-  totalTracks: number
-  activeTracks: number
-  totalRevenue: bigint
-  totalSales: number
+export interface VendingTrack {
+  id: number
+  name: string
+  description: string
+  price: number
+  stock: number
+}
+
+export interface AcceptedToken {
+  address: string
+  symbol: string
+  decimals: number
 }

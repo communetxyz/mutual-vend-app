@@ -1,90 +1,116 @@
 "use client"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Coins, CreditCard } from "lucide-react"
+import { ShoppingCart, Package, AlertTriangle } from "lucide-react"
+import { formatUnits } from "viem"
+import { useChainId } from "wagmi"
+import { gnosis } from "wagmi/chains"
 import { CitizenWalletPayment } from "./citizen-wallet-payment"
-import type { VendingTrack, AcceptedToken } from "@/lib/types/vending-machine"
+import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 interface ProductGridProps {
-  tracks?: VendingTrack[]
-  acceptedTokens?: AcceptedToken[]
-  onPurchase?: (trackId: number, paymentMethod: "crypto" | "bread") => void
-  isLoading?: boolean
+  tracks: Track[]
+  acceptedTokens: TokenInfo[]
+  onPurchase: (track: Track, token: TokenInfo) => void
+  isConnected: boolean
 }
 
-export function ProductGrid({ tracks = [], acceptedTokens = [], onPurchase, isLoading = false }: ProductGridProps) {
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-20 bg-gray-200 rounded mb-4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
+export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }: ProductGridProps) {
+  const chainId = useChainId()
+  const isCorrectNetwork = chainId === gnosis.id
+
+  const formatPrice = (price: bigint, token: TokenInfo) => {
+    return `${formatUnits(price, token.decimals)} ${token.symbol}`
   }
 
-  if (!tracks || tracks.length === 0) {
+  const handleBreadPayment = (track: Track) => {
+    // Convert price from wei to BREAD tokens (assuming 18 decimals)
+    const breadAmount = Number.parseFloat(formatUnits(track.price, 18))
+    return breadAmount
+  }
+
+  if (tracks.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 mb-4">
-          <Coins className="h-12 w-12 mx-auto mb-2" />
-          <p className="text-lg">No products available</p>
-          <p className="text-sm">Check back later for new items</p>
-        </div>
+        <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Products Available</h3>
+        <p className="text-gray-500 dark:text-gray-400">
+          The vending machine is currently being stocked. Please check back later.
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {tracks.map((track) => (
-        <Card key={track.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-lg">{track.name}</CardTitle>
-                <CardDescription>{track.description}</CardDescription>
-              </div>
+        <Card key={track.trackId} className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
+              {track.product.imageURI ? (
+                <img
+                  src={track.product.imageURI || "/placeholder.svg"}
+                  alt={track.product.name}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              ) : (
+                <Package className="h-12 w-12 text-gray-400" />
+              )}
+            </div>
+            <CardTitle className="text-lg">{track.product.name}</CardTitle>
+            <div className="flex items-center justify-between">
               <Badge variant={track.stock > 0 ? "default" : "secondary"}>
-                {track.stock > 0 ? `${track.stock} left` : "Out of stock"}
+                {track.stock > 0 ? `${track.stock} in stock` : "Out of stock"}
               </Badge>
+              <span className="text-sm text-gray-500">Track #{track.trackId}</span>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">${track.price}</span>
-              <span className="text-sm text-gray-500">Track {track.id}</span>
-            </div>
+          <CardContent className="space-y-3">
+            {!isCorrectNetwork && (
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 p-2 rounded">
+                <AlertTriangle className="h-4 w-4" />
+                Switch to Gnosis Chain
+              </div>
+            )}
 
-            {track.stock > 0 ? (
+            {/* BREAD Payment Option */}
+            {track.stock > 0 && (
               <div className="space-y-2">
-                <Button onClick={() => onPurchase?.(track.id, "crypto")} className="w-full" variant="default">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Buy with Crypto
-                </Button>
-
                 <CitizenWalletPayment
-                  amount={track.price}
-                  productName={track.name}
-                  onSuccess={() => onPurchase?.(track.id, "bread")}
+                  amount={handleBreadPayment(track)}
+                  productName={track.product.name}
+                  onSuccess={() => {
+                    // Handle successful BREAD payment
+                    console.log(`BREAD payment successful for ${track.product.name}`)
+                  }}
                   className="w-full"
                 />
               </div>
-            ) : (
-              <Button disabled className="w-full">
-                Out of Stock
-              </Button>
             )}
+
+            {/* Regular Token Payment Options */}
+            {acceptedTokens.map((token) => (
+              <div key={token.address} className="flex items-center justify-between">
+                <div className="text-sm">
+                  <p className="font-medium">{formatPrice(track.price, token)}</p>
+                  {isConnected && (
+                    <p className="text-gray-500">
+                      Balance: {formatUnits(token.balance, token.decimals)} {token.symbol}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => onPurchase(track, token)}
+                  disabled={!isConnected || !isCorrectNetwork || track.stock === 0n || token.balance < track.price}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-1" />
+                  Buy
+                </Button>
+              </div>
+            ))}
           </CardContent>
         </Card>
       ))}

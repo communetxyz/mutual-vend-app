@@ -1,15 +1,16 @@
 "use client"
-import { useAccount, useConnect, useDisconnect } from "wagmi"
+
+import { useConnect, useAccount, useDisconnect } from "wagmi"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Wallet, LogOut } from "lucide-react"
 
 export function WalletConnect() {
-  const { address, isConnected } = useAccount()
-  const { connect, connectors, isPending } = useConnect()
+  const { connectors, connect, status, error } = useConnect()
+  const { isConnected, address } = useAccount()
   const { disconnect } = useDisconnect()
 
-  if (isConnected && address) {
+  if (isConnected) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -17,9 +18,7 @@ export function WalletConnect() {
             <Wallet className="h-5 w-5" />
             Wallet Connected
           </CardTitle>
-          <CardDescription>
-            {address.slice(0, 6)}...{address.slice(-4)}
-          </CardDescription>
+          <CardDescription>{address && `${address.slice(0, 6)}...${address.slice(-4)}`}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={() => disconnect()} variant="outline" className="w-full">
@@ -42,10 +41,16 @@ export function WalletConnect() {
       </CardHeader>
       <CardContent className="space-y-2">
         {connectors.map((connector) => (
-          <Button key={connector.uid} onClick={() => connect({ connector })} disabled={isPending} className="w-full">
-            {isPending ? "Connecting..." : `Connect ${connector.name}`}
+          <Button
+            key={connector.uid}
+            onClick={() => connect({ connector })}
+            disabled={status === "pending"}
+            className="w-full"
+          >
+            {connector.name}
           </Button>
         ))}
+        {error && <p className="text-sm text-red-500">{error.message}</p>}
       </CardContent>
     </Card>
   )

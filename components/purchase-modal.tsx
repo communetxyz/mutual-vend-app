@@ -1,20 +1,12 @@
 "use client"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, CheckCircle, AlertCircle, Coins, CreditCard, Package } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { CheckCircle, Clock, AlertCircle, ExternalLink, Package } from "lucide-react"
 import { formatUnits } from "viem"
-import type { Track, TokenInfo } from "@/lib/types/vending-machine"
-
-interface PurchaseState {
-  selectedTrack: Track | null
-  selectedToken: TokenInfo | null
-  isApproving: boolean
-  isPurchasing: boolean
-  txHash: string | null
-  error: string | null
-}
+import type { PurchaseState } from "@/lib/types/vending-machine"
 
 interface PurchaseModalProps {
   isOpen: boolean
@@ -25,7 +17,6 @@ interface PurchaseModalProps {
   onPurchase: () => void
   isConfirming: boolean
   isConfirmed: boolean
-  isWritePending: boolean
 }
 
 export function PurchaseModal({
@@ -37,37 +28,38 @@ export function PurchaseModal({
   onPurchase,
   isConfirming,
   isConfirmed,
-  isWritePending,
 }: PurchaseModalProps) {
-  const { selectedTrack, selectedToken, isApproving, isPurchasing, error } = purchaseState
+  const { selectedTrack, selectedToken, isApproving, isPurchasing, txHash, error } = purchaseState
 
   if (!selectedTrack || !selectedToken) return null
 
-  const formattedPrice = formatUnits(selectedTrack.price, selectedToken.decimals)
+  const formatPrice = (price: bigint, decimals: number) => {
+    return formatUnits(price, decimals)
+  }
 
   const getStepStatus = (step: "approve" | "purchase") => {
     if (step === "approve") {
       if (hasAllowance) return "completed"
-      if (isApproving || (isConfirming && !isPurchasing)) return "loading"
+      if (isApproving) return "loading"
       return "pending"
     } else {
       if (isConfirmed && isPurchasing) return "completed"
-      if (isPurchasing || (isConfirming && isPurchasing)) return "loading"
+      if (isPurchasing) return "loading"
       if (!hasAllowance) return "disabled"
       return "pending"
     }
   }
 
-  const StepIndicator = ({ status }: { status: "pending" | "loading" | "completed" | "disabled" }) => {
+  const StepIcon = ({ status }: { status: string }) => {
     switch (status) {
-      case "loading":
-        return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
       case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-green-500" />
+      case "loading":
+        return <Clock className="h-5 w-5 text-blue-500 animate-pulse" />
       case "disabled":
-        return <div className="h-4 w-4 rounded-full bg-gray-300" />
+        return <AlertCircle className="h-5 w-5 text-gray-400" />
       default:
-        return <div className="h-4 w-4 rounded-full border-2 border-blue-500" />
+        return <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
     }
   }
 
@@ -76,107 +68,109 @@ export function PurchaseModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
+            <Package className="h-5 w-5" />
             Purchase {selectedTrack.product.name}
           </DialogTitle>
+          <DialogDescription>Complete the transaction to purchase your item</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Product Info */}
-          <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-              <Package className="h-8 w-8 text-gray-500" />
-            </div>
-            <div className="flex-1">
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div>
               <h3 className="font-medium">{selectedTrack.product.name}</h3>
               <p className="text-sm text-gray-500">Track #{selectedTrack.trackId}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="text-xs">
-                  {formattedPrice} {selectedToken.symbol}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {Number(selectedTrack.stock)} in stock
-                </Badge>
-              </div>
+            </div>
+            <div className="text-right">
+              <p className="font-medium">
+                {formatPrice(selectedTrack.price, selectedToken.decimals)} {selectedToken.symbol}
+              </p>
+              <Badge variant="secondary" className="text-xs">
+                {selectedTrack.stock.toString()} in stock
+              </Badge>
             </div>
           </div>
 
-          {/* Error Display */}
-          {error && (
-            <Alert className="border-red-200 dark:border-red-800">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Purchase Steps */}
-          <div className="space-y-4">
-            <h4 className="font-medium text-sm">Purchase Steps</h4>
-
-            {/* Step 1: Approve */}
+          {/* Transaction Steps */}
+          <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <StepIndicator status={getStepStatus("approve")} />
+              <StepIcon status={getStepStatus("approve")} />
               <div className="flex-1">
-                <p className="text-sm font-medium">1. Approve {selectedToken.symbol} spending</p>
-                <p className="text-xs text-gray-500">Allow the vending machine to spend your {selectedToken.symbol}</p>
+                <p className="font-medium">Approve Token Spending</p>
+                <p className="text-sm text-gray-500">Allow the vending machine to spend your {selectedToken.symbol}</p>
               </div>
               {!hasAllowance && (
-                <Button size="sm" onClick={onApprove} disabled={isApproving || isWritePending} className="ml-auto">
-                  {isApproving || (isConfirming && !isPurchasing) ? (
-                    <>
-                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      Approving...
-                    </>
-                  ) : (
-                    "Approve"
-                  )}
+                <Button onClick={onApprove} disabled={isApproving} size="sm">
+                  {isApproving ? "Approving..." : "Approve"}
                 </Button>
               )}
             </div>
 
-            {/* Step 2: Purchase */}
+            <Separator />
+
             <div className="flex items-center gap-3">
-              <StepIndicator status={getStepStatus("purchase")} />
+              <StepIcon status={getStepStatus("purchase")} />
               <div className="flex-1">
-                <p className="text-sm font-medium">2. Complete purchase</p>
-                <p className="text-xs text-gray-500">Execute the purchase transaction</p>
+                <p className="font-medium">Complete Purchase</p>
+                <p className="text-sm text-gray-500">Execute the purchase transaction</p>
               </div>
               {hasAllowance && (
-                <Button
-                  size="sm"
-                  onClick={onPurchase}
-                  disabled={isPurchasing || isWritePending || !hasAllowance}
-                  className="ml-auto"
-                >
-                  {isPurchasing || (isConfirming && isPurchasing) ? (
-                    <>
-                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      Purchasing...
-                    </>
-                  ) : (
-                    <>
-                      <Coins className="h-3 w-3 mr-1" />
-                      Purchase
-                    </>
-                  )}
+                <Button onClick={onPurchase} disabled={isPurchasing || !hasAllowance} size="sm">
+                  {isPurchasing ? "Purchasing..." : "Purchase"}
                 </Button>
               )}
             </div>
           </div>
+
+          {/* Transaction Hash */}
+          {txHash && (
+            <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-600">
+                  {isConfirming ? "Confirming Transaction..." : "Transaction Submitted"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <code className="text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded">
+                  {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(`https://gnosisscan.io/tx/${txHash}`, "_blank")}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Success Message */}
           {isConfirmed && isPurchasing && (
-            <Alert className="border-green-200 dark:border-green-800">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription className="text-green-700 dark:text-green-300">
-                Purchase successful! Your item will be dispensed shortly.
-              </AlertDescription>
-            </Alert>
+            <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-600">Purchase Successful!</span>
+              </div>
+              <p className="text-sm text-green-600 mt-1">Your item will be dispensed shortly.</p>
+            </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <span className="text-sm font-medium text-red-600">Transaction Failed</span>
+              </div>
+              <p className="text-sm text-red-600 mt-1">{error}</p>
+            </div>
+          )}
+
+          {/* Close Button */}
+          <div className="flex justify-end pt-4">
+            <Button variant="outline" onClick={onClose}>
               {isConfirmed && isPurchasing ? "Close" : "Cancel"}
             </Button>
           </div>

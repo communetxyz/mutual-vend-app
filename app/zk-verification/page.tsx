@@ -1,418 +1,221 @@
-import { SiteNavigation } from "@/components/site-navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import {
-  Shield,
-  Eye,
-  Lock,
-  CheckCircle,
-  Zap,
-  ArrowRight,
-  AlertTriangle,
-  Key,
-  FileCheck,
-  Globe,
-  Cpu,
-} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Camera, Shield, Vote } from "lucide-react"
+import { SiteNavigation } from "@/components/site-navigation"
 
 export default function ZKVerificationPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <SiteNavigation />
 
-      <main className="flex-1 container px-4 md:px-6 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tighter mb-4 flex items-center justify-center gap-3">
-            <Shield className="h-10 w-10 text-green-600" />
-            ZK Verification System
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            Privacy-preserving age and location verification using zero-knowledge proofs
-          </p>
-        </div>
-
-        {/* Key Benefits */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-green-200 dark:border-green-800">
-            <CardContent className="p-6 text-center">
-              <Eye className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Complete Privacy</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Verify eligibility without revealing personal information
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6 text-center">
+            <div className="space-y-4">
+              <div className="inline-block rounded-lg bg-green-100 px-3 py-1 text-sm text-green-800 dark:bg-green-900 dark:text-green-200">
+                Coming Soon
+              </div>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                ZK-Verified Camera System
+              </h1>
+              <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                Trustless inventory verification using Roc cameras with zero-knowledge proofs for transparent,
+                privacy-preserving machine monitoring.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </section>
 
-          <Card className="border-blue-200 dark:border-blue-800">
-            <CardContent className="p-6 text-center">
-              <CheckCircle className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Regulatory Compliance</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Meet age restrictions and location requirements
-              </p>
-            </CardContent>
-          </Card>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-12">
+              <Card>
+                <CardHeader>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                    <Camera className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-center">Roc Camera Integration</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Hardware-verified images from Roc cameras mounted inside each machine provide cryptographic proof of
+                    contents and condition.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-purple-200 dark:border-purple-800">
-            <CardContent className="p-6 text-center">
-              <Zap className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Instant Verification</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Fast, automated verification process</p>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                    <Shield className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-center">Zero-Knowledge Proofs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Verify inventory accuracy without revealing sensitive location or operational data through ZK
+                    circuits.
+                  </p>
+                </CardContent>
+              </Card>
 
-        {/* How It Works */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Cpu className="h-5 w-5" />
-              How ZK Verification Works
-            </CardTitle>
-            <CardDescription>Privacy-first verification using cryptographic proofs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Zero-Knowledge Verification Process</h3>
-                <div className="grid md:grid-cols-2 gap-6 text-sm">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-blue-600">1</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">User Purchase Request</div>
-                        <div className="text-gray-600 dark:text-gray-400">Customer initiates purchase</div>
-                      </div>
+              <Card>
+                <CardHeader>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                    <Vote className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-center">Community Slashing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Token holders vote on verified images to slash dishonest stockers and maintain network integrity.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">How ZK Verification Works</h2>
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      1
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-blue-600">2</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Generate ZK Proof</div>
-                        <div className="text-gray-600 dark:text-gray-400">Create cryptographic proof</div>
-                      </div>
+                    <div>
+                      <h3 className="font-semibold">Capture & Attest</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Anyone can trigger the internal Roc camera to take cryptographically signed photos, especially
+                        during mishaps
+                      </p>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-green-600">3</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Verify Eligibility</div>
-                        <div className="text-gray-600 dark:text-gray-400">Confirm age/location compliance</div>
-                      </div>
+                  <div className="flex gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      2
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-green-600">4</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Transaction Approved</div>
-                        <div className="text-gray-600 dark:text-gray-400">Product dispensed securely</div>
-                      </div>
+                    <div>
+                      <h3 className="font-semibold">Generate Proof</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        ZK circuit creates proof of inventory state without revealing raw image data
+                      </p>
                     </div>
                   </div>
+                  <div className="flex gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      3
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Community Review</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Verified images presented to token holders for accuracy voting
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      4
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Automated Enforcement</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Smart contracts execute slashing decisions based on community consensus
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="w-full max-w-md rounded-lg border bg-card p-8 text-center dark:bg-gray-900">
+                  <h3 className="text-xl font-bold mb-4">Privacy-First Verification</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    Maintain transparency while protecting sensitive operational data through advanced cryptography.
+                  </p>
+                  <Button disabled>ZK System Coming Soon</Button>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        {/* Verification Types */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Key className="h-5 w-5" />
-                Age Verification
-              </CardTitle>
-              <CardDescription>Prove you're over 18 without revealing your exact age</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">No birth date storage</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Government ID integration</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">One-time verification</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Cryptographic proof</span>
-                </div>
-              </div>
-              <Separator />
-              <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                <div className="text-sm font-medium text-blue-800 dark:text-blue-200">Required for:</div>
-                <div className="text-sm text-blue-700 dark:text-blue-300">
-                  Alcohol, tobacco, and age-restricted products
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Location Verification
-              </CardTitle>
-              <CardDescription>Confirm your location without GPS tracking</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">No GPS data collection</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">IP-based verification</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Jurisdiction compliance</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Real-time validation</span>
-                </div>
-              </div>
-              <Separator />
-              <div className="p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                <div className="text-sm font-medium text-purple-800 dark:text-purple-200">Required for:</div>
-                <div className="text-sm text-purple-700 dark:text-purple-300">
-                  Region-specific products and legal compliance
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Technical Implementation */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Technical Implementation
-            </CardTitle>
-            <CardDescription>Built on proven zero-knowledge cryptography</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h4 className="font-semibold">ZK-SNARK Protocol</h4>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>Succinct non-interactive proofs</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>Zero knowledge property</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>Computational soundness</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>Perfect completeness</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-semibold">Security Features</h4>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Tamper-proof verification</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Replay attack prevention</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Cryptographic integrity</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Audit trail generation</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Privacy Guarantees */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Privacy Guarantees
-            </CardTitle>
-            <CardDescription>What we know vs. what we don't know about you</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle className="h-5 w-5" />
-                  <h4 className="font-semibold">What We Verify</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                    <div className="font-medium">Age Eligibility</div>
-                    <div className="text-gray-600 dark:text-gray-400">You are over the required age</div>
-                  </div>
-                  <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                    <div className="font-medium">Location Compliance</div>
-                    <div className="text-gray-600 dark:text-gray-400">You are in an allowed jurisdiction</div>
-                  </div>
-                  <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                    <div className="font-medium">Identity Authenticity</div>
-                    <div className="text-gray-600 dark:text-gray-400">Your credentials are valid</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-red-600">
-                  <AlertTriangle className="h-5 w-5" />
-                  <h4 className="font-semibold">What We Don't Know</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
-                    <div className="font-medium">Your Exact Age</div>
-                    <div className="text-gray-600 dark:text-gray-400">Birth date remains private</div>
-                  </div>
-                  <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
-                    <div className="font-medium">Your Precise Location</div>
-                    <div className="text-gray-600 dark:text-gray-400">GPS coordinates not collected</div>
-                  </div>
-                  <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
-                    <div className="font-medium">Your Personal Details</div>
-                    <div className="text-gray-600 dark:text-gray-400">Name, address, ID numbers</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Compliance & Regulations */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileCheck className="h-5 w-5" />
-              Regulatory Compliance
-            </CardTitle>
-            <CardDescription>Meeting legal requirements while preserving privacy</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center space-y-3">
-                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <Globe className="h-8 w-8 text-blue-600" />
-                </div>
-                <h4 className="font-semibold">GDPR Compliant</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">European data protection standards</p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
-                  <Shield className="h-8 w-8 text-green-600" />
-                </div>
-                <h4 className="font-semibold">CCPA Aligned</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">California privacy regulations</p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto">
-                  <FileCheck className="h-8 w-8 text-purple-600" />
-                </div>
-                <h4 className="font-semibold">Industry Standards</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Age verification best practices</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Getting Started */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ArrowRight className="h-5 w-5" />
-              Getting Verified
-            </CardTitle>
-            <CardDescription>Simple one-time setup for privacy-preserving verification</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-4 gap-6 mb-8">
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-blue-600">1</span>
-                </div>
-                <h4 className="font-semibold">Connect Wallet</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Link your crypto wallet to the verification system
-                </p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-blue-600">2</span>
-                </div>
-                <h4 className="font-semibold">Provide Credentials</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Submit government ID for one-time verification
-                </p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-blue-600">3</span>
-                </div>
-                <h4 className="font-semibold">Generate Proof</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">System creates your privacy-preserving proof</p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-blue-600">4</span>
-                </div>
-                <h4 className="font-semibold">Start Shopping</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Access age-restricted products with verified status
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Community-Initiated Verification</h2>
+                <p className="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
+                  Any community member can request verification photos when they suspect issues or encounter machine
+                  problems.
                 </p>
               </div>
             </div>
-
-            <div className="text-center">
-              <Button size="lg" className="px-8">
-                Begin Verification
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Verification takes less than 2 minutes</p>
+            <div className="mx-auto grid max-w-3xl items-start gap-8 sm:grid-cols-2 md:gap-12 mt-12">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">Mishap Response</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  When a machine malfunctions or dispenses incorrectly, users can immediately trigger a verification
+                  photo to document the issue.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">Open Access</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  No special permissions needed - any token holder can initiate the camera system for transparency and
+                  accountability.
+                </p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
+
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Technical Benefits</h2>
+                <p className="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
+                  Combining hardware attestation with zero-knowledge cryptography creates unprecedented trust in
+                  decentralized systems.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-3xl items-start gap-8 sm:grid-cols-2 md:gap-12 mt-12">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">Trustless Operation</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  No need to trust individual operators when cryptographic proofs guarantee honest reporting.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">Privacy Preservation</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Verify compliance without exposing sensitive location or business intelligence data.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">Automated Governance</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Smart contracts automatically enforce community decisions without human intervention.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold">Scalable Verification</h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  ZK proofs enable efficient verification across thousands of machines simultaneously.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
+      </footer>
     </div>
   )
 }

@@ -1,523 +1,139 @@
-import { SiteNavigation } from "@/components/site-navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import {
-  Droplets,
-  Users,
-  TrendingUp,
-  Shield,
-  ArrowRight,
-  CheckCircle,
-  AlertTriangle,
-  DollarSign,
-  PieChart,
-  Calculator,
-} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Droplets, TrendingUp, Shuffle } from "lucide-react"
+import { SiteNavigation } from "@/components/site-navigation"
 
 export default function LiquidOwnershipPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <SiteNavigation />
 
-      <main className="flex-1 container px-4 md:px-6 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tighter mb-4 flex items-center justify-center gap-3">
-            <Droplets className="h-10 w-10 text-blue-600" />
-            Liquid Ownership Model
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            Democratizing vending machine ownership through tokenization and shared revenue streams
-          </p>
-        </div>
-
-        {/* Key Metrics */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-600">$50</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Min Investment</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-blue-600">8-15%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Expected APY</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-600">100+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Owners per Machine</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Droplets className="h-8 w-8 text-cyan-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-cyan-600">24/7</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Liquidity</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* How It Works */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Droplets className="h-5 w-5" />
-              How Liquid Ownership Works
-            </CardTitle>
-            <CardDescription>Transform vending machine ownership into tradeable, liquid assets</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="text-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4">Ownership Flow Process</h3>
-                <div className="grid md:grid-cols-2 gap-6 text-sm">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-blue-600">1</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Initial Investment</div>
-                        <div className="text-gray-600 dark:text-gray-400">Purchase ownership tokens</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-blue-600">2</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Revenue Generation</div>
-                        <div className="text-gray-600 dark:text-gray-400">Machine generates profits</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-green-600">3</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Profit Distribution</div>
-                        <div className="text-gray-600 dark:text-gray-400">Automatic payouts to holders</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-green-600">4</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Liquid Trading</div>
-                        <div className="text-gray-600 dark:text-gray-400">Trade tokens on secondary market</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6 text-center">
+            <div className="space-y-4">
+              <div className="inline-block rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Coming Soon
               </div>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                Liquid Ownership Model
+              </h1>
+              <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                Democratize vending machine ownership through fractionalized, tradeable shares that make manufacturing
+                accessible to everyone.
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        {/* Investment Tiers */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          <Card className="border-green-200 dark:border-green-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Badge variant="secondary">Starter</Badge>
-              </CardTitle>
-              <CardDescription>Perfect for first-time investors</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">$50 - $500</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Investment Range</div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Fractional ownership</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Daily revenue sharing</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Instant liquidity</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Basic governance rights</span>
-                </div>
-              </div>
-              <Button className="w-full bg-transparent" variant="outline">
-                Start Investing
-              </Button>
-            </CardContent>
-          </Card>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-12">
+              <Card>
+                <CardHeader>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                    <Droplets className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-center">Fractionalized Ownership</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Own a piece of a vending machine without the full upfront cost. Buy and sell ownership shares on a
+                    liquid marketplace.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-blue-200 dark:border-blue-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Badge>Growth</Badge>
-              </CardTitle>
-              <CardDescription>For serious investors</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">$500 - $2,500</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Investment Range</div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">All Starter benefits</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Enhanced governance rights</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Priority in new machines</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Detailed analytics access</span>
-                </div>
-              </div>
-              <Button className="w-full">Invest Now</Button>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                    <TrendingUp className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-center">Dynamic Pricing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Share prices fluctuate based on machine performance, location desirability, and market demand.
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-purple-200 dark:border-purple-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Badge variant="destructive">Premium</Badge>
-              </CardTitle>
-              <CardDescription>Maximum ownership benefits</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">$2,500+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Investment Range</div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">All Growth benefits</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Proposal submission rights</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Direct operator contact</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Exclusive investment opportunities</span>
-                </div>
-              </div>
-              <Button className="w-full" variant="destructive">
-                Premium Access
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader>
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                    <Shuffle className="h-8 w-8" />
+                  </div>
+                  <CardTitle className="text-center">Instant Liquidity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                    Exit your investment anytime by selling shares to other community members through automated market
+                    makers.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
 
-        {/* Revenue Distribution */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Revenue Distribution Model
-            </CardTitle>
-            <CardDescription>How machine profits are allocated among stakeholders</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid lg:grid-cols-2 gap-8">
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
               <div className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                      <span className="font-medium">Token Holders (60%)</span>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">How It Works</h2>
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      1
                     </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Direct profit sharing</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
-                      <span className="font-medium">Operations (25%)</span>
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Maintenance & restocking</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
-                      <span className="font-medium">Development (10%)</span>
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Platform improvements</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
-                      <span className="font-medium">Reserve Fund (5%)</span>
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Emergency & expansion</span>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-semibold">Revenue Allocation Benefits</h4>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
                     <div>
-                      <div className="font-medium">Transparent Distribution</div>
-                      <div className="text-gray-600 dark:text-gray-400">All allocations are publicly verifiable</div>
+                      <h3 className="font-semibold">Pool Resources</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Community members contribute funds to a machine manufacturing pool
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                  <div className="flex gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      2
+                    </div>
                     <div>
-                      <div className="font-medium">Automatic Payouts</div>
-                      <div className="text-gray-600 dark:text-gray-400">Smart contracts handle all distributions</div>
+                      <h3 className="font-semibold">Mint Ownership Tokens</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Receive tradeable tokens representing your share of the machine
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                  <div className="flex gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                      3
+                    </div>
                     <div>
-                      <div className="font-medium">Sustainable Growth</div>
-                      <div className="text-gray-600 dark:text-gray-400">Funds reinvested for long-term success</div>
+                      <h3 className="font-semibold">Earn & Trade</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Collect revenue proportional to your ownership and trade shares freely
+                      </p>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="w-full max-w-md rounded-lg border bg-card p-8 text-center dark:bg-gray-900">
+                  <h3 className="text-xl font-bold mb-4">Coming Soon</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    The liquid ownership marketplace will launch with our first community-funded machines.
+                  </p>
+                  <Button disabled>Join Beta Waitlist</Button>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Benefits & Features */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Investment Benefits
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Passive Income</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Earn daily revenue from machine operations without active management
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Instant Liquidity</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Trade ownership tokens 24/7 on decentralized exchanges
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Fractional Ownership</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Own a piece of expensive assets with minimal capital
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Transparent Operations</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Real-time visibility into machine performance and financials
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Risk Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Market Risk</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Token values may fluctuate based on machine performance and market conditions
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Operational Risk</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Machine downtime or location changes can affect revenue
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-green-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Insurance Coverage</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Comprehensive insurance protects against theft and damage
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-green-500 mt-0.5" />
-                  <div>
-                    <div className="font-medium">Diversification</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Spread risk across multiple machines and locations
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ROI Calculator */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              Investment Calculator
-            </CardTitle>
-            <CardDescription>Estimate your potential returns based on different investment amounts</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Investment Amount</label>
-                  <div className="text-2xl font-bold text-blue-600">$1,000</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Expected APY</label>
-                  <div className="text-lg font-semibold">12%</div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Monthly Revenue</label>
-                  <div className="text-2xl font-bold text-green-600">$10.00</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Annual Revenue</label>
-                  <div className="text-lg font-semibold text-green-600">$120.00</div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">5-Year Value</label>
-                  <div className="text-2xl font-bold text-purple-600">$1,762</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Total Return</label>
-                  <div className="text-lg font-semibold text-purple-600">76.2%</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Getting Started */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ArrowRight className="h-5 w-5" />
-              Getting Started
-            </CardTitle>
-            <CardDescription>Begin your liquid ownership journey in three simple steps</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-blue-600">1</span>
-                </div>
-                <h4 className="font-semibold">Connect Wallet</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Connect your crypto wallet to access the investment platform
-                </p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-blue-600">2</span>
-                </div>
-                <h4 className="font-semibold">Choose Investment</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Select machines and investment amounts that match your goals
-                </p>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-blue-600">3</span>
-                </div>
-                <h4 className="font-semibold">Earn Returns</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Start receiving daily revenue shares and track your portfolio
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center mt-8">
-              <Button size="lg" className="px-8">
-                Start Investing Today
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
+      </footer>
     </div>
   )
 }

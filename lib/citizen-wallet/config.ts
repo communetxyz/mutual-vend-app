@@ -1,6 +1,4 @@
-import { CommunityConfig } from "@citizenwallet/sdk"
-
-export const BREAD_CONFIG = {
+export const BREAD_COMMUNITY_CONFIG = {
   alias: "bread",
   chain_id: 100,
   json: {
@@ -112,5 +110,9 @@ export const BREAD_CONFIG = {
   active: true,
 }
 
-export const BREAD_TOKEN_ADDRESS = "0xa555d5344f6fb6c65da19e403cb4c1ec4a1a5ee3"
-export const BREAD_COMMUNITY_CONFIG = new CommunityConfig(BREAD_CONFIG)
+export const BREAD_TOKEN = {
+  address: "0xa555d5344f6fb6c65da19e403cb4c1ec4a1a5ee3",
+  symbol: "BREAD",
+  decimals: 18,
+  name: "Breadchain Community Token",
+}

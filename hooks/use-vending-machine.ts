@@ -1,142 +1,214 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useReadContract, useChainId } from "wagmi"
-import { gnosis } from "wagmi/chains"
+import { useAccount, useReadContract, useReadContracts } from "wagmi"
 import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
+import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
 import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
-import { BREAD_TOKEN } from "@/lib/contracts"
-import type { Track, TokenInfo, MachineInfo } from "@/lib/types/vending-machine"
+import { BREAD_TOKEN } from "@/lib/citizen-wallet/config"
+import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 export function useVendingMachine() {
-  const chainId = useChainId()
+  const { address, isConnected } = useAccount()
   const [tracks, setTracks] = useState<Track[]>([])
   const [acceptedTokens, setAcceptedTokens] = useState<TokenInfo[]>([])
-  const [machineInfo, setMachineInfo] = useState<MachineInfo | null>(null)
+  const [machineInfo, setMachineInfo] = useState({
+    numTracks: 0,
+    maxStockPerTrack: 0n,
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Get all tracks
-  const { data: tracksData, refetch: refetchTracksData } = useReadContract({
+  // Get machine configuration
+  const { data: numTracks } = useReadContract({
+    address: VENDING_MACHINE_ADDRESS,
+    abi: VENDING_MACHINE_ABI,
+    functionName: "NUM_TRACKS",
+  })
+
+  const { data: maxStockPerTrack } = useReadContract({
+    address: VENDING_MACHINE_ADDRESS,
+    abi: VENDING_MACHINE_ABI,
+    functionName: "MAX_STOCK_PER_TRACK",
+  })
+
+  // Get all tracks - this is the main inventory getter
+  const {
+    data: tracksData,
+    refetch: refetchTracks,
+    error: tracksError,
+    isLoading: tracksLoading,
+  } = useReadContract({
     address: VENDING_MACHINE_ADDRESS,
     abi: VENDING_MACHINE_ABI,
     functionName: "getAllTracks",
-    chainId: gnosis.id,
-    query: {
-      enabled: chainId === gnosis.id,
-    },
   })
 
   // Get accepted tokens
-  const { data: acceptedTokensData } = useReadContract({
+  const { data: acceptedTokenAddresses, error: tokensError } = useReadContract({
     address: VENDING_MACHINE_ADDRESS,
     abi: VENDING_MACHINE_ABI,
     functionName: "getAcceptedTokens",
-    chainId: gnosis.id,
-    query: {
-      enabled: chainId === gnosis.id,
-    },
   })
 
-  // Get vote token address
+  // Get vote token address for rewards info
   const { data: voteTokenAddress } = useReadContract({
     address: VENDING_MACHINE_ADDRESS,
     abi: VENDING_MACHINE_ABI,
     functionName: "voteToken",
-    chainId: gnosis.id,
-    query: {
-      enabled: chainId === gnosis.id,
-    },
   })
+
+  // Get token info for accepted tokens (including BREAD)
+  const tokenContracts =
+    acceptedTokenAddresses?.flatMap((tokenAddress) => [
+      {
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "name",
+      },
+      {
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "symbol",
+      },
+      {
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "decimals",
+      },
+      ...(isConnected && address
+        ? [
+            {
+              address: tokenAddress,
+              abi: ERC20_ABI,
+              functionName: "balanceOf",
+              args: [address],
+            },
+          ]
+        : []),
+    ]) || []
+
+  const { data: tokenData, error: tokenDataError } = useReadContracts({
+    contracts: tokenContracts,
+  })
+
+  // Update machine info
+  useEffect(() => {
+    if (numTracks !== undefined && maxStockPerTrack !== undefined) {
+      setMachineInfo({
+        numTracks: Number(numTracks),
+        maxStockPerTrack,
+      })
+    }
+  }, [numTracks, maxStockPerTrack])
 
   // Process tracks data
   useEffect(() => {
     if (tracksData) {
       try {
-        const processedTracks = (tracksData as any[]).map((track) => ({
-          trackId: Number(track.trackId),
-          product: {
-            name: track.product.name,
-            imageURI: track.product.imageURI,
-          },
-          price: track.price,
-          stock: track.stock,
-        }))
-        setTracks(processedTracks)
+        const formattedTracks = tracksData
+          .map((track) => ({
+            trackId: Number(track.trackId),
+            product: {
+              name: track.product.name || `Product ${track.trackId}`,
+              imageURI: track.product.imageURI || "",
+            },
+            price: track.price,
+            stock: track.stock,
+          }))
+          .filter(
+            (track) =>
+              // Only show tracks that have been configured (have a name or price > 0)
+              track.product.name.trim() !== "" || track.price > 0n,
+          )
+          .sort((a, b) => a.trackId - b.trackId) // Sort by track ID
+
+        setTracks(formattedTracks)
         setError(null)
       } catch (err) {
         console.error("Error processing tracks data:", err)
-        setError("Failed to process tracks data")
+        setError("Failed to process inventory data")
       }
     }
   }, [tracksData])
 
-  // Process accepted tokens data
+  // Process token data (including BREAD token)
   useEffect(() => {
-    const processTokens = async () => {
-      if (acceptedTokensData && chainId === gnosis.id) {
-        try {
-          const tokenPromises = (acceptedTokensData as string[]).map(async (tokenAddress) => {
-            // For now, we'll use mock data for token info
-            // In a real implementation, you'd fetch this from the token contracts
-            const mockTokens: { [key: string]: Omit<TokenInfo, "balance"> } = {
-              "0x4ECaBa5870353805a9F068101A40E0f32ed605C6": {
-                address: "0x4ECaBa5870353805a9F068101A40E0f32ed605C6",
-                symbol: "USDT",
-                decimals: 6,
-              },
-              "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83": {
-                address: "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83",
-                symbol: "USDC",
-                decimals: 6,
-              },
-              [BREAD_TOKEN.address]: {
-                address: BREAD_TOKEN.address,
-                symbol: BREAD_TOKEN.symbol,
-                decimals: BREAD_TOKEN.decimals,
-              },
-            }
+    if (acceptedTokenAddresses && tokenData) {
+      try {
+        const tokens: TokenInfo[] = []
 
-            const tokenInfo = mockTokens[tokenAddress]
-            if (tokenInfo) {
-              return {
-                ...tokenInfo,
-                balance: 0n, // Will be updated when user connects wallet
-              }
-            }
+        acceptedTokenAddresses.forEach((tokenAddress, index) => {
+          const baseIndex = index * (isConnected && address ? 4 : 3)
+          const nameResult = tokenData[baseIndex]
+          const symbolResult = tokenData[baseIndex + 1]
+          const decimalsResult = tokenData[baseIndex + 2]
+          const balanceResult = isConnected && address ? tokenData[baseIndex + 3] : null
 
-            return {
+          if (
+            nameResult?.status === "success" &&
+            symbolResult?.status === "success" &&
+            decimalsResult?.status === "success"
+          ) {
+            tokens.push({
               address: tokenAddress,
-              symbol: "UNKNOWN",
-              decimals: 18,
-              balance: 0n,
-            }
-          })
+              name: nameResult.result as string,
+              symbol: symbolResult.result as string,
+              decimals: decimalsResult.result as number,
+              balance: balanceResult?.status === "success" ? (balanceResult.result as bigint) : 0n,
+            })
+          }
+        })
 
-          const tokens = await Promise.all(tokenPromises)
-          setAcceptedTokens(tokens)
-          setError(null)
-        } catch (err) {
-          console.error("Error processing tokens data:", err)
-          setError("Failed to process tokens data")
+        // Add BREAD token if not already included
+        const breadTokenExists = tokens.some(
+          (token) => token.address.toLowerCase() === BREAD_TOKEN.address.toLowerCase(),
+        )
+        if (!breadTokenExists) {
+          tokens.push({
+            address: BREAD_TOKEN.address,
+            name: BREAD_TOKEN.name,
+            symbol: BREAD_TOKEN.symbol,
+            decimals: BREAD_TOKEN.decimals,
+            balance: 0n, // BREAD balance will be managed by Citizen Wallet
+          })
         }
+
+        setAcceptedTokens(tokens)
+        setError(null)
+      } catch (err) {
+        console.error("Error processing token data:", err)
+        setError("Failed to process payment token data")
       }
     }
+  }, [acceptedTokenAddresses, tokenData, isConnected, address])
 
-    processTokens()
-  }, [acceptedTokensData, chainId])
-
-  // Set loading state
+  // Handle loading state
   useEffect(() => {
-    if (chainId === gnosis.id) {
-      setLoading(!tracksData && !acceptedTokensData)
-    } else {
+    if (!tracksLoading) {
       setLoading(false)
     }
-  }, [tracksData, acceptedTokensData, chainId])
+  }, [tracksLoading])
 
-  const refetchTracks = () => {
-    refetchTracksData()
+  // Handle errors
+  useEffect(() => {
+    if (tracksError || tokensError || tokenDataError) {
+      const errorMessage = tracksError?.message || tokensError?.message || tokenDataError?.message || "Unknown error"
+      setError(`Contract error: ${errorMessage}`)
+      setLoading(false)
+    }
+  }, [tracksError, tokensError, tokenDataError])
+
+  // Get individual track inventory (useful for real-time updates)
+  const getTrackInventory = async (trackId: number) => {
+    try {
+      // This would be used for individual track inventory checks
+      // Currently handled by getAllTracks, but available for granular updates
+      return tracks.find((track) => track.trackId === trackId)?.stock || 0n
+    } catch (err) {
+      console.error(`Error getting inventory for track ${trackId}:`, err)
+      return 0n
+    }
   }
 
   return {
@@ -147,5 +219,6 @@ export function useVendingMachine() {
     loading,
     error,
     refetchTracks,
+    getTrackInventory,
   }
 }

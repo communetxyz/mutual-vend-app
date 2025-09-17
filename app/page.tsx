@@ -1,207 +1,256 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Coins, Users, Zap, Shield, Globe, Smartphone } from "lucide-react"
+import { SiteNavigation } from "@/components/site-navigation"
+import { Bot, Coins, Users, Shield, Zap, TrendingUp, ArrowRight, Play, ExternalLink, CheckCircle } from "lucide-react"
 
 export default function HomePage() {
+  const features = [
+    {
+      icon: Bot,
+      title: "Smart Vending Machines",
+      description: "IoT-enabled machines that accept cryptocurrency payments and operate autonomously",
+    },
+    {
+      icon: Users,
+      title: "Community Ownership",
+      description: "Collectively owned infrastructure where profits are shared among token holders",
+    },
+    {
+      icon: Shield,
+      title: "Zero-Knowledge Privacy",
+      description: "Private transactions using ZK-proofs while maintaining transparency",
+    },
+    {
+      icon: Coins,
+      title: "Multi-Token Support",
+      description: "Accept various cryptocurrencies and community tokens like BREAD",
+    },
+    {
+      icon: TrendingUp,
+      title: "Revenue Sharing",
+      description: "Automatic profit distribution to community members and stakeholders",
+    },
+    {
+      icon: Zap,
+      title: "Instant Rewards",
+      description: "Earn governance tokens and voting rights with every purchase",
+    },
+  ]
+
+  const stats = [
+    { label: "Active Machines", value: "12", suffix: "" },
+    { label: "Total Transactions", value: "1.2", suffix: "K" },
+    { label: "Community Members", value: "847", suffix: "" },
+    { label: "Revenue Shared", value: "$5.2", suffix: "K" },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-700 text-white">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative container mx-auto px-4 py-24">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 bg-white/20 text-white border-white/30">Revolutionary Vending Technology</Badge>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              The Future of
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
-                Autonomous Commerce
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-              Decentralized vending machines powered by blockchain technology, enabling transparent ownership, automated
-              revenue sharing, and global accessibility.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      <SiteNavigation />
+
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="container px-4 md:px-6 py-12 md:py-24 lg:py-32">
+          <div className="flex flex-col items-center space-y-8 text-center">
+            <div className="space-y-4">
+              <Badge variant="secondary" className="px-4 py-2">
+                <Zap className="h-4 w-4 mr-2" />
+                Live on Gnosis Chain
+              </Badge>
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
+                The Future of
+                <span className="text-primary"> Vending Machines</span>
+              </h1>
+              <p className="mx-auto max-w-[700px] text-gray-600 dark:text-gray-400 md:text-xl">
+                Community-owned, blockchain-powered vending machines that reward users and share profits. Experience the
+                next generation of autonomous commerce.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" asChild>
                 <Link href="/vending-machine">
-                  Try Demo Machine <ArrowRight className="ml-2 h-5 w-5" />
+                  <Bot className="h-5 w-5 mr-2" />
+                  Try the Demo
                 </Link>
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="border-white text-white hover:bg-white/10 bg-transparent"
-              >
-                <Link href="/how-it-works">Learn How It Works</Link>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/how-it-works">
+                  <Play className="h-5 w-5 mr-2" />
+                  How It Works
+                </Link>
               </Button>
             </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>No registration required • Connect any Web3 wallet</span>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Grid */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Mutual Vend?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our platform combines cutting-edge blockchain technology with practical vending solutions
+        {/* Stats Section */}
+        <section className="border-t bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6 py-12">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold text-primary">
+                    {stat.value}
+                    {stat.suffix}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="container px-4 md:px-6 py-12 md:py-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Revolutionary Features</h2>
+            <p className="mx-auto max-w-[700px] text-gray-600 dark:text-gray-400 md:text-xl mt-4">
+              Built on cutting-edge blockchain technology to create a new model for shared infrastructure
             </p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Coins className="h-6 w-6 text-blue-600" />
-                </div>
-                <CardTitle>Decentralized Ownership</CardTitle>
-                <CardDescription>
-                  Own shares in vending machines through blockchain tokens and earn passive income
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-green-600" />
-                </div>
-                <CardTitle>Community Governance</CardTitle>
-                <CardDescription>
-                  Vote on machine locations, product selection, and operational decisions
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle>Automated Revenue</CardTitle>
-                <CardDescription>Smart contracts automatically distribute profits to token holders</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-red-600" />
-                </div>
-                <CardTitle>Transparent Operations</CardTitle>
-                <CardDescription>
-                  All transactions and operations recorded on-chain for full transparency
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-                  <Globe className="h-6 w-6 text-yellow-600" />
-                </div>
-                <CardTitle>Global Accessibility</CardTitle>
-                <CardDescription>Access your investments and earnings from anywhere in the world</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                  <Smartphone className="h-6 w-6 text-indigo-600" />
-                </div>
-                <CardTitle>Mobile Integration</CardTitle>
-                <CardDescription>Seamless mobile payments and management through our app</CardDescription>
-              </CardHeader>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => {
+              const Icon = feature.icon
+              return (
+                <Card key={index} className="border-2 hover:border-primary/50 transition-colors">
+                  <CardHeader>
+                    <Icon className="h-12 w-12 text-primary mb-4" />
+                    <CardTitle>{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-base">{feature.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How Machine Stocking Works</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our automated stocking process ensures machines are always ready to serve customers
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                  1
+        {/* Demo Section */}
+        <section className="border-t bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6 py-12 md:py-24">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <Badge variant="outline">Live Demo Available</Badge>
+                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Experience It Yourself</h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-lg">
+                    Our live demo on Gnosis Chain lets you experience the full functionality of Mutual Vend machines.
+                    Connect your wallet, make purchases with crypto or BREAD tokens, and earn rewards.
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Inventory Monitoring</h3>
-                <p className="text-gray-600">
-                  Smart sensors continuously monitor product levels and send real-time updates to the network
-                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span>Real blockchain transactions</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span>Multiple payment options</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span>Instant reward distribution</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span>Community governance participation</span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" asChild>
+                    <Link href="/vending-machine">
+                      <Bot className="h-5 w-5 mr-2" />
+                      Launch Demo
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href="/how-it-works">
+                      Learn More
+                      <ArrowRight className="h-5 w-5 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                  2
+              <div className="relative">
+                <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center">
+                  <img
+                    src="/futuristic-crypto-vending-machine.png"
+                    alt="Futuristic Crypto Vending Machine"
+                    className="w-full h-full object-cover rounded-2xl"
+                  />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Automated Ordering</h3>
-                <p className="text-gray-600">
-                  When stock runs low, the system automatically places orders with approved suppliers
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                  3
+                <div className="absolute -bottom-6 -right-6 bg-white dark:bg-gray-900 p-4 rounded-lg shadow-lg border">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium">Live on Gnosis Chain</span>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Delivery Coordination</h3>
-                <p className="text-gray-600">
-                  Local partners receive delivery instructions and restock the machine efficiently
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-orange-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                  4
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Revenue Distribution</h3>
-                <p className="text-gray-600">
-                  Profits are automatically distributed to token holders through smart contracts
-                </p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Join the Revolution?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-blue-100">
-            Start earning passive income through decentralized vending machine ownership today
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
-              <Link href="/funding">
-                Start Investing <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-white text-white hover:bg-white/10 bg-transparent"
-            >
-              <Link href="/fabrication-research">View Research</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+        {/* CTA Section */}
+        <section className="container px-4 md:px-6 py-12 md:py-24">
+          <Card className="border-2 border-primary/20 bg-primary/5">
+            <CardContent className="p-8 md:p-12 text-center">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Join the Revolution</h2>
+                  <p className="mx-auto max-w-[600px] text-gray-600 dark:text-gray-400 text-lg">
+                    Be part of the community that's building the future of autonomous commerce. Support the project,
+                    earn rewards, and help shape the roadmap.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button size="lg" asChild>
+                    <Link href="/funding">
+                      <Coins className="h-5 w-5 mr-2" />
+                      Support the Project
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href="https://discord.gg/mutualvend" target="_blank" rel="noopener noreferrer">
+                      <Users className="h-5 w-5 mr-2" />
+                      Join Community
+                      <ExternalLink className="h-4 w-4 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <Link className="text-xs hover:underline underline-offset-4" href="/how-it-works">
+            How It Works
+          </Link>
+          <Link className="text-xs hover:underline underline-offset-4" href="/funding">
+            Funding
+          </Link>
+          <Link
+            className="text-xs hover:underline underline-offset-4"
+            href="https://github.com/mutualvend"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </Link>
+        </nav>
+      </footer>
     </div>
   )
 }

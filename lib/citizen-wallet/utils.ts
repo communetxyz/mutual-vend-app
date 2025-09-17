@@ -1,4 +1,4 @@
-import { generateReceiveLink } from "@citizenwallet/sdk"
+import { generateReceiveLink, CommunityConfig } from "@citizenwallet/sdk"
 import { BREAD_COMMUNITY_CONFIG } from "./config"
 
 export function generateBreadReceiveLink(
@@ -8,32 +8,27 @@ export function generateBreadReceiveLink(
   description?: string,
   successRedirect?: string,
 ): string {
-  const receiveLink = generateReceiveLink(
-    sigAuthRedirect,
-    BREAD_COMMUNITY_CONFIG,
-    toAccountAddress,
-    amount,
-    description,
-  )
+  const config = new CommunityConfig(BREAD_COMMUNITY_CONFIG)
+
+  let receiveLink = generateReceiveLink(sigAuthRedirect, config, toAccountAddress, amount, description)
 
   if (successRedirect) {
-    return `${receiveLink}&success=${encodeURIComponent(successRedirect)}`
+    receiveLink += `&success=${encodeURIComponent(successRedirect)}`
   }
 
   return receiveLink
 }
 
-export function isCitizenWalletAvailable(): boolean {
-  if (typeof window === "undefined") return false
+export function createPaymentLink(
+  amount: string,
+  description: string,
+  recipientAddress = "0x6b3a1f4277391526413F583c23D5B9EF4d2fE986", // Default to community profile address
+): string {
+  // For now, we'll create a simple payment link
+  // In a real implementation, you'd get the sigAuthRedirect from query parameters
+  const sigAuthRedirect = typeof window !== "undefined" ? window.location.origin : ""
+  const successRedirect =
+    typeof window !== "undefined" ? `${window.location.origin}/vending-machine?payment=success` : ""
 
-  // Check if we're in a Citizen Wallet context
-  const userAgent = window.navigator.userAgent
-  return userAgent.includes("CitizenWallet") || window.location.search.includes("sigAuthRedirect")
-}
-
-export function getSigAuthRedirect(): string | null {
-  if (typeof window === "undefined") return null
-
-  const urlParams = new URLSearchParams(window.location.search)
-  return urlParams.get("sigAuthRedirect")
+  return generateBreadReceiveLink(sigAuthRedirect, recipientAddress, amount, description, successRedirect)
 }

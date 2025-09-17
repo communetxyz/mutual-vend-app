@@ -2,68 +2,81 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, Users, Package, DollarSign } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Package, Coins, Users, TrendingUp } from "lucide-react"
+import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 interface MachineStatsProps {
-  totalTracks?: number
-  activeTracks?: number
-  totalRevenue?: string
-  totalSales?: number
+  tracks: Track[]
+  acceptedTokens: TokenInfo[]
+  voteTokenAddress?: string
 }
 
-export function MachineStats({
-  totalTracks = 0,
-  activeTracks = 0,
-  totalRevenue = "0",
-  totalSales = 0,
-}: MachineStatsProps) {
+export function MachineStats({ tracks, acceptedTokens, voteTokenAddress }: MachineStatsProps) {
+  const totalProducts = tracks.length
+  const inStockProducts = tracks.filter((track) => track.stock > 0).length
+  const totalStock = tracks.reduce((sum, track) => sum + Number(track.stock), 0)
+  const stockPercentage = totalProducts > 0 ? (inStockProducts / totalProducts) * 100 : 0
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Tracks</CardTitle>
+          <CardTitle className="text-sm font-medium">Total Products</CardTitle>
           <Package className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{totalTracks}</div>
-          <p className="text-xs text-muted-foreground">{activeTracks} active</p>
+          <div className="text-2xl font-bold">{totalProducts}</div>
+          <p className="text-xs text-muted-foreground">{inStockProducts} currently in stock</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">${totalRevenue}</div>
-          <p className="text-xs text-muted-foreground">All time</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+          <CardTitle className="text-sm font-medium">Stock Level</CardTitle>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{totalSales}</div>
-          <p className="text-xs text-muted-foreground">Transactions</p>
+          <div className="text-2xl font-bold">{totalStock}</div>
+          <Progress value={stockPercentage} className="mt-2" />
+          <p className="text-xs text-muted-foreground mt-1">{stockPercentage.toFixed(1)}% products available</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Status</CardTitle>
+          <CardTitle className="text-sm font-medium">Payment Methods</CardTitle>
+          <Coins className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{acceptedTokens.length}</div>
+          <div className="flex flex-wrap gap-1 mt-2">
+            {acceptedTokens.slice(0, 3).map((token) => (
+              <Badge key={token.address} variant="secondary" className="text-xs">
+                {token.symbol}
+              </Badge>
+            ))}
+            {acceptedTokens.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{acceptedTokens.length - 3}
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Rewards Token</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            <Badge variant={activeTracks > 0 ? "default" : "secondary"}>
-              {activeTracks > 0 ? "Online" : "Offline"}
-            </Badge>
+            {voteTokenAddress ? <Badge variant="default">Active</Badge> : <Badge variant="secondary">None</Badge>}
           </div>
-          <p className="text-xs text-muted-foreground">Machine status</p>
+          <p className="text-xs text-muted-foreground">
+            {voteTokenAddress ? "Earn rewards on purchases" : "No rewards program"}
+          </p>
         </CardContent>
       </Card>
     </div>

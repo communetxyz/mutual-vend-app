@@ -1,267 +1,242 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { ArrowRight, DollarSign, Users, Target, TrendingUp, Shield, Globe } from "lucide-react"
+import { SiteNavigation } from "@/components/site-navigation"
+import { DollarSign, Target, Users, Calendar, ExternalLink, TrendingUp, Wallet, Gift } from "lucide-react"
 
 export default function FundingPage() {
-  const fundingRounds = [
-    {
-      id: 1,
-      title: "Prototype Development",
-      description: "Build and test the first generation of smart vending machines",
-      target: 50000,
-      raised: 35000,
-      backers: 127,
-      status: "active",
-      rewards: ["Early access to machines", "10% revenue share", "Governance tokens"],
-    },
-    {
-      id: 2,
-      title: "Market Expansion",
-      description: "Deploy machines in 10 major cities across North America",
-      target: 200000,
-      raised: 0,
-      backers: 0,
-      status: "upcoming",
-      rewards: ["Premium locations", "15% revenue share", "Exclusive partnerships"],
-    },
-    {
-      id: 3,
-      title: "Global Rollout",
-      description: "International expansion and franchise opportunities",
-      target: 500000,
-      raised: 0,
-      backers: 0,
-      status: "planned",
-      rewards: ["Global network access", "20% revenue share", "Franchise rights"],
-    },
-  ]
+  const fundingGoal = 50000
+  const currentFunding = 32500
+  const fundingProgress = (currentFunding / fundingGoal) * 100
+  const daysLeft = 45
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-green-600 to-blue-700 text-white">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative container mx-auto px-4 py-24">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 bg-white/20 text-white border-white/30">Investment Opportunity</Badge>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Fund the Future of
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
-                Autonomous Commerce
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-green-100 max-w-3xl mx-auto">
-              Join our mission to revolutionize vending through blockchain technology. Earn passive income while
-              building the future of retail.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-white text-green-600 hover:bg-green-50">
-                <Link href="#funding-rounds">
-                  View Investment Options <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="border-white text-white hover:bg-white/10 bg-transparent"
-              >
-                <Link href="/how-it-works">Learn More</Link>
-              </Button>
-            </div>
-          </div>
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      <SiteNavigation />
+
+      <main className="flex-1 container px-4 md:px-6 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold tracking-tighter mb-4 flex items-center justify-center gap-3">
+            <DollarSign className="h-10 w-10" />
+            Funding Campaign
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            Help us build the future of decentralized vending machines. Support community-owned infrastructure that
+            rewards everyone.
+          </p>
         </div>
-      </section>
 
-      {/* Investment Benefits */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Invest in Mutual Vend?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our innovative approach combines proven vending business models with cutting-edge blockchain technology
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <DollarSign className="h-6 w-6 text-green-600" />
+        {/* Funding Progress */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <Card className="border-2 border-primary/20">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl">Campaign Progress</CardTitle>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  {daysLeft} days left
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Raised</span>
+                  <span>{fundingProgress.toFixed(1)}% of goal</span>
                 </div>
-                <CardTitle>Passive Income</CardTitle>
-                <CardDescription>
-                  Earn consistent returns from vending machine revenue with automated profit distribution
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-blue-600" />
+                <Progress value={fundingProgress} className="h-3" />
+                <div className="flex justify-between items-center">
+                  <span className="text-2xl font-bold">${currentFunding.toLocaleString()}</span>
+                  <span className="text-gray-500">of ${fundingGoal.toLocaleString()} goal</span>
                 </div>
-                <CardTitle>Scalable Returns</CardTitle>
-                <CardDescription>
-                  As we expand our network, your investment value and returns grow proportionally
-                </CardDescription>
-              </CardHeader>
-            </Card>
+              </div>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-purple-600" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                  <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                  <div className="text-2xl font-bold">247</div>
+                  <div className="text-sm text-gray-500">Backers</div>
                 </div>
-                <CardTitle>Transparent Operations</CardTitle>
-                <CardDescription>
-                  All transactions and revenue are recorded on-chain for complete transparency
-                </CardDescription>
-              </CardHeader>
-            </Card>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                  <Target className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                  <div className="text-2xl font-bold">65%</div>
+                  <div className="text-sm text-gray-500">Funded</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                  <TrendingUp className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+                  <div className="text-2xl font-bold">$132</div>
+                  <div className="text-sm text-gray-500">Avg. Contribution</div>
+                </div>
+              </div>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-orange-600" />
-                </div>
-                <CardTitle>Community Governance</CardTitle>
-                <CardDescription>
-                  Vote on key decisions including machine locations and product selection
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                  <Globe className="h-6 w-6 text-red-600" />
-                </div>
-                <CardTitle>Global Opportunity</CardTitle>
-                <CardDescription>Access investment opportunities in vending machines worldwide</CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                  <Target className="h-6 w-6 text-indigo-600" />
-                </div>
-                <CardTitle>Proven Market</CardTitle>
-                <CardDescription>
-                  Vending is a $23B industry with consistent demand and growth potential
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="flex-1">
+                  <Wallet className="h-5 w-5 mr-2" />
+                  Back This Project
+                </Button>
+                <Button variant="outline" size="lg">
+                  <ExternalLink className="h-5 w-5 mr-2" />
+                  Share Campaign
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </section>
 
-      {/* Funding Rounds */}
-      <section id="funding-rounds" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Investment Rounds</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose the investment level that matches your goals and risk tolerance
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto space-y-8">
-            {fundingRounds.map((round) => (
-              <Card key={round.id} className="overflow-hidden">
+        {/* Funding Tiers */}
+        <div className="max-w-6xl mx-auto mb-12">
+          <h2 className="text-3xl font-bold text-center mb-8">Funding Tiers</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Early Supporter",
+                amount: 25,
+                description: "Get early access to the platform and exclusive updates",
+                rewards: ["Early access", "Exclusive updates", "Community Discord"],
+                backers: 89,
+              },
+              {
+                title: "Community Member",
+                amount: 100,
+                description: "Receive governance tokens and voting rights",
+                rewards: ["All previous rewards", "Governance tokens", "Voting rights", "Beta testing access"],
+                backers: 67,
+                popular: true,
+              },
+              {
+                title: "Machine Owner",
+                amount: 500,
+                description: "Co-own a vending machine and earn revenue share",
+                rewards: ["All previous rewards", "Machine ownership share", "Revenue sharing", "Priority placement"],
+                backers: 23,
+              },
+              {
+                title: "Network Partner",
+                amount: 1000,
+                description: "Partner with us to deploy machines in your area",
+                rewards: ["All previous rewards", "Partnership agreement", "Territory rights", "Custom branding"],
+                backers: 12,
+              },
+              {
+                title: "Ecosystem Builder",
+                amount: 2500,
+                description: "Help shape the future of the Mutual Vend ecosystem",
+                rewards: ["All previous rewards", "Advisory board seat", "Product roadmap input", "Direct team access"],
+                backers: 5,
+              },
+              {
+                title: "Founding Investor",
+                amount: 5000,
+                description: "Become a founding investor with maximum benefits",
+                rewards: ["All previous rewards", "Equity participation", "Board observer rights", "Lifetime benefits"],
+                backers: 3,
+              },
+            ].map((tier, index) => (
+              <Card key={index} className={`relative ${tier.popular ? "border-primary border-2" : ""}`}>
+                {tier.popular && (
+                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2">Most Popular</Badge>
+                )}
                 <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-2xl mb-2">{round.title}</CardTitle>
-                      <CardDescription className="text-lg">{round.description}</CardDescription>
-                    </div>
-                    <Badge
-                      variant={
-                        round.status === "active" ? "default" : round.status === "upcoming" ? "secondary" : "outline"
-                      }
-                    >
-                      {round.status.charAt(0).toUpperCase() + round.status.slice(1)}
-                    </Badge>
-                  </div>
+                  <CardTitle className="flex items-center justify-between">
+                    {tier.title}
+                    <span className="text-2xl font-bold">${tier.amount}</span>
+                  </CardTitle>
+                  <CardDescription>{tier.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-600">${round.raised.toLocaleString()}</div>
-                      <div className="text-sm text-gray-500">Raised</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600">${round.target.toLocaleString()}</div>
-                      <div className="text-sm text-gray-500">Target</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-purple-600">{round.backers}</div>
-                      <div className="text-sm text-gray-500">Backers</div>
-                    </div>
-                  </div>
-
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{Math.round((round.raised / round.target) * 100)}%</span>
-                    </div>
-                    <Progress value={(round.raised / round.target) * 100} className="h-3" />
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold mb-2">Investor Rewards:</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                      {round.rewards.map((reward, index) => (
-                        <li key={index}>{reward}</li>
+                    <h4 className="font-medium flex items-center gap-2">
+                      <Gift className="h-4 w-4" />
+                      Rewards
+                    </h4>
+                    <ul className="text-sm space-y-1">
+                      {tier.rewards.map((reward, rewardIndex) => (
+                        <li key={rewardIndex} className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                          {reward}
+                        </li>
                       ))}
                     </ul>
                   </div>
-
-                  <div className="flex gap-4">
-                    <Button className="flex-1" disabled={round.status !== "active"}>
-                      {round.status === "active"
-                        ? "Invest Now"
-                        : round.status === "upcoming"
-                          ? "Coming Soon"
-                          : "View Details"}
-                    </Button>
-                    <Button variant="outline">Learn More</Button>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>{tier.backers} backers</span>
+                    <span>Limited time</span>
                   </div>
+                  <Button className="w-full" variant={tier.popular ? "default" : "outline"}>
+                    Select This Tier
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-green-600 to-blue-700 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Start Earning?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-green-100">
-            Join hundreds of investors already earning passive income through our vending network
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-white text-green-600 hover:bg-green-50">
-              <Link href="/vending-machine">
-                Try Demo First <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-white text-white hover:bg-white/10 bg-transparent"
-            >
-              <Link href="/how-it-works">Learn More</Link>
-            </Button>
-          </div>
+        {/* Use of Funds */}
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Use of Funds</CardTitle>
+              <CardDescription>How we plan to use the funding to build the Mutual Vend network</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {[
+                  {
+                    category: "Hardware Development",
+                    percentage: 40,
+                    amount: 20000,
+                    description: "Design and manufacture the first generation of vending machines",
+                  },
+                  {
+                    category: "Software Development",
+                    percentage: 25,
+                    amount: 12500,
+                    description: "Build the blockchain infrastructure and mobile applications",
+                  },
+                  {
+                    category: "Deployment & Operations",
+                    percentage: 20,
+                    amount: 10000,
+                    description: "Deploy machines in strategic locations and operational costs",
+                  },
+                  {
+                    category: "Marketing & Community",
+                    percentage: 10,
+                    amount: 5000,
+                    description: "Build awareness and grow the community of users and partners",
+                  },
+                  {
+                    category: "Legal & Compliance",
+                    percentage: 5,
+                    amount: 2500,
+                    description: "Ensure regulatory compliance and intellectual property protection",
+                  },
+                ].map((item, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">{item.category}</h4>
+                      <div className="text-right">
+                        <div className="font-bold">{item.percentage}%</div>
+                        <div className="text-sm text-gray-500">${item.amount.toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <Progress value={item.percentage} className="h-2" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </section>
+      </main>
+
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
+      </footer>
     </div>
   )
 }
