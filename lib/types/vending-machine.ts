@@ -18,11 +18,6 @@ export interface TokenInfo {
   balance: bigint
 }
 
-export interface MachineInfo {
-  numTracks: number
-  maxStockPerTrack: bigint
-}
-
 export interface PurchaseState {
   selectedTrack: Track | null
   selectedToken: TokenInfo | null
@@ -30,18 +25,4 @@ export interface PurchaseState {
   isPurchasing: boolean
   txHash: string | null
   error: string | null
-}
-
-export interface VendingTrack {
-  id: number
-  name: string
-  description: string
-  price: number
-  stock: number
-}
-
-export interface AcceptedToken {
-  address: string
-  symbol: string
-  decimals: number
 }

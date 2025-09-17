@@ -7,7 +7,6 @@ import { ShoppingCart, Package, AlertTriangle } from "lucide-react"
 import { formatUnits } from "viem"
 import { useChainId } from "wagmi"
 import { gnosis } from "wagmi/chains"
-import { CitizenWalletPayment } from "./citizen-wallet-payment"
 import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 interface ProductGridProps {
@@ -23,12 +22,6 @@ export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }:
 
   const formatPrice = (price: bigint, token: TokenInfo) => {
     return `${formatUnits(price, token.decimals)} ${token.symbol}`
-  }
-
-  const handleBreadPayment = (track: Track) => {
-    // Convert price from wei to BREAD tokens (assuming 18 decimals)
-    const breadAmount = Number.parseFloat(formatUnits(track.price, 18))
-    return breadAmount
   }
 
   if (tracks.length === 0) {
@@ -74,23 +67,6 @@ export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }:
                 Switch to Gnosis Chain
               </div>
             )}
-
-            {/* BREAD Payment Option */}
-            {track.stock > 0 && (
-              <div className="space-y-2">
-                <CitizenWalletPayment
-                  amount={handleBreadPayment(track)}
-                  productName={track.product.name}
-                  onSuccess={() => {
-                    // Handle successful BREAD payment
-                    console.log(`BREAD payment successful for ${track.product.name}`)
-                  }}
-                  className="w-full"
-                />
-              </div>
-            )}
-
-            {/* Regular Token Payment Options */}
             {acceptedTokens.map((token) => (
               <div key={token.address} className="flex items-center justify-between">
                 <div className="text-sm">

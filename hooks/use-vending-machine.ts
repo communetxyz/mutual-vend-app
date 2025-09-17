@@ -5,7 +5,6 @@ import { useAccount, useReadContract, useReadContracts } from "wagmi"
 import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
 import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
 import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
-import { BREAD_TOKEN } from "@/lib/citizen-wallet/config"
 import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 export function useVendingMachine() {
@@ -58,7 +57,7 @@ export function useVendingMachine() {
     functionName: "voteToken",
   })
 
-  // Get token info for accepted tokens (including BREAD)
+  // Get token info for accepted tokens
   const tokenContracts =
     acceptedTokenAddresses?.flatMap((tokenAddress) => [
       {
@@ -132,7 +131,7 @@ export function useVendingMachine() {
     }
   }, [tracksData])
 
-  // Process token data (including BREAD token)
+  // Process token data
   useEffect(() => {
     if (acceptedTokenAddresses && tokenData) {
       try {
@@ -159,20 +158,6 @@ export function useVendingMachine() {
             })
           }
         })
-
-        // Add BREAD token if not already included
-        const breadTokenExists = tokens.some(
-          (token) => token.address.toLowerCase() === BREAD_TOKEN.address.toLowerCase(),
-        )
-        if (!breadTokenExists) {
-          tokens.push({
-            address: BREAD_TOKEN.address,
-            name: BREAD_TOKEN.name,
-            symbol: BREAD_TOKEN.symbol,
-            decimals: BREAD_TOKEN.decimals,
-            balance: 0n, // BREAD balance will be managed by Citizen Wallet
-          })
-        }
 
         setAcceptedTokens(tokens)
         setError(null)

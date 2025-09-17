@@ -1,7 +1,16 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useConnectorClient } from "wagmi"
+import { useState, useEffect } from "react"
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useReadContract,
+  useChainId,
+  useSwitchChain,
+  useConnectorClient,
+} from "wagmi"
+import { gnosis } from "wagmi/chains"
 import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
 import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
 import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
@@ -10,9 +19,10 @@ import { toast } from "sonner"
 
 export function usePurchase() {
   const { address } = useAccount()
+  const chainId = useChainId()
+  const { switchChain } = useSwitchChain()
+  const { writeContract } = useWriteContract()
   const { data: connectorClient } = useConnectorClient()
-  const { writeContract, data: hash, isPending: isWritePending, error: writeError } = useWriteContract()
-
   const [purchaseState, setPurchaseState] = useState<PurchaseState>({
     selectedTrack: null,
     selectedToken: null,
@@ -22,92 +32,251 @@ export function usePurchase() {
     error: null,
   })
 
-  // Get connector chain ID
-  const connectorChainId = connectorClient?.chain?.id
+  // Validate and switch to Gnosis Chain with retry logic
+  const ensureCorrectNetwork = async (): Promise<boolean> => {
+    console.log("Current chainId:", chainId, "Target:", gnosis.id)
 
-  // Check allowance
+    if (chainId !== gnosis.id) {
+      try {
+        toast.info("Switching to Gnosis Chain...")
+        await switchChain({ chainId: gnosis.id })
+
+        // Wait a bit for the switch to complete
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
+        // Double-check the chain after switching
+        if (connectorClient?.chain?.id !== gnosis.id) {
+          console.error("Chain switch failed. Connector still on:", connectorClient?.chain?.id)
+          toast.error("Chain switch incomplete. Please manually switch to Gnosis Chain in your wallet.")
+          return false
+        }
+
+        toast.success("Successfully switched to Gnosis Chain!")
+        return true
+      } catch (error) {
+        console.error("Failed to switch chain:", error)
+        toast.error("Please manually switch to Gnosis Chain in your wallet")
+        return false
+      }
+    }
+    return true
+  }
+
+  // Check token allowance
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: purchaseState.selectedToken?.address as `0x${string}`,
     abi: ERC20_ABI,
     functionName: "allowance",
     args: address && purchaseState.selectedToken ? [address, VENDING_MACHINE_ADDRESS] : undefined,
+    chainId: gnosis.id, // Force Gnosis Chain
     query: {
-      enabled: !!(address && purchaseState.selectedToken),
+      enabled: !!address && !!purchaseState.selectedToken && chainId === gnosis.id,
     },
   })
 
-  // Wait for transaction confirmation
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
+    hash: purchaseState.txHash as `0x${string}`,
+    chainId: gnosis.id, // Force Gnosis Chain
   })
 
-  const selectTrackAndToken = useCallback((track: Track, token: TokenInfo) => {
-    setPurchaseState({
+  // Auto-refetch allowance when approval transaction is confirmed
+  useEffect(() => {
+    if (isConfirmed && purchaseState.isApproving) {
+      console.log("Approval confirmed, refetching allowance...")
+      refetchAllowance()
+
+      // Reset approval state but keep modal open
+      setPurchaseState((prev) => ({
+        ...prev,
+        isApproving: false,
+        txHash: null,
+      }))
+
+      toast.success("Token approval confirmed! You can now purchase.")
+    }
+  }, [isConfirmed, purchaseState.isApproving, refetchAllowance])
+
+  // Auto-close modal only after purchase is confirmed
+  useEffect(() => {
+    if (isConfirmed && purchaseState.isPurchasing) {
+      console.log("Purchase confirmed!")
+      toast.success("Purchase successful! Enjoy your snack!")
+
+      // Small delay to show success message
+      setTimeout(() => {
+        setPurchaseState((prev) => ({
+          ...prev,
+          isPurchasing: false,
+          txHash: null,
+        }))
+      }, 2000)
+    }
+  }, [isConfirmed, purchaseState.isPurchasing])
+
+  const selectTrackAndToken = async (track: Track, token: TokenInfo) => {
+    const networkOk = await ensureCorrectNetwork()
+    if (!networkOk) return
+
+    setPurchaseState((prev) => ({
+      ...prev,
       selectedTrack: track,
       selectedToken: token,
-      isApproving: false,
-      isPurchasing: false,
-      txHash: null,
       error: null,
-    })
-  }, [])
+    }))
+  }
 
-  const checkAllowance = useCallback(() => {
-    if (!allowance || !purchaseState.selectedTrack) return false
-    return allowance >= purchaseState.selectedTrack.price
-  }, [allowance, purchaseState.selectedTrack])
+  const checkAllowance = () => {
+    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || chainId !== gnosis.id) return false
 
-  const approveToken = useCallback(async () => {
-    if (!purchaseState.selectedToken || !purchaseState.selectedTrack) {
-      toast.error("Please select a product and payment method")
+    const requiredAllowance = purchaseState.selectedTrack.price
+    return allowance ? allowance >= requiredAllowance : false
+  }
+
+  const approveToken = async () => {
+    console.log("Starting approval process...")
+    console.log("Current chainId:", chainId)
+    console.log("Connector client chain:", connectorClient?.chain?.id)
+
+    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
+      toast.error("Missing purchase information")
+      return
+    }
+
+    // Ensure we're on the correct network before proceeding
+    const networkOk = await ensureCorrectNetwork()
+    if (!networkOk) return
+
+    // Final validation - check both wagmi chainId and connector client
+    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
+      toast.error(
+        `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
+      )
       return
     }
 
     try {
       setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null }))
 
-      await writeContract({
-        address: purchaseState.selectedToken.address as `0x${string}`,
-        abi: ERC20_ABI,
-        functionName: "approve",
-        args: [VENDING_MACHINE_ADDRESS, purchaseState.selectedTrack.price],
-      })
+      const approvalAmount = purchaseState.selectedTrack.price * 2n // Approve 2x for future purchases
 
-      toast.success("Approval transaction submitted")
-    } catch (error: any) {
+      console.log("Sending approval transaction on chain:", gnosis.id)
+      console.log("Token address:", purchaseState.selectedToken.address)
+      console.log("Spender address:", VENDING_MACHINE_ADDRESS)
+      console.log("Amount:", approvalAmount.toString())
+
+      writeContract(
+        {
+          address: purchaseState.selectedToken.address as `0x${string}`,
+          abi: ERC20_ABI,
+          functionName: "approve",
+          args: [VENDING_MACHINE_ADDRESS, approvalAmount],
+          chainId: gnosis.id, // Explicitly force Gnosis Chain
+        },
+        {
+          onSuccess: (hash) => {
+            console.log("Approval transaction hash:", hash)
+            setPurchaseState((prev) => ({ ...prev, txHash: hash }))
+            toast.success(`Approval transaction sent! Waiting for confirmation...`)
+          },
+          onError: (error) => {
+            console.error("Approval failed:", error)
+            setPurchaseState((prev) => ({
+              ...prev,
+              error: "Approval failed: " + error.message,
+              isApproving: false,
+            }))
+            toast.error("Approval failed. Check console for details.")
+          },
+        },
+      )
+    } catch (error) {
       console.error("Approval error:", error)
-      const errorMessage = error?.message || "Failed to approve token"
-      setPurchaseState((prev) => ({ ...prev, error: errorMessage, isApproving: false }))
-      toast.error(errorMessage)
+      setPurchaseState((prev) => ({
+        ...prev,
+        error: "Approval error: " + (error as Error).message,
+        isApproving: false,
+      }))
+      toast.error("Approval error")
     }
-  }, [purchaseState.selectedToken, purchaseState.selectedTrack, writeContract])
+  }
 
-  const executePurchase = useCallback(async () => {
-    if (!purchaseState.selectedToken || !purchaseState.selectedTrack) {
-      toast.error("Please select a product and payment method")
+  const executePurchase = async () => {
+    console.log("Starting purchase process...")
+    console.log("Current chainId:", chainId)
+    console.log("Connector client chain:", connectorClient?.chain?.id)
+
+    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
+      toast.error("Missing purchase information")
+      return
+    }
+
+    // Ensure we're on the correct network before proceeding
+    const networkOk = await ensureCorrectNetwork()
+    if (!networkOk) return
+
+    // Final validation - check both wagmi chainId and connector client
+    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
+      toast.error(
+        `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
+      )
+      return
+    }
+
+    if (purchaseState.selectedToken.balance < purchaseState.selectedTrack.price) {
+      toast.error("Insufficient token balance")
+      return
+    }
+
+    if (purchaseState.selectedTrack.stock === 0n) {
+      toast.error("Product out of stock")
       return
     }
 
     try {
       setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null }))
 
-      await writeContract({
-        address: VENDING_MACHINE_ADDRESS,
-        abi: VENDING_MACHINE_ABI,
-        functionName: "purchase",
-        args: [BigInt(purchaseState.selectedTrack.trackId), purchaseState.selectedToken.address as `0x${string}`],
-      })
+      console.log("Sending purchase transaction on chain:", gnosis.id)
+      console.log("Contract address:", VENDING_MACHINE_ADDRESS)
+      console.log("Track ID:", purchaseState.selectedTrack.trackId)
+      console.log("Token address:", purchaseState.selectedToken.address)
 
-      toast.success("Purchase transaction submitted")
-    } catch (error: any) {
+      writeContract(
+        {
+          address: VENDING_MACHINE_ADDRESS,
+          abi: VENDING_MACHINE_ABI,
+          functionName: "vendFromTrack",
+          args: [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address as `0x${string}`, address],
+          chainId: gnosis.id, // Explicitly force Gnosis Chain
+        },
+        {
+          onSuccess: (hash) => {
+            console.log("Purchase transaction hash:", hash)
+            setPurchaseState((prev) => ({ ...prev, txHash: hash }))
+            toast.success(`Purchase transaction sent! Waiting for confirmation...`)
+          },
+          onError: (error) => {
+            console.error("Purchase failed:", error)
+            setPurchaseState((prev) => ({
+              ...prev,
+              error: "Purchase failed: " + error.message,
+              isPurchasing: false,
+            }))
+            toast.error("Purchase failed. Check console for details.")
+          },
+        },
+      )
+    } catch (error) {
       console.error("Purchase error:", error)
-      const errorMessage = error?.message || "Failed to execute purchase"
-      setPurchaseState((prev) => ({ ...prev, error: errorMessage, isPurchasing: false }))
-      toast.error(errorMessage)
+      setPurchaseState((prev) => ({
+        ...prev,
+        error: "Purchase error: " + (error as Error).message,
+        isPurchasing: false,
+      }))
+      toast.error("Purchase error")
     }
-  }, [purchaseState.selectedToken, purchaseState.selectedTrack, writeContract])
+  }
 
-  const resetPurchase = useCallback(() => {
+  const resetPurchase = () => {
     setPurchaseState({
       selectedTrack: null,
       selectedToken: null,
@@ -116,37 +285,10 @@ export function usePurchase() {
       txHash: null,
       error: null,
     })
-  }, [])
-
-  // Update purchase state when transaction is confirmed
-  useState(() => {
-    if (isConfirmed && hash) {
-      setPurchaseState((prev) => ({
-        ...prev,
-        txHash: hash,
-        isApproving: false,
-        isPurchasing: prev.isPurchasing, // Keep isPurchasing true until we manually reset
-      }))
-    }
-  })
-
-  // Handle write errors
-  useState(() => {
-    if (writeError) {
-      setPurchaseState((prev) => ({
-        ...prev,
-        error: writeError.message,
-        isApproving: false,
-        isPurchasing: false,
-      }))
-    }
-  })
+  }
 
   return {
-    purchaseState: {
-      ...purchaseState,
-      txHash: hash || purchaseState.txHash,
-    },
+    purchaseState,
     selectTrackAndToken,
     checkAllowance,
     approveToken,
@@ -154,8 +296,8 @@ export function usePurchase() {
     resetPurchase,
     isConfirming,
     isConfirmed,
-    isWritePending,
     refetchAllowance,
-    connectorChainId,
+    isCorrectNetwork: chainId === gnosis.id,
+    connectorChainId: connectorClient?.chain?.id,
   }
 }

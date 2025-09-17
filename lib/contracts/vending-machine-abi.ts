@@ -90,8 +90,8 @@ export const VENDING_MACHINE_ABI = [
     outputs: [
       {
         name: "",
-        type: "uint256",
-        internalType: "uint256",
+        type: "uint8",
+        internalType: "uint8",
       },
     ],
     stateMutability: "view",
@@ -175,17 +175,17 @@ export const VENDING_MACHINE_ABI = [
       {
         name: "",
         type: "tuple[]",
-        internalType: "struct VendingMachine.Track[]",
+        internalType: "struct IVendingMachine.Track[]",
         components: [
           {
             name: "trackId",
-            type: "uint256",
-            internalType: "uint256",
+            type: "uint8",
+            internalType: "uint8",
           },
           {
             name: "product",
             type: "tuple",
-            internalType: "struct VendingMachine.Product",
+            internalType: "struct IVendingMachine.Product",
             components: [
               {
                 name: "name",
@@ -239,25 +239,25 @@ export const VENDING_MACHINE_ABI = [
     inputs: [
       {
         name: "trackId",
-        type: "uint256",
-        internalType: "uint256",
+        type: "uint8",
+        internalType: "uint8",
       },
     ],
     outputs: [
       {
         name: "",
         type: "tuple",
-        internalType: "struct VendingMachine.Track",
+        internalType: "struct IVendingMachine.Track",
         components: [
           {
             name: "trackId",
-            type: "uint256",
-            internalType: "uint256",
+            type: "uint8",
+            internalType: "uint8",
           },
           {
             name: "product",
             type: "tuple",
-            internalType: "struct VendingMachine.Product",
+            internalType: "struct IVendingMachine.Product",
             components: [
               {
                 name: "name",
@@ -564,7 +564,7 @@ export const VENDING_MACHINE_ABI = [
       {
         name: "",
         type: "address",
-        internalType: "address",
+        internalType: "contract VoteToken",
       },
     ],
     stateMutability: "view",
@@ -587,24 +587,6 @@ export const VENDING_MACHINE_ABI = [
         name: "amounts",
         type: "uint256[]",
         internalType: "uint256[]",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "purchase",
-    inputs: [
-      {
-        name: "trackId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "paymentToken",
-        type: "address",
-        internalType: "address",
       },
     ],
     outputs: [],

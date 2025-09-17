@@ -13,14 +13,12 @@ import { NetworkChecker } from "@/components/network-checker"
 import { useVendingMachine } from "@/hooks/use-vending-machine"
 import { usePurchase } from "@/hooks/use-purchase"
 import { SiteNavigation } from "@/components/site-navigation"
-import { Bot, RefreshCw, Package, AlertTriangle, AlertCircle, CheckCircle } from "lucide-react"
+import { Bot, RefreshCw, Package, AlertTriangle, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
-import { useSearchParams } from "next/navigation"
 
 export default function VendingMachinePage() {
   const { isConnected } = useAccount()
   const chainId = useChainId()
-  const searchParams = useSearchParams()
   const { data: connectorClient } = useConnectorClient()
   const { tracks, acceptedTokens, machineInfo, voteTokenAddress, loading, error, refetchTracks } = useVendingMachine()
   const {
@@ -39,16 +37,6 @@ export default function VendingMachinePage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const isCorrectNetwork = chainId === gnosis.id
   const connectorOnCorrectNetwork = connectorChainId === gnosis.id
-
-  // Check for payment success from Citizen Wallet
-  useEffect(() => {
-    const paymentStatus = searchParams.get("payment")
-    if (paymentStatus === "success") {
-      toast.success("BREAD payment completed successfully!")
-      // Refresh inventory after successful payment
-      refetchTracks()
-    }
-  }, [searchParams, refetchTracks])
 
   const handlePurchase = (track: any, token: any) => {
     if (!isCorrectNetwork || !connectorOnCorrectNetwork) {
@@ -95,7 +83,7 @@ export default function VendingMachinePage() {
               Mutual Vend Machine
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Purchase snacks with crypto or BREAD tokens and earn rewards on Gnosis Chain
+              Purchase snacks with crypto and earn rewards on Gnosis Chain
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -111,16 +99,6 @@ export default function VendingMachinePage() {
             </Button>
           </div>
         </div>
-
-        {/* Payment Success Alert */}
-        {searchParams.get("payment") === "success" && (
-          <Alert className="mb-8 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-700 dark:text-green-300">
-              Your BREAD payment was processed successfully! Your item should be dispensed shortly.
-            </AlertDescription>
-          </Alert>
-        )}
 
         {/* Error Display */}
         {error && (
@@ -160,14 +138,9 @@ export default function VendingMachinePage() {
                 <Package className="h-6 w-6" />
                 Available Products
               </h2>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {tracks.length} {tracks.length === 1 ? "product" : "products"}
-                </Badge>
-                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                  BREAD Payments Available
-                </Badge>
-              </div>
+              <Badge variant="secondary">
+                {tracks.length} {tracks.length === 1 ? "product" : "products"}
+              </Badge>
             </div>
 
             <ProductGrid
