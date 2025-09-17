@@ -62,6 +62,32 @@ export function usePurchase() {
     return true
   }
 
+  // Unified validation function for both approve and purchase
+  const validateTransaction = async (operation: string): Promise<boolean> => {
+    console.log(`Starting ${operation} process...`)
+    console.log("Current chainId:", chainId)
+    console.log("Connector client chain:", connectorClient?.chain?.id)
+
+    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
+      toast.error("Missing purchase information")
+      return false
+    }
+
+    // Ensure we're on the correct network before proceeding
+    const networkOk = await ensureCorrectNetwork()
+    if (!networkOk) return false
+
+    // Final validation - check both wagmi chainId and connector client
+    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
+      toast.error(
+        `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
+      )
+      return false
+    }
+
+    return true
+  }
+
   // Check token allowance
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: purchaseState.selectedToken?.address as `0x${string}`,
@@ -133,40 +159,22 @@ export function usePurchase() {
   }
 
   const approveToken = async () => {
-    console.log("Starting approval process...")
-    console.log("Current chainId:", chainId)
-    console.log("Connector client chain:", connectorClient?.chain?.id)
-
-    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
-      toast.error("Missing purchase information")
-      return
-    }
-
-    // Ensure we're on the correct network before proceeding
-    const networkOk = await ensureCorrectNetwork()
-    if (!networkOk) return
-
-    // Final validation - check both wagmi chainId and connector client
-    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
-      toast.error(
-        `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
-      )
-      return
-    }
+    const isValid = await validateTransaction("approval")
+    if (!isValid) return
 
     try {
       setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null }))
 
-      const approvalAmount = purchaseState.selectedTrack.price * 2n // Approve 2x for future purchases
+      const approvalAmount = purchaseState.selectedTrack!.price * 2n // Approve 2x for future purchases
 
       console.log("Sending approval transaction on chain:", gnosis.id)
-      console.log("Token address:", purchaseState.selectedToken.address)
+      console.log("Token address:", purchaseState.selectedToken!.address)
       console.log("Spender address:", VENDING_MACHINE_ADDRESS)
       console.log("Amount:", approvalAmount.toString())
 
       writeContract(
         {
-          address: purchaseState.selectedToken.address as `0x${string}`,
+          address: purchaseState.selectedToken!.address as `0x${string}`,
           abi: ERC20_ABI,
           functionName: "approve",
           args: [VENDING_MACHINE_ADDRESS, approvalAmount],
@@ -201,33 +209,15 @@ export function usePurchase() {
   }
 
   const executePurchase = async () => {
-    console.log("Starting purchase process...")
-    console.log("Current chainId:", chainId)
-    console.log("Connector client chain:", connectorClient?.chain?.id)
+    const isValid = await validateTransaction("purchase")
+    if (!isValid) return
 
-    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || !address) {
-      toast.error("Missing purchase information")
-      return
-    }
-
-    // Ensure we're on the correct network before proceeding
-    const networkOk = await ensureCorrectNetwork()
-    if (!networkOk) return
-
-    // Final validation - check both wagmi chainId and connector client
-    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
-      toast.error(
-        `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
-      )
-      return
-    }
-
-    if (purchaseState.selectedToken.balance < purchaseState.selectedTrack.price) {
+    if (purchaseState.selectedToken!.balance < purchaseState.selectedTrack!.price) {
       toast.error("Insufficient token balance")
       return
     }
 
-    if (purchaseState.selectedTrack.stock === 0n) {
+    if (purchaseState.selectedTrack!.stock === 0n) {
       toast.error("Product out of stock")
       return
     }
@@ -237,15 +227,15 @@ export function usePurchase() {
 
       console.log("Sending purchase transaction on chain:", gnosis.id)
       console.log("Contract address:", VENDING_MACHINE_ADDRESS)
-      console.log("Track ID:", purchaseState.selectedTrack.trackId)
-      console.log("Token address:", purchaseState.selectedToken.address)
+      console.log("Track ID:", purchaseState.selectedTrack!.trackId)
+      console.log("Token address:", purchaseState.selectedToken!.address)
 
       writeContract(
         {
           address: VENDING_MACHINE_ADDRESS,
           abi: VENDING_MACHINE_ABI,
           functionName: "vendFromTrack",
-          args: [purchaseState.selectedTrack.trackId, purchaseState.selectedToken.address as `0x${string}`, address],
+          args: [purchaseState.selectedTrack!.trackId, purchaseState.selectedToken!.address as `0x${string}`, address!],
           chainId: gnosis.id, // Explicitly force Gnosis Chain
         },
         {
