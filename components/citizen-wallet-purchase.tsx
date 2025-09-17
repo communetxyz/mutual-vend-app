@@ -28,24 +28,47 @@ export function CitizenWalletPurchase({ tracks, isConnected = false }: CitizenWa
       setIsGeneratingLink(true)
       setSelectedTrack(track)
 
+      console.log("Starting Citizen Wallet purchase for track:", track)
+
       // Get the current URL for success redirect
       const currentUrl = window.location.origin + window.location.pathname
       const successRedirect = `${currentUrl}?purchase_success=true&track_id=${track.trackId}`
 
       // Convert price from wei to BREAD tokens (18 decimals)
       const amount = formatUnits(track.price, 18)
+      console.log("Converted amount:", amount)
+
+      // Get community config with error handling
+      let communityConfig
+      try {
+        communityConfig = getCommunityConfig()
+        console.log("Community config created successfully:", communityConfig)
+      } catch (configError) {
+        console.error("Failed to get community config:", configError)
+        toast.error("Failed to initialize Citizen Wallet configuration")
+        return
+      }
 
       // Generate the Citizen Wallet receive link
+      console.log("Generating receive link with params:", {
+        destination: VENDING_MACHINE_ADDRESS,
+        amount: Number.parseFloat(amount),
+        description: `Purchase: ${track.product.name} from Mutual Vend Machine #${track.trackId}`,
+      })
+
       const receiveLink = generateReceiveLink(
         "", // sigAuthRedirect - empty for now, will be populated by the app
-        getCommunityConfig(),
+        communityConfig,
         VENDING_MACHINE_ADDRESS, // destination address (vending machine contract)
         Number.parseFloat(amount), // amount in normal notation
         `Purchase: ${track.product.name} from Mutual Vend Machine #${track.trackId}`, // description
       )
 
+      console.log("Generated receive link:", receiveLink)
+
       // Add success redirect parameter
       const finalLink = `${receiveLink}&success=${encodeURIComponent(successRedirect)}`
+      console.log("Final link with redirect:", finalLink)
 
       toast.success("Opening Citizen Wallet...")
 
@@ -53,7 +76,7 @@ export function CitizenWalletPurchase({ tracks, isConnected = false }: CitizenWa
       window.location.href = finalLink
     } catch (error) {
       console.error("Failed to generate Citizen Wallet link:", error)
-      toast.error("Failed to open Citizen Wallet. Please try again.")
+      toast.error(`Failed to open Citizen Wallet: ${error.message || "Unknown error"}`)
     } finally {
       setIsGeneratingLink(false)
       setSelectedTrack(null)

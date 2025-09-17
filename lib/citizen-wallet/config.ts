@@ -112,8 +112,30 @@ export const CITIZEN_WALLET_CONFIG = {
   active: true,
 }
 
+// Create a more robust config getter with error handling
 export const getCommunityConfig = () => {
-  return new CommunityConfig(CITIZEN_WALLET_CONFIG)
+  try {
+    // Ensure the config has the required structure
+    const configData = {
+      ...CITIZEN_WALLET_CONFIG,
+      // Ensure alias is at the top level
+      alias: CITIZEN_WALLET_CONFIG.alias || "bread",
+    }
+
+    console.log("Creating CommunityConfig with:", configData)
+    return new CommunityConfig(configData)
+  } catch (error) {
+    console.error("Failed to create CommunityConfig:", error)
+    // Return a fallback config
+    return new CommunityConfig({
+      alias: "bread",
+      chain_id: 100,
+      json: CITIZEN_WALLET_CONFIG.json,
+      created_at: CITIZEN_WALLET_CONFIG.created_at,
+      updated_at: CITIZEN_WALLET_CONFIG.updated_at,
+      active: CITIZEN_WALLET_CONFIG.active,
+    })
+  }
 }
 
 export const BREAD_TOKEN_ADDRESS = "0xa555d5344f6fb6c65da19e403cb4c1ec4a1a5ee3"

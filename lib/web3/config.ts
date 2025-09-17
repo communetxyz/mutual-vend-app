@@ -17,14 +17,14 @@ export const config = createConfig({
       metadata: {
         name: "Mutual Vend",
         description: "Decentralized Vending Machine Network",
-        url: "https://mutualvend.com",
-        icons: ["https://mutualvend.com/icon.png"],
+        url: "https://mutual-vend.com", // Fixed URL to match actual domain
+        icons: ["https://mutual-vend.com/icon.png"], // Fixed URL to match actual domain
       },
       showQrModal: true,
     }),
     coinbaseWallet({
       appName: "Mutual Vend",
-      appLogoUrl: "https://mutualvend.com/icon.png",
+      appLogoUrl: "https://mutual-vend.com/icon.png", // Fixed URL to match actual domain
     }),
   ],
   transports: {
