@@ -1,35 +1,31 @@
 "use client"
 
-import { useEffect, type FC } from "react"
+import { useEffect, useRef } from "react"
 import mermaid from "mermaid"
 
-type MermaidProps = {
+interface MermaidDiagramProps {
   chart: string
+  className?: string
 }
 
-// Simple wrapper to render a Mermaid diagram on the client
-const MermaidDiagram: FC<MermaidProps> = ({ chart }) => {
+export function MermaidDiagram({ chart, className = "" }: MermaidDiagramProps) {
+  const ref = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
-    const renderDiagram = async () => {
-      try {
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: "neutral",
-          securityLevel: "loose",
-        })
-        await mermaid.run()
-      } catch (error) {
-        console.error("Failed to render Mermaid diagram:", error)
-      }
+    if (ref.current) {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "default",
+        securityLevel: "loose",
+      })
+
+      mermaid.render("mermaid-diagram", chart).then(({ svg }) => {
+        if (ref.current) {
+          ref.current.innerHTML = svg
+        }
+      })
     }
-    renderDiagram()
   }, [chart])
 
-  return (
-    <div key={chart} className="mermaid flex justify-center items-center">
-      {chart}
-    </div>
-  )
+  return <div ref={ref} className={className} />
 }
-
-export default MermaidDiagram

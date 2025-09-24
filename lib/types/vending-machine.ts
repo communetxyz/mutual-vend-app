@@ -1,13 +1,33 @@
 export interface Product {
+  id: number
   name: string
-  imageURI: string
+  price: number
+  inventory: number
+  image: string
+  description?: string
 }
 
 export interface Track {
   trackId: number
-  product: Product
+  product: {
+    name: string
+    imageURI: string
+  }
   price: bigint
   stock: bigint
+}
+
+export interface VendingMachineState {
+  tracks: Track[]
+  isLoading: boolean
+  error: string | null
+}
+
+export interface PurchaseState {
+  isLoading: boolean
+  error: string | null
+  success: boolean
+  txHash?: string
 }
 
 export interface TokenInfo {
@@ -15,14 +35,11 @@ export interface TokenInfo {
   name: string
   symbol: string
   decimals: number
-  balance: bigint
+  balance?: bigint
 }
 
-export interface PurchaseState {
-  selectedTrack: Track | null
-  selectedToken: TokenInfo | null
-  isApproving: boolean
-  isPurchasing: boolean
-  txHash: string | null
-  error: string | null
+export interface VendingMachineConfig {
+  contractAddress: string
+  chainId: number
+  acceptedTokens: TokenInfo[]
 }

@@ -1,39 +1,35 @@
-import { createConfig, http } from "wagmi"
-import { gnosis } from "wagmi/chains"
-import { metaMask, walletConnect, injected, coinbaseWallet } from "wagmi/connectors"
+import { http, createConfig } from "wagmi"
+import { sepolia, gnosis } from "wagmi/chains"
+import { walletConnect, metaMask, coinbaseWallet } from "wagmi/connectors"
+
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!
 
 export const config = createConfig({
-  chains: [gnosis], // Only Gnosis Chain
+  chains: [sepolia, gnosis],
   connectors: [
-    injected(),
-    metaMask({
-      dappMetadata: {
-        name: "Mutual Vend",
-        url: "https://mutualvend.com",
-      },
-    }),
     walletConnect({
-      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "549077143e5bfa40a6c5f280e0b0d13e",
+      projectId,
       metadata: {
         name: "Mutual Vend",
-        description: "Decentralized Vending Machine Network",
-        url: "https://mutualvend.com",
-        icons: ["https://mutualvend.com/icon.png"],
+        description: "Decentralized vending machine platform",
+        url: "https://mutual-vend.com",
+        icons: ["https://mutual-vend.com/favicon.ico"],
       },
-      showQrModal: true,
     }),
+    metaMask(),
     coinbaseWallet({
       appName: "Mutual Vend",
-      appLogoUrl: "https://mutualvend.com/icon.png",
+      appLogoUrl: "https://mutual-vend.com/favicon.ico",
     }),
   ],
   transports: {
-    [gnosis.id]: http(process.env.NEXT_PUBLIC_GNOSIS_RPC_URL || "https://rpc.gnosischain.com"),
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL),
+    [gnosis.id]: http(process.env.NEXT_PUBLIC_GNOSIS_RPC_URL),
   },
-  // Ensure we default to Gnosis Chain
-  ssr: true,
 })
 
-export const VENDING_MACHINE_ADDRESS = "0x6699fb5cdADb6065c71457Dc44A6f9d0688a5e4c" as `0x${string}`
-export const CHAIN_ID = 100 // Gnosis Chain ID
-export const NETWORK_NAME = "Gnosis Chain"
+declare module "wagmi" {
+  interface Register {
+    config: typeof config
+  }
+}

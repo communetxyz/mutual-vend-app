@@ -1,12 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.mermaid$/,
-      use: 'raw-loader',
-    });
-    return config;
-  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,8 +7,13 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    domains: ['placeholder.svg'],
     unoptimized: true,
   },
-};
+  webpack: (config) => {
+    config.externals.push('pino-pretty', 'lokijs', 'encoding')
+    return config
+  },
+}
 
-export default nextConfig;
+export default nextConfig

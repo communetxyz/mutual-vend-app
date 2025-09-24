@@ -952,3 +952,6 @@ export const VENDING_MACHINE_ABI = [
     inputs: [],
   },
 ] as const
+
+// Export with the expected name for deployment
+export const vendingMachineAbi = VENDING_MACHINE_ABI

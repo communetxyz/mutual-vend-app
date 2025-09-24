@@ -1,95 +1,86 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Package, AlertTriangle } from "lucide-react"
-import { formatUnits } from "viem"
-import { useChainId } from "wagmi"
-import { gnosis } from "wagmi/chains"
-import type { Track, TokenInfo } from "@/lib/types/vending-machine"
+import { formatEther } from "viem"
+import { useVendingMachine } from "@/hooks/use-vending-machine"
+import { PurchaseModal } from "./purchase-modal"
+import type { Track } from "@/lib/types/vending-machine"
 
-interface ProductGridProps {
-  tracks: Track[]
-  acceptedTokens: TokenInfo[]
-  onPurchase: (track: Track, token: TokenInfo) => void
-  isConnected: boolean
-}
+export function ProductGrid() {
+  const { tracks, isLoading, error } = useVendingMachine()
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
 
-export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }: ProductGridProps) {
-  const chainId = useChainId()
-  const isCorrectNetwork = chainId === gnosis.id
-
-  const formatPrice = (price: bigint, token: TokenInfo) => {
-    return `${formatUnits(price, token.decimals)} ${token.symbol}`
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {[...Array(8)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardHeader>
+              <div className="h-48 bg-gray-200 rounded-md"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            </CardContent>
+            <CardFooter>
+              <div className="h-10 bg-gray-200 rounded w-full"></div>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    )
   }
 
-  if (tracks.length === 0) {
+  if (error) {
     return (
-      <div className="text-center py-12">
-        <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Products Available</h3>
-        <p className="text-gray-500 dark:text-gray-400">
-          The vending machine is currently being stocked. Please check back later.
-        </p>
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     )
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {tracks.map((track) => (
-        <Card key={track.trackId} className="overflow-hidden">
-          <CardHeader className="pb-4">
-            <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
-              {track.product.imageURI ? (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {tracks.map((track) => (
+          <Card key={track.trackId} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <CardHeader className="p-0">
+              <div className="aspect-square relative">
                 <img
                   src={track.product.imageURI || "/placeholder.svg"}
                   alt={track.product.name}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover"
                 />
-              ) : (
-                <Package className="h-12 w-12 text-gray-400" />
-              )}
-            </div>
-            <CardTitle className="text-lg">{track.product.name}</CardTitle>
-            <div className="flex items-center justify-between">
-              <Badge variant={track.stock > 0 ? "default" : "secondary"}>
-                {track.stock > 0 ? `${track.stock} in stock` : "Out of stock"}
-              </Badge>
-              <span className="text-sm text-gray-500">Track #{track.trackId}</span>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {!isCorrectNetwork && (
-              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 p-2 rounded">
-                <AlertTriangle className="h-4 w-4" />
-                Switch to Gnosis Chain
+                {Number(track.stock) === 0 && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <Badge variant="destructive">Out of Stock</Badge>
+                  </div>
+                )}
               </div>
-            )}
-            {acceptedTokens.map((token) => (
-              <div key={token.address} className="flex items-center justify-between">
-                <div className="text-sm">
-                  <p className="font-medium">{formatPrice(track.price, token)}</p>
-                  {isConnected && (
-                    <p className="text-gray-500">
-                      Balance: {formatUnits(token.balance, token.decimals)} {token.symbol}
-                    </p>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => onPurchase(track, token)}
-                  disabled={!isConnected || !isCorrectNetwork || track.stock === 0n || token.balance < track.price}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-1" />
-                  Buy
-                </Button>
+            </CardHeader>
+            <CardContent className="p-4">
+              <CardTitle className="text-lg mb-2">{track.product.name}</CardTitle>
+              <div className="flex justify-between items-center">
+                <span className="text-2xl font-bold text-green-600">{formatEther(track.price)} ETH</span>
+                <Badge variant="outline">Stock: {track.stock.toString()}</Badge>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            </CardContent>
+            <CardFooter className="p-4 pt-0">
+              <Button className="w-full" onClick={() => setSelectedTrack(track)} disabled={Number(track.stock) === 0}>
+                {Number(track.stock) === 0 ? "Out of Stock" : "Purchase"}
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+
+      {selectedTrack && (
+        <PurchaseModal track={selectedTrack} isOpen={!!selectedTrack} onClose={() => setSelectedTrack(null)} />
+      )}
+    </>
   )
 }
