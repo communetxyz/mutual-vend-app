@@ -10,7 +10,6 @@ import { WalletConnect } from "@/components/wallet-connect"
 import { ProductGrid } from "@/components/product-grid"
 import { PurchaseModal } from "@/components/purchase-modal"
 import { NetworkChecker } from "@/components/network-checker"
-import { MachineStats } from "@/components/machine-stats"
 import { useVendingMachine } from "@/hooks/use-vending-machine"
 import { usePurchase } from "@/hooks/use-purchase"
 import { SiteNavigation } from "@/components/site-navigation"
@@ -177,12 +176,6 @@ export default function VendingMachinePage() {
           isConfirmed={isConfirmed}
         />
       </main>
-
-      {/* Network Checker and Machine Stats */}
-      <div className="container mx-auto px-4 py-8">
-        <NetworkChecker />
-        <MachineStats />
-      </div>
 
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>

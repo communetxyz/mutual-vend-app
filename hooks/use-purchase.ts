@@ -1,135 +1,160 @@
 "use client"
 
 import { useState } from "react"
-import { useWriteContract, useAccount, useChainId, useSwitchChain } from "wagmi"
-import { formatEther } from "viem"
+import { useWriteContract, useSwitchChain } from "wagmi"
+import { parseUnits } from "viem"
+import { toast } from "@/hooks/use-toast"
 import { vendingMachineAbi } from "@/lib/contracts/vending-machine-abi"
 import { erc20Abi } from "@/lib/contracts/erc20-abi"
-import type { PurchaseState } from "@/lib/types/vending-machine"
+import { useAccount, useChainId } from "wagmi"
 
-const VENDING_MACHINE_ADDRESS = process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS as `0x${string}`
-const TARGET_CHAIN_ID = Number.parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "11155111")
+interface PurchaseState {
+  isApproving: boolean
+  isPurchasing: boolean
+  approvalHash: string | null
+  purchaseHash: string | null
+  error: string | null
+}
 
 export function usePurchase() {
   const { address } = useAccount()
   const chainId = useChainId()
   const { switchChain } = useSwitchChain()
-  const { writeContract } = useWriteContract()
 
   const [purchaseState, setPurchaseState] = useState<PurchaseState>({
-    isLoading: false,
+    isApproving: false,
+    isPurchasing: false,
+    approvalHash: null,
+    purchaseHash: null,
     error: null,
-    success: false,
   })
 
+  const { writeContract } = useWriteContract()
+
+  const targetChainId = Number.parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "11155111")
+
+  // Validation function used by both approve and purchase
   const validateTransaction = async () => {
     if (!address) {
-      throw new Error("Please connect your wallet")
+      throw new Error("Please connect your wallet first")
     }
 
-    if (chainId !== TARGET_CHAIN_ID) {
-      console.log(`Switching from chain ${chainId} to ${TARGET_CHAIN_ID}`)
-      await switchChain({ chainId: TARGET_CHAIN_ID })
-      throw new Error("Please switch to the correct network")
-    }
-
-    if (!VENDING_MACHINE_ADDRESS) {
-      throw new Error("Vending machine contract not configured")
+    if (chainId !== targetChainId) {
+      console.log(`Switching from chain ${chainId} to ${targetChainId}`)
+      try {
+        await switchChain({ chainId: targetChainId })
+      } catch (error) {
+        console.error("Failed to switch chain:", error)
+        throw new Error(`Please switch to the correct network (Chain ID: ${targetChainId})`)
+      }
     }
   }
 
-  const approveToken = async (tokenAddress: string, amount: bigint) => {
+  const approveToken = async (tokenAddress: string, spenderAddress: string, amount: string) => {
     try {
       await validateTransaction()
 
-      setPurchaseState({
-        isLoading: true,
-        error: null,
-        success: false,
-      })
+      setPurchaseState((prev) => ({ ...prev, isApproving: true, error: null }))
 
+      const amountWei = parseUnits(amount, 18)
       console.log("Approving token:", {
         tokenAddress,
-        spender: VENDING_MACHINE_ADDRESS,
-        amount: formatEther(amount),
+        spenderAddress,
+        amount,
+        amountWei: amountWei.toString(),
+        chainId,
       })
 
-      await writeContract({
+      const hash = await writeContract({
         address: tokenAddress as `0x${string}`,
         abi: erc20Abi,
         functionName: "approve",
-        args: [VENDING_MACHINE_ADDRESS, amount],
+        args: [spenderAddress as `0x${string}`, amountWei],
+        chainId: targetChainId,
       })
 
-      setPurchaseState({
-        isLoading: false,
-        error: null,
-        success: true,
+      console.log("Approval transaction sent:", hash)
+      setPurchaseState((prev) => ({ ...prev, approvalHash: hash }))
+
+      toast({
+        title: "Approval Submitted",
+        description: "Your token approval transaction has been submitted. Please wait for confirmation.",
       })
 
-      return true
+      return hash
     } catch (error: any) {
-      console.error("Token approval failed:", error)
-      setPurchaseState({
-        isLoading: false,
-        error: error.message || "Failed to approve token",
-        success: false,
+      console.error("Approval failed:", error)
+      const errorMessage = error?.message || "Failed to approve tokens"
+      setPurchaseState((prev) => ({ ...prev, error: errorMessage, isApproving: false }))
+
+      toast({
+        title: "Approval Failed",
+        description: errorMessage,
+        variant: "destructive",
       })
-      return false
+      throw error
     }
   }
 
-  const executePurchase = async (trackId: number, tokenAddress: string) => {
+  const executePurchase = async (contractAddress: string, trackId: number, paymentToken: string, amount: string) => {
     try {
       await validateTransaction()
 
-      setPurchaseState({
-        isLoading: true,
-        error: null,
-        success: false,
-      })
+      setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null }))
 
+      const amountWei = parseUnits(amount, 18)
       console.log("Executing purchase:", {
+        contractAddress,
         trackId,
-        tokenAddress,
-        recipient: address,
+        paymentToken,
+        amount,
+        amountWei: amountWei.toString(),
+        chainId,
       })
 
-      await writeContract({
-        address: VENDING_MACHINE_ADDRESS,
+      const hash = await writeContract({
+        address: contractAddress as `0x${string}`,
         abi: vendingMachineAbi,
-        functionName: "vendFromTrack",
-        args: [trackId, tokenAddress as `0x${string}`, address],
+        functionName: "purchaseItem",
+        args: [BigInt(trackId), paymentToken as `0x${string}`, amountWei],
+        chainId: targetChainId,
       })
 
-      setPurchaseState({
-        isLoading: false,
-        error: null,
-        success: true,
+      console.log("Purchase transaction sent:", hash)
+      setPurchaseState((prev) => ({ ...prev, purchaseHash: hash }))
+
+      toast({
+        title: "Purchase Submitted",
+        description: "Your purchase transaction has been submitted. Please wait for confirmation.",
       })
 
-      return true
+      return hash
     } catch (error: any) {
       console.error("Purchase failed:", error)
-      setPurchaseState({
-        isLoading: false,
-        error: error.message || "Purchase failed",
-        success: false,
+      const errorMessage = error?.message || "Failed to execute purchase"
+      setPurchaseState((prev) => ({ ...prev, error: errorMessage, isPurchasing: false }))
+
+      toast({
+        title: "Purchase Failed",
+        description: errorMessage,
+        variant: "destructive",
       })
-      return false
+      throw error
     }
   }
 
   const resetPurchaseState = () => {
     setPurchaseState({
-      isLoading: false,
+      isApproving: false,
+      isPurchasing: false,
+      approvalHash: null,
+      purchaseHash: null,
       error: null,
-      success: false,
     })
   }
 
   return {
-    ...purchaseState,
+    purchaseState,
     approveToken,
     executePurchase,
     resetPurchaseState,

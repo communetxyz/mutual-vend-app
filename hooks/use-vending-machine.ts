@@ -1,121 +1,209 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useReadContract, useAccount, useChainId } from "wagmi"
-import { vendingMachineAbi } from "@/lib/contracts/vending-machine-abi"
-import type { Track, VendingMachineState } from "@/lib/types/vending-machine"
-
-const VENDING_MACHINE_ADDRESS = process.env.NEXT_PUBLIC_VENDING_MACHINE_ADDRESS as `0x${string}`
+import { useAccount, useReadContract, useReadContracts } from "wagmi"
+import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
+import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
+import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
+import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 export function useVendingMachine() {
-  const { address } = useAccount()
-  const chainId = useChainId()
-  const [state, setState] = useState<VendingMachineState>({
-    tracks: [],
-    isLoading: true,
-    error: null,
+  const { address, isConnected } = useAccount()
+  const [tracks, setTracks] = useState<Track[]>([])
+  const [acceptedTokens, setAcceptedTokens] = useState<TokenInfo[]>([])
+  const [machineInfo, setMachineInfo] = useState({
+    numTracks: 0,
+    maxStockPerTrack: 0n,
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Get machine configuration
+  const { data: numTracks } = useReadContract({
+    address: VENDING_MACHINE_ADDRESS,
+    abi: VENDING_MACHINE_ABI,
+    functionName: "NUM_TRACKS",
   })
 
-  // Read all tracks from the contract
+  const { data: maxStockPerTrack } = useReadContract({
+    address: VENDING_MACHINE_ADDRESS,
+    abi: VENDING_MACHINE_ABI,
+    functionName: "MAX_STOCK_PER_TRACK",
+  })
+
+  // Get all tracks - this is the main inventory getter
   const {
     data: tracksData,
-    isError,
-    isLoading,
-    error,
+    refetch: refetchTracks,
+    error: tracksError,
+    isLoading: tracksLoading,
   } = useReadContract({
     address: VENDING_MACHINE_ADDRESS,
-    abi: vendingMachineAbi,
+    abi: VENDING_MACHINE_ABI,
     functionName: "getAllTracks",
-    query: {
-      enabled: !!VENDING_MACHINE_ADDRESS && !!address,
-    },
   })
 
+  // Get accepted tokens
+  const { data: acceptedTokenAddresses, error: tokensError } = useReadContract({
+    address: VENDING_MACHINE_ADDRESS,
+    abi: VENDING_MACHINE_ABI,
+    functionName: "getAcceptedTokens",
+  })
+
+  // Get vote token address for rewards info
+  const { data: voteTokenAddress } = useReadContract({
+    address: VENDING_MACHINE_ADDRESS,
+    abi: VENDING_MACHINE_ABI,
+    functionName: "voteToken",
+  })
+
+  // Get token info for accepted tokens
+  const tokenContracts =
+    acceptedTokenAddresses?.flatMap((tokenAddress) => [
+      {
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "name",
+      },
+      {
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "symbol",
+      },
+      {
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "decimals",
+      },
+      ...(isConnected && address
+        ? [
+            {
+              address: tokenAddress,
+              abi: ERC20_ABI,
+              functionName: "balanceOf",
+              args: [address],
+            },
+          ]
+        : []),
+    ]) || []
+
+  const { data: tokenData, error: tokenDataError } = useReadContracts({
+    contracts: tokenContracts,
+  })
+
+  // Update machine info
   useEffect(() => {
-    if (isLoading) {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }))
-    } else if (isError) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error?.message || "Failed to load vending machine data",
-      }))
-    } else if (tracksData) {
-      const tracks = (tracksData as any[]).map((track, index) => ({
-        trackId: index,
-        product: {
-          name: track.product?.name || `Product ${index + 1}`,
-          imageURI: track.product?.imageURI || "/placeholder.svg?height=200&width=200&text=Product",
-        },
-        price: BigInt(track.price || 0),
-        stock: BigInt(track.stock || 0),
-      }))
-
-      setState((prev) => ({
-        ...prev,
-        tracks,
-        isLoading: false,
-        error: null,
-      }))
-    } else {
-      // Fallback to mock data if no contract data
-      const mockTracks: Track[] = [
-        {
-          trackId: 0,
-          product: {
-            name: "Energy Drink",
-            imageURI: "/placeholder.svg?height=200&width=200&text=Energy+Drink",
-          },
-          price: BigInt("2500000000000000000"), // 2.5 tokens
-          stock: BigInt(10),
-        },
-        {
-          trackId: 1,
-          product: {
-            name: "Protein Bar",
-            imageURI: "/placeholder.svg?height=200&width=200&text=Protein+Bar",
-          },
-          price: BigInt("3000000000000000000"), // 3.0 tokens
-          stock: BigInt(15),
-        },
-        {
-          trackId: 2,
-          product: {
-            name: "Coffee",
-            imageURI: "/placeholder.svg?height=200&width=200&text=Coffee",
-          },
-          price: BigInt("2000000000000000000"), // 2.0 tokens
-          stock: BigInt(8),
-        },
-        {
-          trackId: 3,
-          product: {
-            name: "Chips",
-            imageURI: "/placeholder.svg?height=200&width=200&text=Chips",
-          },
-          price: BigInt("1500000000000000000"), // 1.5 tokens
-          stock: BigInt(20),
-        },
-      ]
-
-      setState((prev) => ({
-        ...prev,
-        tracks: mockTracks,
-        isLoading: false,
-        error: null,
-      }))
+    if (numTracks !== undefined && maxStockPerTrack !== undefined) {
+      setMachineInfo({
+        numTracks: Number(numTracks),
+        maxStockPerTrack,
+      })
     }
-  }, [tracksData, isError, isLoading, error])
+  }, [numTracks, maxStockPerTrack])
 
-  const refreshTracks = () => {
-    setState((prev) => ({ ...prev, isLoading: true }))
-    // This will trigger a re-fetch of the contract data
+  // Process tracks data
+  useEffect(() => {
+    if (tracksData) {
+      try {
+        const formattedTracks = tracksData
+          .map((track) => ({
+            trackId: Number(track.trackId),
+            product: {
+              name: track.product.name || `Product ${track.trackId}`,
+              imageURI: track.product.imageURI || "",
+            },
+            price: track.price,
+            stock: track.stock,
+          }))
+          .filter(
+            (track) =>
+              // Only show tracks that have been configured (have a name or price > 0)
+              track.product.name.trim() !== "" || track.price > 0n,
+          )
+          .sort((a, b) => a.trackId - b.trackId) // Sort by track ID
+
+        setTracks(formattedTracks)
+        setError(null)
+      } catch (err) {
+        console.error("Error processing tracks data:", err)
+        setError("Failed to process inventory data")
+      }
+    }
+  }, [tracksData])
+
+  // Process token data
+  useEffect(() => {
+    if (acceptedTokenAddresses && tokenData) {
+      try {
+        const tokens: TokenInfo[] = []
+
+        acceptedTokenAddresses.forEach((tokenAddress, index) => {
+          const baseIndex = index * (isConnected && address ? 4 : 3)
+          const nameResult = tokenData[baseIndex]
+          const symbolResult = tokenData[baseIndex + 1]
+          const decimalsResult = tokenData[baseIndex + 2]
+          const balanceResult = isConnected && address ? tokenData[baseIndex + 3] : null
+
+          if (
+            nameResult?.status === "success" &&
+            symbolResult?.status === "success" &&
+            decimalsResult?.status === "success"
+          ) {
+            tokens.push({
+              address: tokenAddress,
+              name: nameResult.result as string,
+              symbol: symbolResult.result as string,
+              decimals: decimalsResult.result as number,
+              balance: balanceResult?.status === "success" ? (balanceResult.result as bigint) : 0n,
+            })
+          }
+        })
+
+        setAcceptedTokens(tokens)
+        setError(null)
+      } catch (err) {
+        console.error("Error processing token data:", err)
+        setError("Failed to process payment token data")
+      }
+    }
+  }, [acceptedTokenAddresses, tokenData, isConnected, address])
+
+  // Handle loading state
+  useEffect(() => {
+    if (!tracksLoading) {
+      setLoading(false)
+    }
+  }, [tracksLoading])
+
+  // Handle errors
+  useEffect(() => {
+    if (tracksError || tokensError || tokenDataError) {
+      const errorMessage = tracksError?.message || tokensError?.message || tokenDataError?.message || "Unknown error"
+      setError(`Contract error: ${errorMessage}`)
+      setLoading(false)
+    }
+  }, [tracksError, tokensError, tokenDataError])
+
+  // Get individual track inventory (useful for real-time updates)
+  const getTrackInventory = async (trackId: number) => {
+    try {
+      // This would be used for individual track inventory checks
+      // Currently handled by getAllTracks, but available for granular updates
+      return tracks.find((track) => track.trackId === trackId)?.stock || 0n
+    } catch (err) {
+      console.error(`Error getting inventory for track ${trackId}:`, err)
+      return 0n
+    }
   }
 
   return {
-    ...state,
-    refreshTracks,
-    contractAddress: VENDING_MACHINE_ADDRESS,
-    chainId,
+    tracks,
+    acceptedTokens,
+    machineInfo,
+    voteTokenAddress,
+    loading,
+    error,
+    refetchTracks,
+    getTrackInventory,
   }
 }
