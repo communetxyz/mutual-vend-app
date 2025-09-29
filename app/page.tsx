@@ -68,10 +68,10 @@ export default function MutualVendPage() {
                 </div>
               </div>
               <img
-                src="/vending-machine-office-setup.png"
+                src="/vending-machine-prototype-2.png"
                 width="550"
                 height="550"
-                alt="Modern Mutual Vend machine setup in office environment with payment terminal"
+                alt="Mutual Vend Machine Prototype"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square"
               />
             </div>
