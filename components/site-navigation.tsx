@@ -38,10 +38,10 @@ ListItem.displayName = "ListItem"
 
 export function SiteNavigation() {
   return (
-    <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+    <header className="px-4 lg:px-6 h-16 flex items-center sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <Link href="/" className="flex items-center justify-center" prefetch={false}>
-        <Bot className="h-6 w-6" />
-        <span className="ml-2 text-lg font-bold">Mutual Vend</span>
+        <Bot className="h-7 w-7 text-primary" />
+        <span className="ml-2 text-xl font-bold text-foreground">Mutual Vend</span>
       </Link>
       <NavigationMenu className="ml-auto">
         <NavigationMenuList>
@@ -142,7 +142,7 @@ export function SiteNavigation() {
       </NavigationMenu>
       <div className="ml-4">
         <Link href="/vending-machine">
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+          <button className="inline-flex items-center justify-center rounded-lg text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md h-11 px-5 py-2">
             <ShoppingCart className="h-4 w-4 mr-2" />
             Buy Now
           </button>

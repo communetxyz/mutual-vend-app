@@ -51,101 +51,101 @@ export function PurchaseModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md border-2">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-3 text-xl">
+            <Package className="h-6 w-6 text-primary" />
             Purchase {selectedTrack.product.name}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between">
+          {/* Progress Steps - Bread.coop inspired */}
+          <div className="flex items-center justify-between px-4">
             <div className="flex flex-col items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-200 ${
                   currentStep === "needs-approval"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-primary text-primary-foreground"
                     : hasAllowance
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-300 text-gray-600"
+                      ? "bg-secondary text-secondary-foreground"
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
-                {hasAllowance ? <CheckCircle className="h-4 w-4" /> : "1"}
+                {hasAllowance ? <CheckCircle className="h-5 w-5" /> : "1"}
               </div>
-              <span className="text-xs mt-1">Approve</span>
+              <span className="text-xs mt-2 font-medium">Approve</span>
             </div>
 
-            <ArrowRight className="h-4 w-4 text-gray-400" />
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
 
             <div className="flex flex-col items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-200 ${
                   currentStep === "purchasing"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-primary text-primary-foreground"
                     : currentStep === "ready-to-purchase"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-300 text-gray-600"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
-                {isPurchasing || (isConfirmed && isPurchasing) ? <Clock className="h-4 w-4 animate-spin" /> : "2"}
+                {isPurchasing || (isConfirmed && isPurchasing) ? <Clock className="h-5 w-5 animate-spin" /> : "2"}
               </div>
-              <span className="text-xs mt-1">Purchase</span>
+              <span className="text-xs mt-2 font-medium">Purchase</span>
             </div>
           </div>
 
           <Separator />
 
           {/* Product Info */}
-          <div className="space-y-3">
+          <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Product:</span>
-              <span className="text-sm">{selectedTrack.product.name}</span>
+              <span className="text-sm font-semibold text-foreground">Product:</span>
+              <span className="text-sm font-medium">{selectedTrack.product.name}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Track:</span>
-              <span className="text-sm">#{selectedTrack.trackId}</span>
+              <span className="text-sm font-semibold text-foreground">Track:</span>
+              <span className="text-sm font-medium">#{selectedTrack.trackId}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Stock:</span>
-              <Badge variant={selectedTrack.stock > 0 ? "default" : "secondary"}>{selectedTrack.stock} available</Badge>
+              <span className="text-sm font-semibold text-foreground">Stock:</span>
+              <Badge className={selectedTrack.stock > 0 ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}>{selectedTrack.stock} available</Badge>
             </div>
           </div>
 
           <Separator />
 
           {/* Payment Info */}
-          <div className="space-y-3">
+          <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Price:</span>
-              <span className="text-sm font-mono">
+              <span className="text-sm font-semibold text-foreground">Price:</span>
+              <span className="text-sm font-mono font-bold text-primary">
                 {formatPrice(selectedTrack.price, selectedToken.decimals)} {selectedToken.symbol}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Your Balance:</span>
+              <span className="text-sm font-semibold text-foreground">Your Balance:</span>
               <span className="text-sm font-mono">
                 {formatPrice(selectedToken.balance, selectedToken.decimals)} {selectedToken.symbol}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Token Approval:</span>
+              <span className="text-sm font-semibold text-foreground">Token Approval:</span>
               <div className="flex items-center gap-2">
                 {hasAllowance ? (
                   <>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-600">Approved</span>
+                    <CheckCircle className="h-4 w-4 text-secondary" />
+                    <span className="text-sm text-secondary font-medium">Approved</span>
                   </>
                 ) : isApproving || (isConfirming && isApproving) ? (
                   <>
-                    <Clock className="h-4 w-4 text-blue-500 animate-spin" />
-                    <span className="text-sm text-blue-600">Approving...</span>
+                    <Clock className="h-4 w-4 text-primary animate-spin" />
+                    <span className="text-sm text-primary font-medium">Approving...</span>
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm text-yellow-600">Required</span>
+                    <AlertCircle className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-primary font-medium">Required</span>
                   </>
                 )}
               </div>
@@ -156,14 +156,14 @@ export function PurchaseModal({
           {currentStep === "approving" && (
             <>
               <Separator />
-              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+              <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500 animate-spin" />
-                  <span className="text-sm text-blue-600 dark:text-blue-400">
+                  <Clock className="h-4 w-4 text-primary animate-spin" />
+                  <span className="text-sm text-primary font-medium">
                     {isConfirming ? "Confirming approval..." : "Approval transaction sent"}
                   </span>
                 </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-xs text-primary/80 mt-2">
                   Please wait for the transaction to confirm, then you can purchase.
                 </p>
               </div>
@@ -173,12 +173,12 @@ export function PurchaseModal({
           {currentStep === "ready-to-purchase" && (
             <>
               <Separator />
-              <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+              <div className="bg-secondary/10 border border-secondary/20 p-4 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-600 dark:text-green-400">Ready to purchase!</span>
+                  <CheckCircle className="h-4 w-4 text-secondary" />
+                  <span className="text-sm text-secondary font-medium">Ready to purchase!</span>
                 </div>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                <p className="text-xs text-secondary/80 mt-2">
                   Token approval confirmed. Click "Purchase" to complete your order.
                 </p>
               </div>
@@ -188,14 +188,14 @@ export function PurchaseModal({
           {currentStep === "purchasing" && (
             <>
               <Separator />
-              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+              <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500 animate-spin" />
-                  <span className="text-sm text-blue-600 dark:text-blue-400">
+                  <Clock className="h-4 w-4 text-primary animate-spin" />
+                  <span className="text-sm text-primary font-medium">
                     {isConfirmed && isPurchasing ? "Purchase confirmed!" : "Processing purchase..."}
                   </span>
                 </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-xs text-primary/80 mt-2">
                   {isConfirmed && isPurchasing
                     ? "Your snack is being dispensed!"
                     : "Please wait for the transaction to confirm."}
@@ -206,8 +206,8 @@ export function PurchaseModal({
 
           {/* Transaction Hash */}
           {txHash && (
-            <div className="text-xs text-gray-500 break-all bg-gray-50 dark:bg-gray-900 p-2 rounded">
-              <p className="font-medium mb-1">Transaction Hash:</p>
+            <div className="text-xs text-muted-foreground break-all bg-muted p-3 rounded-lg">
+              <p className="font-semibold mb-1 text-foreground">Transaction Hash:</p>
               <p className="font-mono">{txHash}</p>
             </div>
           )}
@@ -216,12 +216,12 @@ export function PurchaseModal({
           {error && (
             <>
               <Separator />
-              <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-sm text-red-600 dark:text-red-400">Error</span>
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <span className="text-sm text-destructive font-medium">Error</span>
                 </div>
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
+                <p className="text-xs text-destructive/80 mt-2">{error}</p>
               </div>
             </>
           )}

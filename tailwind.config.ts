@@ -63,6 +63,28 @@ const config: Config = {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        /* Bread.coop inspired cooperative colors */
+        coop: {
+          orange: {
+            DEFAULT: 'hsl(24, 85%, 55%)',
+            light: 'hsl(24, 85%, 65%)',
+            dark: 'hsl(24, 85%, 45%)',
+          },
+          jade: {
+            DEFAULT: 'hsl(168, 45%, 42%)',
+            light: 'hsl(168, 45%, 52%)',
+            dark: 'hsl(168, 45%, 32%)',
+          },
+          blue: {
+            DEFAULT: 'hsl(210, 55%, 50%)',
+            light: 'hsl(210, 55%, 60%)',
+            dark: 'hsl(210, 55%, 40%)',
+          },
+          paper: {
+            DEFAULT: 'hsl(35, 30%, 97%)',
+            warm: 'hsl(35, 25%, 94%)',
+          },
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
