@@ -53,20 +53,20 @@ export function WalletConnect() {
 
   if (isConnected && address) {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-2 border-secondary/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <Wallet className="h-6 w-6 text-secondary" />
             Wallet Connected
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            <p className="font-medium">Connected via: {connector?.name}</p>
-            <p className="font-medium mt-2">Address:</p>
-            <p className="font-mono text-xs break-all bg-gray-100 dark:bg-gray-800 p-2 rounded">{address}</p>
+          <div className="text-sm text-muted-foreground">
+            <p className="font-semibold text-foreground">Connected via: {connector?.name}</p>
+            <p className="font-semibold text-foreground mt-3">Address:</p>
+            <p className="font-mono text-xs break-all bg-muted p-3 rounded-lg mt-1">{address}</p>
           </div>
-          <Button onClick={() => disconnect()} variant="outline" className="w-full">
+          <Button onClick={() => disconnect()} variant="outline" className="w-full border-2">
             <LogOut className="h-4 w-4 mr-2" />
             Disconnect
           </Button>
@@ -76,36 +76,36 @@ export function WalletConnect() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md border-2 border-border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wallet className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <Wallet className="h-6 w-6 text-primary" />
           Connect Wallet
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+      <CardContent className="space-y-5">
+        <p className="text-muted-foreground">
           Connect your wallet to start purchasing from the vending machine on Gnosis Chain.
         </p>
 
         {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400">Connection failed: {error.message}</p>
+          <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <p className="text-sm text-destructive font-medium">Connection failed: {error.message}</p>
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {connectors.map((connector) => (
             <Button
               key={connector.uid}
               onClick={() => handleConnect(connector)}
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start h-12 border-2 hover:border-primary/50 hover:bg-primary/5"
               disabled={isPending || isConnecting === connector.id}
             >
               <div className="flex items-center gap-3">
                 {getConnectorIcon(connector.id)}
-                <span>{getConnectorName(connector)}</span>
+                <span className="font-medium">{getConnectorName(connector)}</span>
                 {isConnecting === connector.id && (
                   <div className="ml-auto">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
@@ -116,7 +116,7 @@ export function WalletConnect() {
           ))}
         </div>
 
-        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+        <div className="text-sm text-muted-foreground space-y-2 p-4 bg-muted/50 rounded-lg">
           <p>• WalletConnect: Mobile wallets (Trust, Rainbow, etc.)</p>
           <p>• MetaMask: Browser extension</p>
           <p>• Coinbase Wallet: Coinbase's wallet app</p>
