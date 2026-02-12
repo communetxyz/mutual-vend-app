@@ -1,404 +1,325 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAccount, useChainId, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
-import { sepolia } from "wagmi/chains"
+import { useState } from "react"
+import { useAccount, useReadContract } from "wagmi"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SiteNavigation } from "@/components/site-navigation"
 import { WalletConnect } from "@/components/wallet-connect"
-import { NetworkChecker } from "@/components/network-checker"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Vote, Users, TrendingUp, Award, Clock, AlertCircle, ArrowUpDown } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { VOTE_TOKEN_ABI } from "@/lib/contracts/vote-token-abi"
-import { VOTE_TOKEN_ADDRESS } from "@/lib/web3/config"
+import { useVoteToken } from "@/hooks/use-vote-token"
+import { Dice1, Trophy, Coins, ExternalLink, AlertCircle, Gift, Star } from "lucide-react"
 import { toast } from "sonner"
-import { formatEther, parseEther } from "viem"
+import { formatUnits } from "viem"
+import Link from "next/link"
 
-// Mock data for BreadKit integration - in production, these would be real contract addresses
-const BREADKIT_DISTRIBUTION_ADDRESS = "0x1234567890123456789012345678901234567890" as `0x${string}`
-const BREADKIT_VOTING_ADDRESS = "0x0987654321098765432109876543210987654321" as `0x${string}`
+// Crowdstake.fun integration URLs and info
+const CROWDSTAKE_URL = "https://crowdstake.fun"
+const BREADKIT_POOL_URL = `${CROWDSTAKE_URL}/pools/breadkit`
 
-// Mock recipient data
-const MOCK_RECIPIENTS = [
-  { address: "0x1111111111111111111111111111111111111111", name: "Platform Development", description: "Core platform features and maintenance" },
-  { address: "0x2222222222222222222222222222222222222222", name: "Community Grants", description: "Funding for community-led initiatives" },
-  { address: "0x3333333333333333333333333333333333333333", name: "Operator Rewards", description: "Incentives for vending machine operators" },
-  { address: "0x4444444444444444444444444444444444444444", name: "Research & Development", description: "Innovation and new feature development" },
-  { address: "0x5555555555555555555555555555555555555555", name: "Marketing & Growth", description: "User acquisition and brand awareness" },
+// Mock lottery pools data - in production, this would come from crowdstake.fun API
+const LOTTERY_POOLS = [
+  {
+    id: "votetoken-weekly",
+    name: "VoteToken Weekly Lottery",
+    description: "Weekly lottery pool using VoteTokens. Winners earn USDC prizes!",
+    entryToken: "VoteToken",
+    entryAmount: "10",
+    prizePool: "500 USDC",
+    participants: 47,
+    timeRemaining: "3 days",
+    featured: true,
+  },
+  {
+    id: "community-grand",
+    name: "Community Grand Prize",
+    description: "Monthly grand prize lottery with massive rewards for the community",
+    entryToken: "VoteToken",
+    entryAmount: "50",
+    prizePool: "2.5 ETH",
+    participants: 23,
+    timeRemaining: "18 days",
+    featured: false,
+  },
+  {
+    id: "daily-small",
+    name: "Daily Quick Draw",
+    description: "Small daily lottery for quick wins",
+    entryToken: "VoteToken", 
+    entryAmount: "5",
+    prizePool: "50 USDC",
+    participants: 89,
+    timeRemaining: "14 hours",
+    featured: false,
+  },
 ]
 
-export default function DemocraticDistributionPage() {
-  const { address, isConnected } = useAccount()
-  const chainId = useChainId()
+export default function LotteryPage() {
+  const { isConnected, address } = useAccount()
+  const { balance, totalSupply } = useVoteToken()
   
-  const [votePoints, setVotePoints] = useState<{ [key: string]: number }>({})
-  const [maxPoints] = useState(100) // Standard 100 points per cycle
-  
-  const isCorrectNetwork = chainId === sepolia.id
-  
-  // Get user's voting power (VoteToken balance)
-  const { data: votingPower } = useReadContract({
-    address: VOTE_TOKEN_ADDRESS,
-    abi: VOTE_TOKEN_ABI,
-    functionName: "balanceOf",
-    args: address ? [address] : undefined,
-  })
-  
-  const { data: hasVotingPower } = useReadContract({
-    address: VOTE_TOKEN_ADDRESS,
-    abi: VOTE_TOKEN_ABI,
-    functionName: "getVotes",
-    args: address ? [address] : undefined,
-  })
-  
-  const { data: totalSupply } = useReadContract({
-    address: VOTE_TOKEN_ADDRESS,
-    abi: VOTE_TOKEN_ABI,
-    functionName: "totalSupply",
-  })
-  
-  const { data: delegatee } = useReadContract({
-    address: VOTE_TOKEN_ADDRESS,
-    abi: VOTE_TOKEN_ABI,
-    functionName: "delegates",
-    args: address ? [address] : undefined,
-  })
-  
-  // Contract write functions
-  const {
-    data: hash,
-    isPending,
-    writeContract,
-    error: writeError
-  } = useWriteContract()
-  
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  })
-  
-  // Handle transaction success
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Transaction confirmed!")
-      setVotePoints({})
-    }
-  }, [isSuccess])
-  
-  // Handle errors
-  useEffect(() => {
-    if (writeError) {
-      toast.error(`Transaction failed: ${writeError.message}`)
-    }
-  }, [writeError])
-  
-  const totalAllocatedPoints = Object.values(votePoints).reduce((sum, points) => sum + points, 0)
-  const remainingPoints = maxPoints - totalAllocatedPoints
-  
-  const handlePointChange = (recipientAddress: string, points: number) => {
-    const numericPoints = Math.max(0, Math.min(points, maxPoints))
-    setVotePoints(prev => ({
-      ...prev,
-      [recipientAddress]: numericPoints
-    }))
+  const [selectedPool, setSelectedPool] = useState<string | null>(null)
+
+  const formatVoteTokens = (amount: bigint) => {
+    return parseFloat(formatUnits(amount, 18)).toFixed(2)
   }
-  
-  const handleSubmitVote = () => {
-    if (totalAllocatedPoints === 0) {
-      toast.error("Please allocate at least some points before voting")
-      return
-    }
-    
-    if (!hasVotingPower || hasVotingPower === 0n) {
-      toast.error("You need voting power (VoteTokens) to participate in governance")
-      return
-    }
-    
-    // Convert vote points to array format expected by BreadKit
-    const pointsArray = MOCK_RECIPIENTS.map(recipient => 
-      votePoints[recipient.address] || 0
-    )
-    
-    toast.success(`Vote submitted with ${totalAllocatedPoints} points allocated!`)
-    // In production: writeContract({ address: BREADKIT_VOTING_ADDRESS, abi: BREADKIT_VOTING_ABI, functionName: "castVote", args: [pointsArray] })
+
+  const handleEnterLottery = (poolId: string) => {
+    // In production, this would integrate with crowdstake.fun contracts
+    toast.success(`Redirecting to ${poolId} lottery pool on crowdstake.fun...`)
+    // window.open(`${BREADKIT_POOL_URL}/${poolId}`, "_blank")
   }
-  
-  const handleSelfDelegate = () => {
-    if (!address) return
-    
-    writeContract({
-      address: VOTE_TOKEN_ADDRESS,
-      abi: VOTE_TOKEN_ABI,
-      functionName: "delegate",
-      args: [address],
-    })
+
+  const canEnterPool = (entryAmount: string) => {
+    const required = BigInt(Math.floor(Number(entryAmount) * 1e18))
+    return balance >= required
   }
-  
-  const votingPowerPercentage = votingPower && totalSupply ? 
-    Number((votingPower * 100n) / totalSupply) : 0
-  
+
   if (!isConnected) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
         <SiteNavigation />
         <main className="flex-1 container px-4 md:px-6 py-8">
-          <div className="flex justify-center">
+          <div className="text-center py-12">
+            <Dice1 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Connect to Play Lottery</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">Connect your wallet to participate in VoteToken lotteries.</p>
             <WalletConnect />
           </div>
         </main>
       </div>
     )
   }
-  
-  if (!isCorrectNetwork) {
-    return (
-      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
-        <SiteNavigation />
-        <main className="flex-1 container px-4 md:px-6 py-8">
-          <NetworkChecker />
-        </main>
-      </div>
-    )
-  }
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <SiteNavigation />
-
+      
       <main className="flex-1 container px-4 md:px-6 py-8">
-        <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex items-center gap-2">
-            <Vote className="h-8 w-8" />
-            <div>
-              <h1 className="text-3xl font-bold">Democratic Revenue Distribution</h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                Vote on how vending machine revenue is allocated each cycle
-              </p>
-            </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tighter flex items-center gap-2">
+            <Dice1 className="h-8 w-8" />
+            VoteToken Lottery Pools
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">
+            Use your VoteTokens to enter lottery pools and win prizes!
+          </p>
+          <div className="flex items-center gap-2 mt-4">
+            <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+              🍞 Powered by Crowdstake.fun (BreadKit)
+            </Badge>
+            <Link href={CROWDSTAKE_URL} target="_blank">
+              <Button variant="outline" size="sm" className="gap-2">
+                Visit Crowdstake.fun
+                <ExternalLink className="h-3 w-3" />
+              </Button>
+            </Link>
           </div>
-          
-          {/* Powered by BreadKit Badge */}
-          <Badge variant="outline" className="w-fit">
-            🍞 Powered by BreadKit (Breadchain Coop)
-          </Badge>
-          
-          {/* Voting Power Alert */}
-          {!hasVotingPower || hasVotingPower === 0n ? (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                You need VoteTokens to participate in revenue distribution voting. 
-                Purchase items from the vending machine to earn VoteTokens automatically.
-              </AlertDescription>
-            </Alert>
-          ) : delegatee === "0x0000000000000000000000000000000000000000" ? (
-            <Alert>
-              <Vote className="h-4 w-4" />
-              <AlertDescription>
-                You have VoteTokens but haven't delegated your voting power yet.{" "}
-                <Button variant="link" className="h-auto p-0" onClick={handleSelfDelegate}>
-                  Delegate to yourself
-                </Button>{" "}
-                to activate your voting power.
-              </AlertDescription>
-            </Alert>
-          ) : null}
-          
-          <Tabs defaultValue="vote" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="vote">Cast Vote</TabsTrigger>
-              <TabsTrigger value="status">Current Cycle</TabsTrigger>
-              <TabsTrigger value="history">Past Distributions</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="vote" className="space-y-6">
-              {/* Voting Power Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Your Voting Power
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div>
-                      <Label className="text-sm text-gray-500">VoteTokens Held</Label>
-                      <p className="text-2xl font-bold">
-                        {votingPower ? formatEther(votingPower) : "0"}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-500">Active Voting Power</Label>
-                      <p className="text-2xl font-bold">
-                        {hasVotingPower ? formatEther(hasVotingPower) : "0"}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-500">% of Total Supply</Label>
-                      <p className="text-2xl font-bold">
-                        {votingPowerPercentage.toFixed(2)}%
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Vote Allocation */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Allocate Your Points</CardTitle>
-                  <p className="text-sm text-gray-500">
-                    Distribute {maxPoints} points across revenue recipients
+        </div>
+
+        <div className="grid gap-6">
+          {/* VoteToken Balance */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Coins className="h-5 w-5" />
+                Your VoteToken Balance
+              </CardTitle>
+              <CardDescription>Use VoteTokens to enter lottery pools</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Available VoteTokens</p>
+                  <p className="text-3xl font-bold">{formatVoteTokens(balance)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Your Share of Total</p>
+                  <p className="text-3xl font-bold">
+                    {totalSupply > 0n ? ((Number(balance) / Number(totalSupply)) * 100).toFixed(2) : "0.00"}%
                   </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label>Points Remaining</Label>
-                    <Badge variant={remainingPoints < 0 ? "destructive" : "secondary"}>
-                      {remainingPoints} / {maxPoints}
-                    </Badge>
-                  </div>
-                  
-                  <Progress 
-                    value={(totalAllocatedPoints / maxPoints) * 100} 
-                    className="h-2"
-                  />
-                  
-                  <div className="space-y-4">
-                    {MOCK_RECIPIENTS.map((recipient) => (
-                      <Card key={recipient.address} className="p-4">
-                        <div className="space-y-3">
-                          <div>
-                            <h4 className="font-medium">{recipient.name}</h4>
-                            <p className="text-sm text-gray-500">{recipient.description}</p>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <Label className="text-sm">Points:</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max={maxPoints}
-                              value={votePoints[recipient.address] || 0}
-                              onChange={(e) => handlePointChange(recipient.address, parseInt(e.target.value) || 0)}
-                              className="w-20"
-                            />
-                            <div className="flex-1">
-                              <Progress 
-                                value={(votePoints[recipient.address] || 0) / maxPoints * 100}
-                                className="h-2"
-                              />
-                            </div>
-                            <span className="text-sm text-gray-500 w-12">
-                              {Math.round((votePoints[recipient.address] || 0) / maxPoints * 100)}%
-                            </span>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                  
-                  <Button 
-                    onClick={handleSubmitVote}
-                    disabled={isPending || isConfirming || totalAllocatedPoints === 0 || !hasVotingPower || remainingPoints < 0}
-                    className="w-full"
-                  >
-                    {isPending || isConfirming ? "Submitting Vote..." : "Submit Vote"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="status" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Current Distribution Cycle
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <Label className="text-sm text-gray-500">Cycle Number</Label>
-                      <p className="text-2xl font-bold">#12</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-500">Time Remaining</Label>
-                      <p className="text-2xl font-bold">18 days</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-500">Total Revenue Pool</Label>
-                      <p className="text-2xl font-bold">2.5 ETH</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-500">Voters This Cycle</Label>
-                      <p className="text-2xl font-bold">47</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm text-gray-500">Current Vote Distribution</Label>
-                    <div className="mt-2 space-y-2">
-                      {MOCK_RECIPIENTS.map((recipient, index) => (
-                        <div key={recipient.address} className="flex items-center justify-between">
-                          <span className="text-sm">{recipient.name}</span>
-                          <div className="flex items-center gap-2">
-                            <Progress value={Math.random() * 100} className="w-20 h-2" />
-                            <span className="text-sm text-gray-500 w-10">{Math.floor(Math.random() * 30 + 10)}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="history" className="space-y-6">
-              <div className="grid gap-4">
-                <h3 className="text-lg font-semibold">Past Distribution Cycles</h3>
-                
-                {[11, 10, 9].map((cycleNum) => (
-                  <Card key={cycleNum}>
-                    <CardContent className="pt-6">
-                      <div className="grid gap-2 md:grid-cols-4">
-                        <div>
-                          <Label className="text-sm text-gray-500">Cycle</Label>
-                          <p className="font-medium">#{cycleNum}</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm text-gray-500">Total Distributed</Label>
-                          <p className="font-medium">{(2 + Math.random()).toFixed(2)} ETH</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm text-gray-500">Participants</Label>
-                          <p className="font-medium">{Math.floor(Math.random() * 20 + 30)}</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm text-gray-500">Date</Label>
-                          <p className="font-medium">{new Date(Date.now() - (12 - cycleNum) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
+              
+              {balance === 0n && (
+                <Alert className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    You don't have any VoteTokens yet. Purchase items from the vending machine to earn VoteTokens!
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Lottery Pools */}
+          <div className="grid gap-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Trophy className="h-6 w-6" />
+              Available Lottery Pools
+            </h2>
+            
+            {LOTTERY_POOLS.map((pool) => (
+              <Card key={pool.id} className={`${pool.featured ? 'border-yellow-400 dark:border-yellow-600' : ''}`}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      {pool.featured && <Star className="h-5 w-5 text-yellow-500" />}
+                      {pool.name}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      {pool.featured && <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">Featured</Badge>}
+                      <Badge variant="outline">{pool.timeRemaining} left</Badge>
+                    </div>
+                  </div>
+                  <CardDescription>{pool.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Entry Cost</p>
+                      <p className="font-semibold">{pool.entryAmount} VoteTokens</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Prize Pool</p>
+                      <p className="font-semibold">{pool.prizePool}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Participants</p>
+                      <p className="font-semibold">{pool.participants} players</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Odds</p>
+                      <p className="font-semibold">1 in {pool.participants}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {canEnterPool(pool.entryAmount) ? (
+                        <span className="text-green-600 dark:text-green-400">✓ You can enter this pool</span>
+                      ) : (
+                        <span className="text-red-600 dark:text-red-400">⚠ Need {pool.entryAmount} VoteTokens to enter</span>
+                      )}
+                    </div>
+                    <Button
+                      onClick={() => handleEnterLottery(pool.id)}
+                      disabled={!canEnterPool(pool.entryAmount)}
+                      variant={pool.featured ? "default" : "outline"}
+                    >
+                      <Gift className="h-4 w-4 mr-2" />
+                      Enter Lottery
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* How It Works */}
+          <Card>
+            <CardHeader>
+              <CardTitle>How VoteToken Lotteries Work</CardTitle>
+              <CardDescription>Understanding the lottery system and BreadKit integration</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    1
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Earn VoteTokens</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Purchase items from vending machines to earn VoteTokens (1:1 with dollar amount spent)
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Enter Lottery Pools</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Use your VoteTokens to enter lottery pools on crowdstake.fun (BreadKit platform)
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Win Prizes</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Winners are selected randomly and receive prizes in USDC, ETH, or other tokens
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                    4
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Support Community</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Lottery participation helps fund community initiatives through the BreadKit cooperative
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* BreadKit Integration Info */}
+          <Card className="border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🍞 About BreadKit & Crowdstake.fun
+              </CardTitle>
+              <CardDescription>Learn about our lottery platform partners</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm">
+                Our lottery system is powered by <strong>crowdstake.fun</strong>, which uses BreadKit technology from Breadchain Cooperative. 
+                This ensures fair, transparent, and decentralized lottery operations.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-2">🎲 Provably Fair</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    All lottery draws are verifiable on-chain using secure randomness
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">🤝 Community Owned</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Lottery profits support cooperative initiatives and community projects
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Link href={CROWDSTAKE_URL} target="_blank">
+                  <Button variant="outline" size="sm">
+                    Visit Crowdstake.fun
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </Button>
+                </Link>
+                <Link href="https://breadchain.coop" target="_blank">
+                  <Button variant="outline" size="sm">
+                    Learn about Breadchain
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
-      
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-gray-500 dark:text-gray-400">&copy; 2025 Mutual Vend. All rights reserved.</p>
-      </footer>
     </div>
   )
 }
