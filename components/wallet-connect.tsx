@@ -85,7 +85,7 @@ export function WalletConnect() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Connect your wallet to start purchasing from the vending machine on Gnosis Chain.
+          Connect your wallet to start purchasing from the vending machine on Sepolia.
         </p>
 
         {error && (

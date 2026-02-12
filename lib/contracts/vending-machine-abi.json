@@ -1,4 +1,4 @@
-export const VENDING_MACHINE_ABI = [
+[
   {
     "type": "constructor",
     "inputs": [
@@ -951,4 +951,4 @@ export const VENDING_MACHINE_ABI = [
     "name": "ZeroAddress",
     "inputs": []
   }
-] as const
+]

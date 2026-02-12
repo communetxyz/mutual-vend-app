@@ -1,7 +1,7 @@
 "use client"
 
 import { useAccount, useChainId, useSwitchChain } from "wagmi"
-import { gnosis } from "wagmi/chains"
+import { sepolia } from "wagmi/chains"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -15,13 +15,13 @@ export function NetworkChecker() {
 
   if (!isConnected) return null
 
-  const isCorrectNetwork = chainId === gnosis.id
+  const isCorrectNetwork = chainId === sepolia.id
 
   if (isCorrectNetwork) {
     return (
       <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
         <CheckCircle className="h-4 w-4" />
-        Connected to Gnosis Chain (Chain ID: {chainId})
+        Connected to Sepolia (Chain ID: {chainId})
       </div>
     )
   }
@@ -47,9 +47,9 @@ export function NetworkChecker() {
 
   const handleSwitchNetwork = async () => {
     try {
-      toast.info("Switching to Gnosis Chain...")
-      await switchChain({ chainId: gnosis.id })
-      toast.success("Successfully switched to Gnosis Chain!")
+      toast.info("Switching to Sepolia...")
+      await switchChain({ chainId: sepolia.id })
+      toast.success("Successfully switched to Sepolia!")
     } catch (error) {
       console.error("Failed to switch network:", error)
       toast.error("Failed to switch network. Please switch manually in your wallet.")
@@ -69,7 +69,7 @@ export function NetworkChecker() {
           <Zap className="h-4 w-4" />
           <AlertDescription className="text-red-700 dark:text-red-300">
             <strong>Action Required:</strong> Your wallet is connected to {getNetworkName(chainId)}. The vending machine
-            only works on Gnosis Chain.
+            only works on Sepolia.
           </AlertDescription>
         </Alert>
 
@@ -82,7 +82,7 @@ export function NetworkChecker() {
           </div>
           <div className="flex justify-between">
             <span className="font-medium">Required Network:</span>
-            <span className="text-green-600 dark:text-green-400">Gnosis Chain (ID: 100)</span>
+            <span className="text-green-600 dark:text-green-400">Sepolia (ID: 11155111)</span>
           </div>
           <div className="flex justify-between">
             <span className="font-medium">Contract Address:</span>
@@ -92,29 +92,29 @@ export function NetworkChecker() {
 
         <div className="flex flex-col gap-2">
           <Button onClick={handleSwitchNetwork} disabled={isPending} className="w-full">
-            {isPending ? "Switching Networks..." : "Switch to Gnosis Chain"}
+            {isPending ? "Switching Networks..." : "Switch to Sepolia"}
           </Button>
 
           <div className="text-xs text-gray-600 dark:text-gray-400">
-            <p className="mb-2">If automatic switching fails, manually add Gnosis Chain:</p>
+            <p className="mb-2">If automatic switching fails, manually add Sepolia:</p>
             <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded font-mono text-xs space-y-1">
-              <div>Network Name: Gnosis</div>
-              <div>RPC URL: https://rpc.gnosischain.com</div>
-              <div>Chain ID: 100</div>
-              <div>Currency Symbol: XDAI</div>
-              <div>Block Explorer: https://gnosisscan.io</div>
+              <div>Network Name: Sepolia</div>
+              <div>RPC URL: https://rpc.sepoliachain.com</div>
+              <div>Chain ID: 11155111</div>
+              <div>Currency Symbol: ETH</div>
+              <div>Block Explorer: https://sepoliascan.io</div>
             </div>
           </div>
 
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1 bg-transparent" asChild>
-              <a href="https://chainlist.org/chain/100" target="_blank" rel="noopener noreferrer">
+              <a href="https://chainlist.org/chain/11155111" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-3 w-3 mr-1" />
                 Chainlist
               </a>
             </Button>
             <Button variant="outline" size="sm" className="flex-1 bg-transparent" asChild>
-              <a href="https://gnosisscan.io" target="_blank" rel="noopener noreferrer">
+              <a href="https://sepoliascan.io" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="h-3 w-3 mr-1" />
                 Explorer
               </a>

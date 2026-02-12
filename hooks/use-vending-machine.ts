@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useAccount, useReadContract, useReadContracts } from "wagmi"
 import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
 import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
-import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
+import { CONTRACT_ADDRESSES } from "@/lib/contracts/addresses"
 import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 export function useVendingMachine() {
@@ -20,13 +20,13 @@ export function useVendingMachine() {
 
   // Get machine configuration
   const { data: numTracks } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
+    address: CONTRACT_ADDRESSES.VENDING_MACHINE,
     abi: VENDING_MACHINE_ABI,
     functionName: "NUM_TRACKS",
   })
 
   const { data: maxStockPerTrack } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
+    address: CONTRACT_ADDRESSES.VENDING_MACHINE,
     abi: VENDING_MACHINE_ABI,
     functionName: "MAX_STOCK_PER_TRACK",
   })
@@ -38,21 +38,21 @@ export function useVendingMachine() {
     error: tracksError,
     isLoading: tracksLoading,
   } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
+    address: CONTRACT_ADDRESSES.VENDING_MACHINE,
     abi: VENDING_MACHINE_ABI,
     functionName: "getAllTracks",
   })
 
   // Get accepted tokens
   const { data: acceptedTokenAddresses, error: tokensError } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
+    address: CONTRACT_ADDRESSES.VENDING_MACHINE,
     abi: VENDING_MACHINE_ABI,
     functionName: "getAcceptedTokens",
   })
 
   // Get vote token address for rewards info
   const { data: voteTokenAddress } = useReadContract({
-    address: VENDING_MACHINE_ADDRESS,
+    address: CONTRACT_ADDRESSES.VENDING_MACHINE,
     abi: VENDING_MACHINE_ABI,
     functionName: "voteToken",
   })
