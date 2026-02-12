@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Bot, Printer, Wrench, PieChart, TrendingUp, Diamond, Shield, ShoppingCart, Rocket } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWithoutRef<"a">>(
   ({ className, title, children, ...props }, ref) => {
@@ -160,7 +161,8 @@ export function SiteNavigation() {
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-      <div className="ml-4">
+      <div className="ml-4 flex items-center gap-2">
+        <ThemeToggle />
         <Link href="/vending-machine">
           <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
             <ShoppingCart className="h-4 w-4 mr-2" />
