@@ -10,7 +10,7 @@ import {
   useSwitchChain,
   useConnectorClient,
 } from "wagmi"
-import { gnosis } from "wagmi/chains"
+import { sepolia } from "wagmi/chains"
 import { VENDING_MACHINE_ABI } from "@/lib/contracts/vending-machine-abi"
 import { ERC20_ABI } from "@/lib/contracts/erc20-abi"
 import { VENDING_MACHINE_ADDRESS } from "@/lib/web3/config"
@@ -32,30 +32,30 @@ export function usePurchase() {
     error: null,
   })
 
-  // Validate and switch to Gnosis Chain with retry logic
+  // Validate and switch to Sepolia with retry logic
   const ensureCorrectNetwork = async (): Promise<boolean> => {
-    console.log("Current chainId:", chainId, "Target:", gnosis.id)
+    console.log("Current chainId:", chainId, "Target:", sepolia.id)
 
-    if (chainId !== gnosis.id) {
+    if (chainId !== sepolia.id) {
       try {
-        toast.info("Switching to Gnosis Chain...")
-        await switchChain({ chainId: gnosis.id })
+        toast.info("Switching to Sepolia...")
+        await switchChain({ chainId: sepolia.id })
 
         // Wait a bit for the switch to complete
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
         // Double-check the chain after switching
-        if (connectorClient?.chain?.id !== gnosis.id) {
+        if (connectorClient?.chain?.id !== sepolia.id) {
           console.error("Chain switch failed. Connector still on:", connectorClient?.chain?.id)
-          toast.error("Chain switch incomplete. Please manually switch to Gnosis Chain in your wallet.")
+          toast.error("Chain switch incomplete. Please manually switch to Sepolia in your wallet.")
           return false
         }
 
-        toast.success("Successfully switched to Gnosis Chain!")
+        toast.success("Successfully switched to Sepolia!")
         return true
       } catch (error) {
         console.error("Failed to switch chain:", error)
-        toast.error("Please manually switch to Gnosis Chain in your wallet")
+        toast.error("Please manually switch to Sepolia in your wallet")
         return false
       }
     }
@@ -78,7 +78,7 @@ export function usePurchase() {
     if (!networkOk) return false
 
     // Final validation - check both wagmi chainId and connector client
-    if (chainId !== gnosis.id || connectorClient?.chain?.id !== gnosis.id) {
+    if (chainId !== sepolia.id || connectorClient?.chain?.id !== sepolia.id) {
       toast.error(
         `Network mismatch! Wagmi: ${chainId}, Connector: ${connectorClient?.chain?.id}. Please refresh and try again.`,
       )
@@ -94,15 +94,15 @@ export function usePurchase() {
     abi: ERC20_ABI,
     functionName: "allowance",
     args: address && purchaseState.selectedToken ? [address, VENDING_MACHINE_ADDRESS] : undefined,
-    chainId: gnosis.id, // Force Gnosis Chain
+    chainId: sepolia.id, // Force Sepolia
     query: {
-      enabled: !!address && !!purchaseState.selectedToken && chainId === gnosis.id,
+      enabled: !!address && !!purchaseState.selectedToken && chainId === sepolia.id,
     },
   })
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash: purchaseState.txHash as `0x${string}`,
-    chainId: gnosis.id, // Force Gnosis Chain
+    chainId: sepolia.id, // Force Sepolia
   })
 
   // Auto-refetch allowance when approval transaction is confirmed
@@ -152,7 +152,7 @@ export function usePurchase() {
   }
 
   const checkAllowance = () => {
-    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || chainId !== gnosis.id) return false
+    if (!purchaseState.selectedTrack || !purchaseState.selectedToken || chainId !== sepolia.id) return false
 
     const requiredAllowance = purchaseState.selectedTrack.price
     return allowance ? allowance >= requiredAllowance : false
@@ -167,7 +167,7 @@ export function usePurchase() {
 
       const approvalAmount = purchaseState.selectedTrack!.price * 2n // Approve 2x for future purchases
 
-      console.log("Sending approval transaction on chain:", gnosis.id)
+      console.log("Sending approval transaction on chain:", sepolia.id)
       console.log("Token address:", purchaseState.selectedToken!.address)
       console.log("Spender address:", VENDING_MACHINE_ADDRESS)
       console.log("Amount:", approvalAmount.toString())
@@ -178,7 +178,7 @@ export function usePurchase() {
           abi: ERC20_ABI,
           functionName: "approve",
           args: [VENDING_MACHINE_ADDRESS, approvalAmount],
-          chainId: gnosis.id, // Explicitly force Gnosis Chain
+          chainId: sepolia.id, // Explicitly force Sepolia
         },
         {
           onSuccess: (hash) => {
@@ -225,7 +225,7 @@ export function usePurchase() {
     try {
       setPurchaseState((prev) => ({ ...prev, isPurchasing: true, error: null }))
 
-      console.log("Sending purchase transaction on chain:", gnosis.id)
+      console.log("Sending purchase transaction on chain:", sepolia.id)
       console.log("Contract address:", VENDING_MACHINE_ADDRESS)
       console.log("Track ID:", purchaseState.selectedTrack!.trackId)
       console.log("Token address:", purchaseState.selectedToken!.address)
@@ -236,7 +236,7 @@ export function usePurchase() {
           abi: VENDING_MACHINE_ABI,
           functionName: "vendFromTrack",
           args: [purchaseState.selectedTrack!.trackId, purchaseState.selectedToken!.address as `0x${string}`, address!],
-          chainId: gnosis.id, // Explicitly force Gnosis Chain
+          chainId: sepolia.id, // Explicitly force Sepolia
         },
         {
           onSuccess: (hash) => {
@@ -287,7 +287,7 @@ export function usePurchase() {
     isConfirming,
     isConfirmed,
     refetchAllowance,
-    isCorrectNetwork: chainId === gnosis.id,
+    isCorrectNetwork: chainId === sepolia.id,
     connectorChainId: connectorClient?.chain?.id,
   }
 }

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { ShoppingCart, Package, AlertTriangle } from "lucide-react"
 import { formatUnits } from "viem"
 import { useChainId } from "wagmi"
-import { gnosis } from "wagmi/chains"
+import { sepolia } from "wagmi/chains"
 import type { Track, TokenInfo } from "@/lib/types/vending-machine"
 
 interface ProductGridProps {
@@ -18,7 +18,7 @@ interface ProductGridProps {
 
 export function ProductGrid({ tracks, acceptedTokens, onPurchase, isConnected }: ProductGridProps) {
   const chainId = useChainId()
-  const isCorrectNetwork = chainId === gnosis.id
+  const isCorrectNetwork = chainId === sepolia.id
 
   const formatPrice = (price: bigint, token: TokenInfo) => {
     return `${formatUnits(price, token.decimals)} ${token.symbol}`

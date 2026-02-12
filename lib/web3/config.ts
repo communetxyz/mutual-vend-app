@@ -1,9 +1,9 @@
 import { createConfig, http } from "wagmi"
-import { gnosis } from "wagmi/chains"
+import { sepolia } from "wagmi/chains"
 import { metaMask, walletConnect, injected, coinbaseWallet } from "wagmi/connectors"
 
 export const config = createConfig({
-  chains: [gnosis], // Only Gnosis Chain
+  chains: [sepolia],
   connectors: [
     injected(),
     metaMask({
@@ -28,12 +28,11 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [gnosis.id]: http(process.env.NEXT_PUBLIC_GNOSIS_RPC_URL || "https://rpc.gnosischain.com"),
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL || "https://eth-sepolia.g.alchemy.com/v2/Rr57Q41YGfkxYkx0kZp3EOQs86HatGGE"),
   },
-  // Ensure we default to Gnosis Chain
   ssr: true,
 })
 
-export const VENDING_MACHINE_ADDRESS = "0x6699fb5cdADb6065c71457Dc44A6f9d0688a5e4c" as `0x${string}`
-export const CHAIN_ID = 100 // Gnosis Chain ID
-export const NETWORK_NAME = "Gnosis Chain"
+export const VENDING_MACHINE_ADDRESS = "0xffBe0620a4BFE0594ce6e9ce8b52C69Df04301eA" as `0x${string}`
+export const CHAIN_ID = 11155111 // Sepolia
+export const NETWORK_NAME = "Sepolia"

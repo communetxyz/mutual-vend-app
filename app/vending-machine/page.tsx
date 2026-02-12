@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useAccount, useChainId, useConnectorClient } from "wagmi"
-import { gnosis } from "wagmi/chains"
+import { sepolia } from "wagmi/chains"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -35,8 +35,8 @@ export default function VendingMachinePage() {
   } = usePurchase()
 
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
-  const isCorrectNetwork = chainId === gnosis.id
-  const connectorOnCorrectNetwork = connectorChainId === gnosis.id
+  const isCorrectNetwork = chainId === sepolia.id
+  const connectorOnCorrectNetwork = connectorChainId === sepolia.id
 
   const handlePurchase = (track: any, token: any) => {
     if (!isCorrectNetwork || !connectorOnCorrectNetwork) {
