@@ -12,6 +12,7 @@ import { PurchaseModal } from "@/components/purchase-modal"
 import { NetworkChecker } from "@/components/network-checker"
 import { useVendingMachine } from "@/hooks/use-vending-machine"
 import { usePurchase } from "@/hooks/use-purchase"
+import { useVoteToken } from "@/hooks/use-vote-token"
 import { SiteNavigation } from "@/components/site-navigation"
 import { Bot, RefreshCw, Package, AlertTriangle, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -21,6 +22,7 @@ export default function VendingMachinePage() {
   const chainId = useChainId()
   const { data: connectorClient } = useConnectorClient()
   const { tracks, acceptedTokens, machineInfo, voteTokenAddress, loading, error, refetchTracks } = useVendingMachine()
+  const { balance: voteTokenBalance, refetchBalance: refetchVoteBalance } = useVoteToken()
   const {
     purchaseState,
     selectTrackAndToken,
@@ -40,7 +42,7 @@ export default function VendingMachinePage() {
 
   const handlePurchase = (track: any, token: any) => {
     if (!isCorrectNetwork || !connectorOnCorrectNetwork) {
-      toast.error("Please ensure your wallet is connected to Gnosis Chain")
+      toast.error("Please ensure your wallet is connected to Sepolia")
       return
     }
     selectTrackAndToken(track, token)
@@ -65,7 +67,9 @@ export default function VendingMachinePage() {
       setTimeout(() => {
         handleClosePurchaseModal()
         refetchTracks()
-        toast.success("Purchase complete! Your snack has been dispensed!")
+        refetchVoteBalance()
+        const earnedTokens = purchaseState.selectedTrack?.price || 0n
+        toast.success(`Purchase complete! Your snack has been dispensed! +${(Number(earnedTokens) / 1e6).toFixed(2)} VoteTokens earned!`)
       }, 3000)
     }
   }, [isConfirmed, purchaseState.isPurchasing, purchaseState.txHash])
@@ -83,15 +87,22 @@ export default function VendingMachinePage() {
               Mutual Vend Machine
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Purchase snacks with crypto and earn rewards on Gnosis Chain
+              Purchase snacks with crypto and earn VoteTokens on Sepolia
             </p>
+            {isConnected && voteTokenBalance > 0n && (
+              <div className="mt-2">
+                <Badge variant="secondary" className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                  🗳️ VoteTokens: {(Number(voteTokenBalance) / 1e18).toFixed(2)}
+                </Badge>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full animate-pulse ${isCorrectNetwork && connectorOnCorrectNetwork ? "bg-green-500" : "bg-red-500"}`}
               />
-              {isCorrectNetwork && connectorOnCorrectNetwork ? "Gnosis Chain" : `Wrong Network`}
+              {isCorrectNetwork && connectorOnCorrectNetwork ? "Sepolia" : `Wrong Network`}
             </Badge>
             <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
@@ -126,7 +137,7 @@ export default function VendingMachinePage() {
         {loading && isCorrectNetwork && connectorOnCorrectNetwork && (
           <div className="text-center py-12">
             <RefreshCw className="h-8 w-8 mx-auto text-gray-400 animate-spin mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">Loading vending machine data from Gnosis Chain...</p>
+            <p className="text-gray-500 dark:text-gray-400">Loading vending machine data from Sepolia...</p>
           </div>
         )}
 
@@ -158,7 +169,7 @@ export default function VendingMachinePage() {
             <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Network Configuration Issue</h3>
             <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Your wallet needs to be properly connected to Gnosis Chain to view and purchase products.
+              Your wallet needs to be properly connected to Sepolia to view and purchase products.
             </p>
             <NetworkChecker />
           </div>

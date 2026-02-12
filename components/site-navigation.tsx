@@ -115,10 +115,30 @@ export function SiteNavigation() {
                     Buy and sell fractionalized machine ownership
                   </div>
                 </ListItem>
-                <ListItem href="/lottery" title="Lossless Lottery">
+                <ListItem href="/lottery" title="Democratic Distribution">
                   <div className="flex items-center gap-2">
                     <Diamond className="h-4 w-4" />
-                    Win machines through fair, no-loss auctions
+                    Vote on how revenue is distributed using BreadKit
+                  </div>
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="text-sm font-medium">Manage</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1 lg:w-[600px]">
+                <ListItem href="/operator" title="Operator Dashboard">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="h-4 w-4" />
+                    Manage vending machine inventory, pricing, and settings
+                  </div>
+                </ListItem>
+                <ListItem href="/treasury" title="Treasury Management">
+                  <div className="flex items-center gap-2">
+                    <PieChart className="h-4 w-4" />
+                    Withdraw revenue and manage treasury funds
                   </div>
                 </ListItem>
               </ul>
