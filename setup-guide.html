@@ -1,0 +1,1581 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#14291e" />
+    <title>Mutual Vend · From box to first open</title>
+    <style>
+      :root {
+        --ink: #14291e;
+        --paper: #f7faf5;
+        --line: #d2dfcf;
+        --pine: #0f766e;
+        --muted: #536958;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.75;
+      }
+      header {
+        background: var(--ink);
+        color: #f0fdf4;
+        padding: 28px max(24px, calc((100vw - 1080px) / 2));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 22px;
+      }
+      .brand {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.8px;
+      }
+      .brand span {
+        color: #b7dba9;
+      }
+      .tag {
+        font-size: 10px;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+        color: #c3d9bc;
+      }
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 56px 24px;
+      }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        letter-spacing: -0.8px;
+        margin: 0;
+      }
+      h1 {
+        font-size: clamp(42px, 6vw, 72px);
+        max-width: 800px;
+        font-weight: 800;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--pine);
+      }
+      h2 {
+        font-size: 30px;
+      }
+      h3 {
+        font-size: 18px;
+      }
+      p {
+        margin: 15px 0;
+      }
+      .intro {
+        max-width: 730px;
+        font-size: 17px;
+        color: var(--muted);
+        margin: 25px 0;
+      }
+      .hero-links {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 28px 0 35px;
+      }
+      .button,
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 20px;
+        border: 1px solid var(--ink);
+        background: #fff;
+        color: var(--ink);
+        font: 600 13px inherit;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 3px 3px 0 #788c78;
+      }
+      .button.primary {
+        background: #15803d;
+        color: white;
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 34px 0;
+      }
+      .meta > div {
+        background: #fff;
+        border: 1px solid var(--line);
+        padding: 18px;
+      }
+      .meta span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.4px;
+      }
+      .meta b {
+        display: block;
+        margin-top: 6px;
+        font-size: 15px;
+      }
+      .callout {
+        border-left: 4px solid var(--pine);
+        padding: 18px 22px;
+        background: #e8f4e4;
+        font-size: 14px;
+        margin: 24px 0;
+      }
+      .callout.warn {
+        border-color: #965d20;
+        background: #fff2df;
+      }
+      .callout b {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .contents {
+        background: #fff;
+        border: 1px solid var(--line);
+        padding: 24px;
+        margin: 34px 0 52px;
+      }
+      .contents h2 {
+        font-size: 18px;
+        margin-bottom: 17px;
+      }
+      .contents > div {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 9px 28px;
+      }
+      .contents a {
+        font-size: 14px;
+        text-decoration: none;
+        color: var(--pine);
+      }
+      section {
+        margin: 0 0 53px;
+        scroll-margin-top: 20px;
+      }
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-top: 1px solid var(--line);
+        padding-top: 30px;
+        margin-bottom: 24px;
+      }
+      .num {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        background: #d8eacd;
+        color: #365d36;
+        border: 1px solid #b4cba8;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 22px;
+      }
+      .card p {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .done {
+        display: block;
+        margin-top: 18px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--pine);
+      }
+      ol,
+      ul {
+        padding-left: 23px;
+      }
+      li {
+        padding: 5px 0;
+      }
+      li::marker {
+        font-weight: 700;
+        color: var(--pine);
+      }
+      pre {
+        background: #172b21;
+        color: #dcf2d6;
+        border: 1px solid #314f3b;
+        padding: 22px;
+        font-size: 12px;
+        line-height: 1.9;
+        overflow: auto;
+        position: relative;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 0.9em;
+      }
+      p code,
+      li code,
+      td code {
+        background: #e7ede4;
+        padding: 2px 5px;
+        overflow-wrap: anywhere;
+      }
+      .copy {
+        box-shadow: none;
+        font-size: 10px;
+        float: right;
+        padding: 5px 9px;
+        background: #e7ede4;
+      }
+      .table-scroll {
+        overflow: auto;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 15px 17px;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        background: #e7f0e2;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      a {
+        color: var(--pine);
+        text-underline-offset: 3px;
+      }
+      .step-list {
+        list-style: none;
+        padding: 0;
+        counter-reset: step;
+      }
+      .step-list li {
+        counter-increment: step;
+        position: relative;
+        padding: 20px 20px 20px 59px;
+        border: 1px solid var(--line);
+        margin: 12px 0;
+        background: white;
+      }
+      .step-list li::before {
+        content: counter(step);
+        position: absolute;
+        left: 19px;
+        top: 20px;
+        font-size: 18px;
+        color: var(--pine);
+        font-weight: 700;
+      }
+      .step-list b {
+        display: block;
+      }
+      .checklist {
+        padding: 0;
+        list-style: none;
+      }
+      .checklist label {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        padding: 15px 19px;
+        background: white;
+        border: 1px solid var(--line);
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .checklist li {
+        padding: 0;
+        margin-bottom: 8px;
+      }
+      .checklist input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--pine);
+        margin-top: 4px;
+        flex-shrink: 0;
+      }
+      .checklist label:has(:checked) {
+        background: #e7f3df;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .footer {
+        border-top: 1px solid var(--line);
+        padding-top: 28px;
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 25px;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 10px;
+        padding: 3px 7px;
+        border: 1px solid #9fb894;
+        background: #e7f3df;
+        white-space: nowrap;
+      }
+      .badge.pending {
+        background: #fff2df;
+        border-color: #cbaa7e;
+      }
+      .result-line {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .result-line label {
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input[type="text"],
+      textarea {
+        font: inherit;
+        border: 1px solid #adc4a6;
+        padding: 11px;
+        background: #fff;
+        color: var(--ink);
+        width: 100%;
+        margin-top: 5px;
+      }
+      textarea {
+        height: 120px;
+        resize: vertical;
+      }
+      .result-line .wide {
+        grid-column: 1/-1;
+      }
+      details {
+        border: 1px solid var(--line);
+        background: white;
+        padding: 16px 20px;
+        margin: 12px 0;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      details p {
+        font-size: 14px;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid #0284c7;
+        outline-offset: 3px;
+      }
+      @media (max-width: 650px) {
+        header {
+          padding: 22px;
+          align-items: flex-start;
+        }
+        .tag {
+          max-width: 140px;
+          text-align: right;
+          font-size: 8px;
+        }
+        main {
+          padding: 38px 20px;
+        }
+        h1 {
+          font-size: 45px;
+        }
+        .intro {
+          font-size: 15px;
+        }
+        .meta {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .meta > div {
+          padding: 14px 18px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+        }
+        .meta b {
+          margin: 0;
+          font-size: 12px;
+        }
+        .cards {
+          grid-template-columns: 1fr;
+        }
+        .contents > div {
+          grid-template-columns: 1fr;
+        }
+        .section-title {
+          gap: 12px;
+        }
+        h2 {
+          font-size: 25px;
+        }
+        .section-title .num {
+          width: 36px;
+          height: 36px;
+        }
+        .hero-links {
+          gap: 13px;
+        }
+        .button,
+        button {
+          font-size: 12px;
+          padding: 11px 14px;
+        }
+        .result-line {
+          grid-template-columns: 1fr;
+        }
+        .footer {
+          flex-direction: column;
+          gap: 10px;
+        }
+        .table-scroll {
+          font-size: 12px;
+        }
+        .callout {
+          padding: 16px;
+        }
+        th,
+        td {
+          padding: 13px;
+        }
+        pre {
+          padding: 17px;
+          font-size: 11px;
+        }
+      }
+      @media print {
+        header {
+          background: #fff;
+          color: #14291e;
+          padding: 0 0 20px;
+        }
+        .tag {
+          color: #14291e;
+        }
+        .hero-links,
+        .contents,
+        .copy,
+        button {
+          display: none;
+        }
+        main {
+          padding: 0;
+          max-width: none;
+        }
+        body {
+          background: #fff;
+          font-size: 11px;
+        }
+        h1 {
+          font-size: 37px;
+        }
+        h2 {
+          font-size: 23px;
+        }
+        .intro {
+          font-size: 13px;
+        }
+        .card,
+        .callout,
+        .step-list li,
+        .checklist li {
+          break-inside: avoid;
+        }
+        section {
+          margin-bottom: 28px;
+        }
+        .section-title {
+          break-after: avoid;
+        }
+        pre {
+          white-space: pre-wrap;
+          background: #eef5eb;
+          color: #14291e;
+        }
+        a {
+          color: #14291e;
+        }
+        table {
+          font-size: 10px;
+        }
+        th,
+        td {
+          padding: 8px;
+        }
+        .meta {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .footer {
+          display: block;
+        }
+        textarea {
+          height: 90px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">mutual <span>vend.</span></div>
+      <div class="tag">
+        A Decentral Park field guide<br />KSJ · 12 compartments
+      </div>
+    </header>
+    <main>
+      <div class="tag" style="color: #55704e; margin-bottom: 15px">
+        FROM BOX TO FIRST OPEN
+      </div>
+      <h1>A little setup.<br /><em>A real-world first test.</em></h1>
+      <p class="intro">
+        Everything you need to connect your mini vending machine, check every
+        door, and begin stocking it. Start with a practice run today, then bring
+        this guide to the machine tomorrow.
+      </p>
+      <div class="hero-links">
+        <a
+          class="button primary"
+          href="https://communetxyz.github.io/mutual-vend-app/"
+          >Open the field app ↗</a
+        ><button onclick="window.print()">Print / save as PDF</button
+        ><a class="button" href="#first">Jump to the first door ↓</a>
+      </div>
+      <div class="meta">
+        <div><span>PHYSICAL TEST</span><b>October 3, 2026 · Tokyo</b></div>
+        <div><span>BRING</span><b>Machine + Chrome + this guide</b></div>
+        <div><span>ALLOW</span><b>About 30–45 minutes</b></div>
+      </div>
+      <div class="callout">
+        <b>Software checked; hardware is next.</b>The app includes real
+        Bluetooth code and a separate simulator. Automated tests verify software
+        behavior. Only your physical test can verify this board’s handshake,
+        sensor polarity, door numbering, battery reporting and USB behavior. A
+        successful write is never presented as confirmed delivery.
+      </div>
+      <nav class="contents" aria-label="Guide contents">
+        <h2>Your route through the setup</h2>
+        <div>
+          <a href="#bring">01 · Gather the essentials</a
+          ><a href="#run">02 · Open or run the app</a
+          ><a href="#practice">03 · Try a practice session</a
+          ><a href="#connect">04 · Connect the real machine</a
+          ><a href="#first">05 · Open the first door</a
+          ><a href="#twelve">06 · Check all twelve doors</a
+          ><a href="#stock">07 · Stock, collect, and keep records</a
+          ><a href="#usb">08 · Power and USB checks</a
+          ><a href="#trouble">09 · Troubleshoot calmly</a
+          ><a href="#repos">10 · Understand the repositories</a
+          ><a href="#parity">11 · What is implemented</a
+          ><a href="#results">12 · Record the result</a>
+        </div>
+      </nav>
+      <section id="bring">
+        <div class="section-title">
+          <span class="num">01</span>
+          <h2>Gather the essentials.</h2>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>The machine</h3>
+            <p>
+              Your purchased KSJ unit, its correct power supply or charged
+              battery, any keys or service-access tools, and one empty
+              compartment. Inspect for transit damage before powering on.
+            </p>
+            <span class="done">Done when: it powers on normally.</span>
+          </article>
+          <article class="card">
+            <h3>A supported browser</h3>
+            <p>
+              Google Chrome on Android, macOS or Windows. Turn Bluetooth on. On
+              a Mac, allow Chrome in System Settings → Privacy &amp; Security →
+              Bluetooth when prompted.
+            </p>
+            <span class="done"
+              >Done when: Chrome can show a device picker.</span
+            >
+          </article>
+          <article class="card">
+            <h3>A way to compare</h3>
+            <p>
+              Keep the supplied APK and PDF on hand. For USB testing, bring a
+              simple USB light or meter. Label the actual doors with removable
+              numbers if the cabinet is unclear.
+            </p>
+            <span class="done"
+              >Done when: you can identify each physical door.</span
+            >
+          </article>
+        </div>
+        <p class="small">
+          iPhone/iPad Safari and iOS Chrome are not a supported direct Web
+          Bluetooth path for this app. Use an Android phone or laptop beside the
+          machine. See
+          <a href="https://developer.chrome.com/docs/capabilities/bluetooth"
+            >Chrome’s platform and permission guidance</a
+          >. Windows requires compatible Bluetooth hardware; Linux is not the
+          default field-test path.
+        </p>
+      </section>
+      <section id="run">
+        <div class="section-title">
+          <span class="num">02</span>
+          <h2>Open or run the app.</h2>
+        </div>
+        <h3>Option A · Hosted HTTPS app</h3>
+        <ol>
+          <li>
+            Open
+            <a href="https://communetxyz.github.io/mutual-vend-app/"
+              >Mutual Vend field app</a
+            >
+            in Chrome.
+          </li>
+          <li>
+            Let it load once while online. The production app caches its
+            interface and this guide for later offline use. Install from
+            Chrome’s menu if offered.
+          </li>
+          <li>
+            Reload once, then briefly turn off internet and check that the app
+            still opens. Bluetooth stays on.
+          </li>
+        </ol>
+        <p class="small">
+          Offline cache applies to the production build. Saved inventory belongs
+          to this URL and browser; it will not automatically appear at localhost
+          or on another phone.
+        </p>
+        <h3 style="margin-top: 28px">Option B · Run on this Mac</h3>
+        <p>
+          The working checkout is already at
+          <code>/Users/wk/mutual-vend-work/mutual-vend-app</code>. Double-click
+          <code>Start Mutual Vend.command</code> in that folder, or run:
+        </p>
+        <pre><button class="copy" data-copy>Copy</button><code>cd /Users/wk/mutual-vend-work/mutual-vend-app/field
+npm ci
+npm run dev</code></pre>
+        <p>
+          Open <a href="http://localhost:5173">http://localhost:5173</a> in
+          Google Chrome. Keep Terminal running for the session. Node.js 22 is
+          recommended.
+        </p>
+        <h3 style="margin-top: 28px">Option C · Android over a USB cable</h3>
+        <ol>
+          <li>Run the app on the computer using Option B.</li>
+          <li>
+            On Android, enable Developer options → USB debugging. Plug the phone
+            into the computer with a data cable and accept its debugging
+            authorization.
+          </li>
+          <li>With Android Platform Tools installed, run:</li>
+        </ol>
+        <pre><button class="copy" data-copy>Copy</button><code>adb devices
+adb reverse tcp:5173 tcp:5173</code></pre>
+        <p>
+          Then open <code>http://localhost:5173</code> in
+          <strong>Chrome on the phone</strong>. The phone’s Bluetooth talks
+          directly to the machine. The computer only serves the app. Disable USB
+          debugging afterward if you no longer need it.
+        </p>
+        <div class="callout warn">
+          <b>A normal LAN address is not enough.</b
+          ><code>http://192.168.…:5173</code> is an insecure origin and does not
+          enable Web Bluetooth. Use the hosted HTTPS app, localhost on the
+          laptop, or Android USB forwarding. Do not disable browser security to
+          work around this.
+        </div>
+        <details>
+          <summary>
+            Fresh clone, production build, and verification commands
+          </summary>
+          <pre><button class="copy" data-copy>Copy</button><code>git clone --branch feat/ksj-field-app https://github.com/communetxyz/mutual-vend-app.git
+cd mutual-vend-app/field
+npm ci
+npm test
+npm run build
+npm run preview</code></pre>
+          <p>
+            The preview is at <code>http://localhost:4173</code>. For browser
+            tests: <code>npx playwright install chromium</code>, then
+            <code>npm run test:e2e</code>. Static files are in
+            <code>field/dist/</code>. Always serve that directory; opening its
+            index.html as a file is not the Bluetooth path.
+          </p>
+        </details>
+      </section>
+      <section id="practice">
+        <div class="section-title">
+          <span class="num">03</span>
+          <h2>Try a practice session.</h2>
+        </div>
+        <ol class="step-list">
+          <li>
+            <b>Select “Try a simulation.”</b>Click Start practice session. You
+            should see Handshake confirmed, 82% simulated battery, and twelve
+            closed doors.
+          </li>
+          <li>
+            <b>Open door 1 once.</b>Select door 01 on the cabinet. Check the
+            confirmation, then click Open door 1 once. Its label changes to
+            OPEN.
+          </li>
+          <li>
+            <b>Close the simulated doors.</b>Use the button below the cabinet.
+            Watch the readback return to CLOSED.
+          </li>
+          <li>
+            <b>Try the failure path.</b>Expand Device tools, set Simulated
+            failure to No replies, and click Refresh status. You should get an
+            unknown-result timeout. Restore Normal replies and refresh again.
+          </li>
+          <li>
+            <b>Disconnect before switching to hardware.</b>Click the unplug
+            icon. Choose Real machine. Practice checkmarks and collection
+            records remain labeled as practice.
+          </li>
+        </ol>
+        <span class="done"
+          >Done when: you have seen both a successful simulated door cycle and a
+          timeout without automatic retries.</span
+        >
+      </section>
+      <section id="connect">
+        <div class="section-title">
+          <span class="num">04</span>
+          <h2>Connect the real machine.</h2>
+        </div>
+        <ol class="step-list">
+          <li>
+            <b>Close the original app.</b>Only one client may be able to hold
+            the BLE connection. Keep other phones and Bluetooth diagnostic apps
+            disconnected.
+          </li>
+          <li>
+            <b>Name your local machine record.</b>Use the settings gear while
+            disconnected. Set its name and location. Leave PDF command profile
+            and F0=open for the first test. The Bluetooth name is saved after
+            the first successful connection.
+          </li>
+          <li>
+            <b>Press Connect machine.</b>Choose the machine in Chrome’s
+            Bluetooth picker. Likely prefixes include KSJ, B000, or YJKJ. If it
+            does not appear, cancel and tick Show all nearby devices, then try
+            again. Select only the unit you own.
+          </li>
+          <li>
+            <b>Wait for the handshake.</b>The app discovers the service,
+            subscribes to notifications, sends the handshake, and waits for its
+            positive reply. It then queries device information and all doors.
+          </li>
+          <li>
+            <b>Check the readback against reality.</b>With all doors physically
+            closed, the app should report closed. If the states are reversed,
+            check one known open door before selecting the inverted sensor
+            setting while disconnected. If states are unknown, inspect Activity
+            before continuing.
+          </li>
+          <li>
+            <b>Arm this session.</b>Tick I’m beside my machine. The app resets
+            this checkbox at disconnect. Buttons stay disabled while another
+            command is running.
+          </li>
+        </ol>
+        <div class="callout">
+          <b>Ready means a reply arrived.</b>The app never treats connection or
+          GATT write success alone as a completed handshake. If the firmware
+          sends a different acknowledgment, the session stays unavailable and
+          the raw reply appears in Activity for diagnosis.
+        </div>
+        <span class="done"
+          >Done when: the expected device is connected, handshake confirmed, and
+          a closed door’s reported state agrees with the hardware.</span
+        >
+      </section>
+      <section id="first">
+        <div class="section-title">
+          <span class="num">05</span>
+          <h2>Open the first door.</h2>
+        </div>
+        <ol class="step-list">
+          <li>
+            <b>Use an empty compartment.</b>Stand next to the machine and
+            identify physical door 1. Keep fingers out of the latch and hinge
+            path.
+          </li>
+          <li>
+            <b>Tap door 01 and review.</b>The confirmation identifies the
+            machine, Bluetooth name, profile and outgoing command. Click Open
+            door 1 once.
+          </li>
+          <li>
+            <b>Wait and observe.</b>The app checks a fresh closed state first,
+            writes one command and waits for that door’s OPEN report. Watch for
+            the latch releasing and the correct compartment opening.
+          </li>
+          <li>
+            <b>Close it manually.</b>There is no powered “close” command in the
+            supplied protocol. Close the door and wait for CLOSED, or use
+            Refresh status.
+          </li>
+          <li>
+            <b>Record the result.</b>Check the first-door step in Field guide
+            only after the physical behavior and readback agree. Export the
+            session if anything is unclear.
+          </li>
+        </ol>
+        <div class="callout warn">
+          <b>If it times out, stop tapping.</b>The door may still have moved.
+          Inspect it, close it, refresh the readback, and decide whether another
+          single attempt is appropriate. The app never automatically retries an
+          unlock.
+        </div>
+        <span class="done"
+          >Done when: one command opens the intended compartment, the open
+          sensor is reported, and manual closing returns a closed report.</span
+        >
+      </section>
+      <section id="twelve">
+        <div class="section-title">
+          <span class="num">06</span>
+          <h2>Check all twelve doors.</h2>
+        </div>
+        <p>
+          Work through doors 2–9 individually. Note any numbering mismatch on
+          the physical cabinet. Then check 10, 11 and 12: the supplied sources
+          disagree on these three command bytes.
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Profile</th>
+                <th>Doors 1–9</th>
+                <th>Door 10</th>
+                <th>Door 11</th>
+                <th>Door 12</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>PDF (default)</strong></td>
+                <td>01–09</td>
+                <td>0A</td>
+                <td>0B</td>
+                <td>0C</td>
+              </tr>
+              <tr>
+                <td><strong>APK</strong></td>
+                <td>01–09</td>
+                <td>10</td>
+                <td>11</td>
+                <td>12</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small">
+          Every value above is hexadecimal. APK 10 means decimal 16, not decimal
+          10.
+        </p>
+        <ol>
+          <li>Test door 10 once with PDF.</li>
+          <li>
+            If it fails, inspect all doors before proceeding. Disconnect, change
+            Door command profile to APK in settings, reconnect, verify closed
+            states and arm again.
+          </li>
+          <li>
+            Test doors 10–12 individually with the alternate profile. Do not
+            cycle every door at once.
+          </li>
+          <li>
+            Keep the profile that matches your board, and record it in the
+            results below.
+          </li>
+        </ol>
+        <span class="done"
+          >Done when: every displayed door number has a known physical match and
+          each reports a verified open/close cycle.</span
+        >
+      </section>
+      <section id="stock">
+        <div class="section-title">
+          <span class="num">07</span>
+          <h2>Stock, collect, and keep records.</h2>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>Record the compartment</h3>
+            <p>
+              Open Inventory → Edit stock. Add a product name, the actual count
+              inside, reference price, category and any expiry/refill notes.
+              Pausing a slot prevents collection from it.
+            </p>
+            <span class="done">Count physically before saving.</span>
+          </article>
+          <article class="card">
+            <h3>Collect one item</h3>
+            <p>
+              With the session armed and the door closed, click Collect. Confirm
+              the unlock. After inspecting the open compartment, choose I took
+              one item or No item taken.
+            </p>
+            <span class="done">A sensor report alone never reduces stock.</span>
+          </article>
+          <article class="card">
+            <h3>Keep the evidence</h3>
+            <p>
+              Activity records pending, opened, collected, cancelled or unknown
+              outcomes. An uncertain operation can be inspected and resolved
+              there later. Export the session and inventory backup.
+            </p>
+            <span class="done">Confirm collection only once.</span>
+          </article>
+        </div>
+        <div class="callout">
+          <b>This is an operator field app.</b>Prices are reference labels. It
+          does not charge a card, send a crypto transaction, authorize
+          customers, or prove payment. Existing web3 pages are preserved
+          separately in the repository; the payment-to-KSJ workflow is not
+          integrated. Bluetooth commands are not a substitute for a secure
+          paid-vending architecture.
+        </div>
+        <p>
+          Catalogs, machine settings and the collection ledger are stored in
+          this browser. The app has no stock sensor or cloud sync. A practice
+          collection never changes real inventory. A real collection reduces its
+          recorded count only after your explicit confirmation. If a page closes
+          mid-operation, the pending record is restored as unknown.
+        </p>
+        <h3 style="margin-top: 24px">Backup and move to another device</h3>
+        <ol>
+          <li>
+            In Field guide, click Export inventory backup. Save the JSON file
+            somewhere you can find it.
+          </li>
+          <li>
+            On the other device, open the app, remain disconnected, and use
+            Import backup.
+          </li>
+          <li>
+            Review the number of machines before replacing the local records.
+            Reconnect to obtain fresh hardware states; backups never establish a
+            live connection.
+          </li>
+        </ol>
+        <h3 style="margin-top: 24px">QR labels</h3>
+        <p>
+          Machine settings accepts a pasted QR URL or a camera scan. The last
+          URL path segment becomes a local label. Scanning never automatically
+          opens a link. It does not rename, register, transfer ownership of, or
+          bind the controller in the vendor’s cloud.
+        </p>
+      </section>
+      <section id="usb">
+        <div class="section-title">
+          <span class="num">08</span>
+          <h2>Check power and USB.</h2>
+        </div>
+        <ol>
+          <li>
+            Refresh status. Battery-powered units should report a percentage,
+            including 0%. Non-battery mode is labeled External power.
+          </li>
+          <li>
+            If the machine has a USB output, connect a harmless USB light or
+            meter.
+          </li>
+          <li>
+            Expand Device tools → USB on. Review and send the command. Check the
+            light or meter.
+          </li>
+          <li>
+            Send USB off and verify physically. The UI deliberately says command
+            written, not power confirmed.
+          </li>
+          <li>
+            Disconnect and reconnect once. Verify that a new handshake and fresh
+            state queries succeed.
+          </li>
+        </ol>
+        <div class="callout warn">
+          <b>The USB documentation is incomplete.</b>The APK has complete on/off
+          packets; the PDF instead lists different one-byte values and an
+          unframed timer. The implementation uses the APK packets and does not
+          guess the timer protocol. Skip USB if your board lacks the port or the
+          vendor confirms a different board variant.
+        </div>
+        <p class="small">
+          On: <code>88 F0 01 88</code>. Off: <code>88 F0 00 88</code>. No
+          positive USB-status acknowledgment was verified from the supplied
+          material.
+        </p>
+      </section>
+      <section id="trouble">
+        <div class="section-title">
+          <span class="num">09</span>
+          <h2>Troubleshoot calmly.</h2>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>What you see</th>
+                <th>What to do</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>No Web Bluetooth / insecure origin</td>
+                <td>
+                  Use Chrome on Android/macOS/Windows, with HTTPS or localhost.
+                  For an Android local session use USB forwarding. iOS is not
+                  supported for this direct transport.
+                </td>
+              </tr>
+              <tr>
+                <td>Machine absent from picker</td>
+                <td>
+                  Power/wake it, move closer, close the original app, and try
+                  Show all nearby devices. Confirm OS Bluetooth permission for
+                  Chrome.
+                </td>
+              </tr>
+              <tr>
+                <td>Expected-name mismatch</td>
+                <td>
+                  Pick the stored device name. If its name actually changed,
+                  disconnect and update Expected Bluetooth name in settings
+                  after verifying the hardware.
+                </td>
+              </tr>
+              <tr>
+                <td>No FFC0 / FFF0 service</td>
+                <td>
+                  Wrong device or different board. Export the log and compare
+                  the service UUID with the vendor. Do not send arbitrary bytes
+                  to a guessed characteristic.
+                </td>
+              </tr>
+              <tr>
+                <td>Handshake timeout / rejected</td>
+                <td>
+                  Export Activity. Compare the received bytes with the supplied
+                  PDF photograph. Power-cycle only with the vendor’s normal
+                  instructions, then reconnect. The app will not unlock before a
+                  positive handshake.
+                </td>
+              </tr>
+              <tr>
+                <td>States remain unknown</td>
+                <td>
+                  The query may be unsupported or the reply malformed. Preserve
+                  the raw bytes. Controls remain unavailable until a closed
+                  state is known; use the vendor app to establish a baseline.
+                </td>
+              </tr>
+              <tr>
+                <td>Open reports closed (or reverse)</td>
+                <td>
+                  Check a known open door and a known closed door. Then
+                  disconnect, change sensor interpretation, reconnect and repeat
+                  the baseline check.
+                </td>
+              </tr>
+              <tr>
+                <td>Only doors 10–12 fail</td>
+                <td>
+                  Inspect first, then try the alternate PDF/APK command profile
+                  as described in step 06.
+                </td>
+              </tr>
+              <tr>
+                <td>Unlock timed out / disconnected</td>
+                <td>
+                  Outcome is unknown. Inspect the physical door, close it, and
+                  refresh. Never assume another attempt is needed merely because
+                  a reply was lost.
+                </td>
+              </tr>
+              <tr>
+                <td>Bluetooth disconnects in background</td>
+                <td>
+                  Keep Chrome and the screen active during the test. Reconnect,
+                  re-check closed states, and re-arm. Background vending is not
+                  supported.
+                </td>
+              </tr>
+              <tr>
+                <td>Inventory looks empty on another device</td>
+                <td>
+                  Storage is per browser and origin. Export/import your backup.
+                  Hosted HTTPS and localhost have separate data.
+                </td>
+              </tr>
+              <tr>
+                <td>Storage error</td>
+                <td>
+                  Export the original storage using the recovery button before
+                  resuming saves. Free browser storage or use a regular
+                  non-private window.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <details>
+          <summary>Use the original APK as a comparison tool</summary>
+          <p>
+            On Android, install only the supplied APK from your trusted seller.
+            Android may require permission to install from the file manager.
+            Open it and enter the account/password already provided in the chat;
+            they are intentionally absent from this guide. Its login requires
+            the vendor service. Grant Bluetooth/Nearby devices and any legacy
+            location permission it requests. Disconnect it fully before
+            reconnecting Mutual Vend.
+          </p>
+          <p>
+            No vendor login has been verified during development. The app’s
+            static contents were inspected, not executed on a physical phone. If
+            both apps fail, record the exact board name, power state and
+            symptoms for the seller.
+          </p>
+        </details>
+      </section>
+      <section id="repos">
+        <div class="section-title">
+          <span class="num">10</span>
+          <h2>Which repository should you use?</h2>
+        </div>
+        <p>
+          They are complementary projects. The newest relevant work is on
+          feature branches, so simply cloning each default branch misses it.
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Repository</th>
+                <th>Latest relevant branch inspected</th>
+                <th>What it means</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a href="https://github.com/communetxyz/mutual-vend-app"
+                    >communetxyz / mutual-vend-app</a
+                  >
+                </td>
+                <td>
+                  <code>feat/sepolia-deploy</code><br /><code>391f74e</code> ·
+                  Feb 12, 2026
+                </td>
+                <td>
+                  Newest existing frontend work, still in open PR #2. New
+                  implementation: <code>feat/ksj-field-app</code>, folder
+                  <code>field/</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="https://github.com/communetxyz/mutual-vend-be"
+                    >communetxyz / mutual-vend-be</a
+                  >
+                </td>
+                <td>
+                  <code>websocket-architecture</code><br /><code>250ac6e</code>
+                  · Jan 23, 2026
+                </td>
+                <td>
+                  Alternative websocket work. Main automates another vendor’s
+                  AVA site; another branch uses RPi GPIO. Neither is the KSJ BLE
+                  backend this machine needs.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="https://github.com/communetxyz/mutual-vend-sc"
+                    >communetxyz / mutual-vend-sc</a
+                  >
+                </td>
+                <td>
+                  <code>feat/tests-and-deploy</code><br /><code>57acc0d</code> ·
+                  Feb 12, 2026
+                </td>
+                <td>
+                  Newer contract tests/deployment scripts and platform
+                  additions. Default <code>dev</code> remains older. No
+                  deployment is assumed from a commit title.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="https://github.com/ronTuretzky/mutual-vend-sc"
+                    >RonTuretzky / mutual-vend-sc</a
+                  >
+                </td>
+                <td>
+                  <code>dev</code> · <code>023b6ad</code><br />Sep 14, 2025
+                </td>
+                <td>
+                  Identical to upstream dev at the inspected SHA; older than
+                  upstream feature work.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <a
+                    href="https://github.com/decentralparknyc/decentralpark-ui-kit"
+                    >Decentral Park UI kit</a
+                  >
+                </td>
+                <td>
+                  <code>main</code> · <code>7696b1b</code><br />Jul 9, 2026
+                </td>
+                <td>
+                  Actual Button, Logo, Heading1, theme and fonts are packaged
+                  into the field app.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small">
+          Remote branches and histories inspected October 2, 2026. The full
+          audit is in <code>field/docs/EVIDENCE.md</code>. Existing Next.js
+          pages, backend and smart contracts remain preserved; direct BLE needs
+          no running backend.
+        </p>
+      </section>
+      <section id="parity">
+        <div class="section-title">
+          <span class="num">11</span>
+          <h2>What is implemented?</h2>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>Implementation</th>
+                <th>Evidence boundary</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Scan/connect, handshake, disconnect</td>
+                <td><span class="badge">Implemented</span></td>
+                <td>
+                  Real BLE + separate simulator; positive handshake reply
+                  required.
+                </td>
+              </tr>
+              <tr>
+                <td>All 12 door buttons and lock readback</td>
+                <td><span class="badge">Implemented</span></td>
+                <td>
+                  Two explicit encoding profiles. Physical mapping remains to be
+                  tested.
+                </td>
+              </tr>
+              <tr>
+                <td>Battery / external power</td>
+                <td><span class="badge">Implemented</span></td>
+                <td>Valid framed replies only; 0% is preserved.</td>
+              </tr>
+              <tr>
+                <td>USB on/off</td>
+                <td><span class="badge">Implemented</span></td>
+                <td>
+                  APK packets; physical confirmation required. Timer omitted
+                  because framing is unspecified.
+                </td>
+              </tr>
+              <tr>
+                <td>Raw device logs</td>
+                <td><span class="badge">Improved</span></td>
+                <td>
+                  Readable TX/RX, timestamps, errors, mode labeling and export.
+                </td>
+              </tr>
+              <tr>
+                <td>Inventory, collection, backup, checklist</td>
+                <td><span class="badge">Added</span></td>
+                <td>
+                  Local operator records, explicit collection confirmation, no
+                  automatic stock-sensor claim.
+                </td>
+              </tr>
+              <tr>
+                <td>Vendor account login</td>
+                <td><span class="badge">Direct BLE replaces it</span></td>
+                <td>
+                  Account credentials are not required or stored by this field
+                  app. Vendor login was not exercised.
+                </td>
+              </tr>
+              <tr>
+                <td>QR label / camera</td>
+                <td><span class="badge">Implemented locally</span></td>
+                <td>
+                  No cloud binding or firmware rename. APK name input is
+                  read-only and rename helper is not wired to a live action.
+                </td>
+              </tr>
+              <tr>
+                <td>Paid public vending</td>
+                <td><span class="badge pending">Not integrated</span></td>
+                <td>
+                  No customer payment, payment verification, refund handling or
+                  production access control. Older web3 code is separate.
+                </td>
+              </tr>
+              <tr>
+                <td>Unattended operation / iPhone BLE</td>
+                <td><span class="badge pending">Not supported here</span></td>
+                <td>
+                  Requires another transport or a local hardware gateway, plus
+                  hardware testing.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small">
+          The supplied APK is a service tool, not a complete customer
+          storefront. This replacement covers its active local control paths and
+          adds field operations. The vendor’s account service, arbitrary
+          RSSI/MAC scanning and any undocumented provisioning remain outside the
+          browser implementation.
+        </p>
+      </section>
+      <section id="results">
+        <div class="section-title">
+          <span class="num">12</span>
+          <h2>Record the result.</h2>
+        </div>
+        <p>
+          Check these only after doing them on the real machine. This standalone
+          guide stores checkmarks and notes locally when browser storage is
+          available. The app has a separate checklist for each machine and mode.
+        </p>
+        <ul class="checklist">
+          <li>
+            <label
+              ><input type="checkbox" data-check="power" />Machine powered and
+              physical doors inspected.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input type="checkbox" data-check="handshake" />Expected device
+              connected; positive handshake received.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input type="checkbox" data-check="first" />Door 1 physically
+              opened once and reported open, then closed.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input type="checkbox" data-check="twelve" />All twelve numbers
+              mapped and tested individually.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input type="checkbox" data-check="battery" />Battery or
+              external-power report checked.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input type="checkbox" data-check="usb" />USB on/off checked, or
+              marked not applicable in notes.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input
+                type="checkbox"
+                data-check="reconnect"
+              />Disconnect/reconnect repeated successfully.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input type="checkbox" data-check="item" />One real item
+              collected and inventory reconciled.</label
+            >
+          </li>
+          <li>
+            <label
+              ><input type="checkbox" data-check="export" />Session log and
+              inventory backup exported.</label
+            >
+          </li>
+        </ul>
+        <div class="result-line">
+          <label
+            >Machine / Bluetooth name<input
+              type="text"
+              data-note="machine"
+              placeholder="e.g. KSJ…" /></label
+          ><label
+            >Working profile and sensor polarity<input
+              type="text"
+              data-note="profile"
+              placeholder="PDF or APK; F0 open or closed" /></label
+          ><label class="wide"
+            >Observations, mapping differences, errors, firmware
+            version<textarea
+              data-note="notes"
+              placeholder="What happened physically? Which door? What did Activity report?"
+            ></textarea>
+          </label>
+        </div>
+        <div class="hero-links">
+          <button id="export-notes">Export these notes</button
+          ><button onclick="window.print()">Print completed guide</button>
+        </div>
+        <p class="small">
+          Useful handoff: session JSON + inventory JSON + these notes. Include
+          the actual device name, working profile, and what physically happened.
+          Do not include passwords.
+        </p>
+      </section>
+      <div class="footer">
+        <span
+          >Mutual Vend · Built with the Decentral Park design system<br />Prepared
+          October 2, 2026 · local-first field work</span
+        ><span
+          >Protocol: supplied KSJ PDF (Jan 4, 2024) and APK (Sep 26, 2024).<br /><a
+            href="https://developer.chrome.com/docs/capabilities/bluetooth"
+            >Chrome Bluetooth documentation</a
+          >
+          ·
+          <a
+            href="https://github.com/communetxyz/mutual-vend-app/tree/feat/ksj-field-app/field"
+            >Source code</a
+          ></span
+        >
+      </div>
+    </main>
+    <script>
+      const storageKey = "mutual-vend-guide-notes-v1";
+      let notes = {};
+      try {
+        notes = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      } catch {}
+      const persist = () => {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(notes));
+        } catch {}
+      };
+      document.querySelectorAll("[data-check]").forEach((el) => {
+        el.checked = !!notes[el.dataset.check];
+        el.addEventListener("change", () => {
+          notes[el.dataset.check] = el.checked;
+          persist();
+        });
+      });
+      document.querySelectorAll("[data-note]").forEach((el) => {
+        el.value = notes[el.dataset.note] || "";
+        el.addEventListener("input", () => {
+          notes[el.dataset.note] = el.value;
+          persist();
+        });
+      });
+      document.querySelectorAll("[data-copy]").forEach((button) =>
+        button.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(
+              button.parentElement.querySelector("code").innerText,
+            );
+            button.textContent = "Copied";
+            setTimeout(() => (button.textContent = "Copy"), 1600);
+          } catch {
+            button.textContent = "Select text to copy";
+          }
+        }),
+      );
+      document.querySelector("#export-notes").addEventListener("click", () => {
+        const url = URL.createObjectURL(
+          new Blob(
+            [
+              JSON.stringify(
+                { at: new Date().toISOString(), ...notes },
+                null,
+                2,
+              ),
+            ],
+            { type: "application/json" },
+          ),
+        );
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "mutual-vend-physical-test-notes.json";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+    </script>
+  </body>
+</html>

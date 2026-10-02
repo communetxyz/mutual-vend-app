@@ -1,0 +1,1 @@
+{"name":"Mutual Vend Field App","short_name":"Mutual Vend","description":"KSJ Bluetooth vending machine field control","start_url":"./","display":"standalone","background_color":"#f0fdf4","theme_color":"#14211a","lang":"en","scope":"./","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
