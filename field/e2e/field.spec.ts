@@ -122,3 +122,86 @@ test("settings reject wrong inputs and keep hardware changes disconnected", asyn
   await page.getByRole("button", { name: "Save compartment" }).click();
   await expect(page.getByRole("alert")).toContainText("whole stock count");
 });
+
+test("mocked real Bluetooth: arming, physical collection confirmation, and stock persistence", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const states = Array(12).fill(0x0f);
+    const rx = Object.assign(new EventTarget(), {
+      value: undefined as DataView | undefined,
+      startNotifications: async () => {},
+    });
+    const emit = (bytes: number[]) =>
+      setTimeout(() => {
+        rx.value = new DataView(Uint8Array.from(bytes).buffer);
+        rx.dispatchEvent(new Event("characteristicvaluechanged"));
+      }, 10);
+    const tx = {
+      properties: { write: true },
+      writeValueWithResponse: async (bytes: Uint8Array) => {
+        if (bytes[0] === 0x8e) emit([0xe8, 0xf0, 0, 0, 0, 0x8e]);
+        if (bytes[0] === 0x66 && bytes[1] === 0xf0)
+          emit([0x77, 2, 1, 64, 0x51, 0x48, 0x4c, 0x66]);
+        if (bytes[0] === 0x66 && bytes[1] === 0xf1)
+          emit([0x1e, ...states, 0x1b]);
+        if (bytes[0] === 0xff) {
+          states[bytes[6] - 1] = 0xf0;
+          emit([0x1c, ...states, 0x1b]);
+        }
+      },
+    };
+    const service = {
+      getCharacteristic: async (id: number) => (id === 0xffc1 ? tx : rx),
+    };
+    const device = Object.assign(new EventTarget(), {
+      name: "KSJ-mocked-test",
+      gatt: {
+        connected: true,
+        connect: async () => ({ getPrimaryService: async () => service }),
+        disconnect: () => {},
+      },
+    });
+    Object.defineProperty(navigator, "bluetooth", {
+      value: { requestDevice: async () => device },
+      configurable: true,
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Inventory", exact: true }).click();
+  await page.getByRole("button", { name: "Edit stock" }).first().click();
+  await page.getByLabel("Product name", { exact: true }).fill("Test item");
+  await page.getByLabel("Quantity inside").fill("2");
+  await page.getByRole("button", { name: "Save compartment" }).click();
+  await page.getByRole("button", { name: "Machine", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Connect machine", exact: true })
+    .click();
+  await expect(page.getByText("✓ Handshake confirmed")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Test door 1, closed", exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel("I’m beside my machine").check();
+  await expect(
+    page.getByRole("button", { name: "Test door 1, closed", exact: true }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "Inventory", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Collect", exact: true })
+    .first()
+    .click();
+  await page
+    .getByRole("button", { name: "Open door 1 once", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Inspect door 1" }),
+  ).toBeVisible();
+  await expect(page.getByText("2 recorded inside")).toBeVisible();
+  await page.getByRole("button", { name: "I took one item" }).click();
+  await expect(page.getByText("1 recorded inside")).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: "Inventory", exact: true }).click();
+  await expect(page.getByText("1 recorded inside")).toBeVisible();
+  await page.getByRole("button", { name: "Activity", exact: true }).click();
+  await expect(page.getByText("collected", { exact: true })).toBeVisible();
+});

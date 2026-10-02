@@ -4,7 +4,7 @@ Local verification on 2026-10-02:
 
 - 35 unit/integration tests passed: protocol fixtures, handshake failure, zero battery, both door profiles, frame resynchronization, same-door readback, busy locks, timeouts including hung native writes, disconnect cleanup, real browser transport wiring with mocked GATT, backup validation and interrupted-operation recovery.
 - TypeScript strict compilation and production Vite/PWA build passed.
-- 6 Playwright workflow tests passed across desktop Chrome and emulated Android viewport: simulated door lifecycle, stock editing, collection, persistence, export, failure recovery and settings validation.
+- 8 Playwright workflow tests passed across desktop Chrome and emulated Android viewport: simulated door lifecycle, stock editing, collection, persistence, export, failure recovery and settings validation. The added mocked-Bluetooth browser flow verifies that real-mode controls require arming and stock changes only after collection confirmation; it does not touch hardware.
 - 2 production-browser tests passed: app/guide load offline under the service worker, notes persist, no page runtime errors, no horizontal mobile overflow, and zero automated WCAG A/AA violations on the initial app and standalone guide.
 - Desktop and mobile app layouts were visually inspected. Status meaning uses text/icons as well as color.
 - Shell launcher passed `zsh -n`.
